@@ -29,12 +29,14 @@ OBJS_TEST := $(SRCS_TEST:.cc=.o)
 DEPS_TEST := $(OBJS_TEST:.o=.d)
 
 SRCS_PB := $(wildcard proto/*.proto)
-GENS_PB := $(SRCS_PB:.proto=.pb.cc) $(PROTOS:.proto=.pb.h)
+GENS_PB := $(SRCS_PB:.proto=.pb.cc)
 OBJS_PB := $(SRCS_PB:.proto=.pb.o)
+HEAD_PB := $(SRCS_PB:.proto=.pb.h) $(SRCS_PB:.proto=.pb.d)
 
 SRCS_GRPC := $(wildcard proto/*.proto)
-GENS_GRPC := $(SRCS_PB:.proto=.grpc.pb.cc) $(PROTOS:.proto=.pb.grpc.h)
-OBJS_GRPC := $(SRCS_PB:.proto=.grpc.pb.o)
+GENS_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.cc)
+OBJS_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.o)
+HEAD_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.h) $(SRCS_GRPC:.proto=.grpc.pb.d)
 
 .PHONY: all clean re test fmt help run inject server client
 
@@ -62,8 +64,8 @@ clean:
 	rm -rf $(OBJS_CLIENT) $(DEPS_CLIENT) $(CLIENT)
 	rm -rf $(OBJS_COMMON) $(DEPS_COMMON)
 	rm -rf $(OBJS_TEST) $(DEPS_TEST) $(TEST)
-	rm -rf $(GENS_PB) $(OBJS_PB)
-	rm -rf $(GENS_GRPC) $(OBJS_GRPC) 
+	rm -rf $(GENS_PB) $(OBJS_PB) $(HEAD_PB)
+	rm -rf $(GENS_GRPC) $(OBJS_GRPC) $(HEAD_GRPC)
 
 bin:
 	mkdir -p bin
@@ -100,5 +102,7 @@ client: $(CLIENT)
 test: $(TEST)
 	$(TEST)
 
--include $(DEPS)
+-include $(DEPS_SERVER)
+-include $(DEPS_CLIENT)
+-include $(DEPS_COMMON)
 -include $(DEPS_TEST)
