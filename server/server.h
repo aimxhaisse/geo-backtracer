@@ -12,6 +12,24 @@ namespace bt {
 
 class Pusher;
 
+// Some design notes on the threading model used here:
+//
+// - Using a single writer thread and inserting in order yields higher
+//   throughput in Rocksdb (source: Rocksdb's FAQ).
+//
+// - Batching writes as well, it is easier to have clients send
+//   batches of points as they can scale horizontally (i.e: if the
+//   backtracer does coalescing of points, it will increase CPU load
+//   which could be better used for rocksdb).
+//
+// - We probably will be stuck on I/Os in the end, which means having
+//   multiple threads accepting points won't yield better results.
+//
+// So having one thread accepting writes with one large completion
+// queue seems to be a good approach (clients will queue large
+// requests there and the single writer thread will push them in
+// order).
+
 // Options to initialize the db.
 struct Options {
   // Path to an existing database, if no path is set, an ephemeral
@@ -28,7 +46,9 @@ public:
 
   ~Server();
 
-  // Service to push points to the database.
+  // Service to push points to the database, see threading notes
+  // above, there is only one thread accepting requests and writing to
+  // the database in batches.
   class Pusher : public backtracer::Pusher::Service {
   public:
     Status Init();
