@@ -2,19 +2,34 @@ syntax = "proto3";
 
 package proto;
 
-// This service can be used to feed the backtracer with location
-// points.
+// --- Interface to push location points.
+
 service Pusher {
   rpc PutLocation(PutLocationRequest) returns (PutLocationResponse) {}
 }
 
-// The request message containing the user's name.
-message PutLocationRequest {
-  // Identifier of the user.
-  int64 user_id = 1;
+message Location {
+  int64 timestamp = 1;
+  int64 user_id = 2;
+  int32 gps_latitude = 3;
+  int32 gps_longitude = 4;
+  int32 gps_altitude = 5;
 }
 
-// Empty response for now: we might introduce a retry logic for when
-// the backtracer is restarted, but this likely can be handled via
-// gRPC.
+message PutLocationRequest {
+  repeated Location locations = 1;
+}
+
 message PutLocationResponse {}
+
+// --- Database internals.
+
+message DbInternalKey {
+  int64 timestamp = 1;
+  int64 user_id = 2;
+  int64 area = 3;
+}
+
+message DbInternalValue {
+  int64 location = 1;
+}

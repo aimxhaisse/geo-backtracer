@@ -30,8 +30,18 @@ Status Client::Run() {
 Status Client::BatchPush() {
   proto::PutLocationRequest request;
   proto::PutLocationResponse response;
-  request.set_user_id(42);
-  for (int i = 0; i < 10000; ++i) {
+
+  // Prepare a batch of 1000 points.
+  for (int i = 0; i < 1000; ++i) {
+    proto::Location *loc = request.add_locations();
+    loc->set_timestamp(i);
+    loc->set_user_id(i);
+    loc->set_gps_latitude(i);
+    loc->set_gps_longitude(i);
+  }
+
+  // Send this 1000 batch 10 times (i.e: push 10 000 points to database).
+  for (int i = 0; i < 10; ++i) {
     grpc::ClientContext context;
     grpc::Status status = stub_->PutLocation(&context, request, &response);
     if (!status.ok()) {
