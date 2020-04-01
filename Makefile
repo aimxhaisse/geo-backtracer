@@ -5,11 +5,12 @@
 CXXFLAGS = -g -Wno-deprecated-declarations -Wall -std=c++17 $(shell freetype-config --cflags) -Iserver -I.
 LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf
 
-PRGM := bin/bt_server
-TEST := bin/bt_test
-CXX  := clang++
-FMT  := clang-format
-PBUF := protoc
+SERVER := bin/bt_server
+CLIENT := bin/bt_client
+TEST   := bin/bt_test
+CXX    := clang++
+FMT    := clang-format
+PBUF   := protoc
 
 SRCS := $(filter-out $(wildcard server/*test.cc), $(wildcard server/*.cc))
 OBJS := $(SRCS:.cc=.o)
@@ -27,6 +28,10 @@ SRCS_GRPC := $(wildcard proto/*.proto)
 OBJS_GRPC := $(SRCS_PB:.proto=.grpc.pb.o)
 GENS_GRPC   := $(SRCS_PB:.proto=.grpc.pb.cc) $(PROTOS:.proto=.pb.grpc.h)
 
+SRCS_CLIENT := $(wildcard client/*.cc)
+OBJS_CLIENT := $(SRCS_CLIENT:.cc=.o)
+DEPS_CLIENT := $(OBJS_CLIENT:.o=.d)
+
 .PHONY: all clean re test fmt help run inject server client
 
 help:
@@ -39,28 +44,32 @@ help:
 	@echo "make test	# run unit tests"
 	@echo "make clean	# clean all build artifacts"
 	@echo "make re		# rebuild covid backtracer"
-	@echo "make run	# run a local instance of covid backtracer"
-	@echo "make inject	# inject fixtures into local instance"
+	@echo "make server	# run a local instance of covid backtracer"
+	@echo "make client	# inject fixtures into local instance"
 	@echo ""
 
-all: $(PRGM) $(TEST)
+all: $(SERVER) $(TEST)
 
 fmt:
 	$(FMT) -i -style Chromium $(SRCS)
 
 clean:
-	rm -rf $(OBJS) $(DEPS) $(PRGM)
+	rm -rf $(OBJS) $(DEPS) $(SERVER)
 	rm -rf $(OBJS_TEST) $(DEPS_TEST) $(TEST)
 	rm -rf $(GENS_PB) $(OBJS_PB)
 	rm -rf $(GENS_GRPC) $(OBJS_GRPC)
+	rm -rf $(OBJS_CLIENT) $(DEPS_CLIENT)
 
 bin:
 	mkdir -p bin
 
 re: clean all
 
-$(PRGM): bin $(OBJS) $(OBJS_PB) $(OBJS_GRPC)
+$(SERVER): bin $(OBJS) $(OBJS_PB) $(OBJS_GRPC)
 	$(CXX) $(OBJS) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -o $@
+
+$(CLIENT): bin $(OBJS_CLIENT) $(OBJS_PB)
+	$(CXX) $(OBJS_CLIENT) $(OBJS_PB) $(LDLIBS) -o $@
 
 $(TEST): bin $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC)
 	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
@@ -77,13 +86,14 @@ $(TEST): bin $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC)
 %.pb.o : %.pb.cc
 	$(CXX) $(CXX_FLAGS) -c -o $@ $<
 
-server: $(PRGM)
-	$(PRGM)
+server: $(SERVER)
+	$(SERVER)
 
 test: $(TEST)
 	$(TEST)
 
-inject: $(PRGM)
+client: $(CLIENT)
+	$(CLIENT)
 
 -include $(DEPS)
 -include $(DEPS_TEST)
