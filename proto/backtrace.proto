@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package backtracer;
 
-// This streaming service can be used to feed the backtracer with
-// location points.
+// This service can be used to feed the backtracer with location
+// points.
 service Pusher {
   rpc PutLocation(PutLocationRequest) returns (PutLocationResponse) {}
 }
