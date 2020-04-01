@@ -1,11 +1,13 @@
 #include <glog/logging.h>
 
-#include "server.h"
-#include "utils.h"
+#include "common/utils.h"
+#include "server/server.h"
 
 namespace bt {
 
+namespace {
 constexpr char kServerAddress[] = "0.0.0.0:6000";
+} // anonymous namespace
 
 Status Server::InitPath(const Options &server_options) {
   if (server_options.db_path_.has_value() &&

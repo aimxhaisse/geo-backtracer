@@ -1,13 +1,12 @@
 #pragma once
 
+#include <grpcpp/grpcpp.h>
 #include <memory>
 #include <optional>
+#include <rocksdb/db.h>
 
-#include <grpcpp/grpcpp.h>
-
+#include "common/status.h"
 #include "proto/backtrace.grpc.pb.h"
-#include "rocksdb/db.h"
-#include "status.h"
 
 namespace bt {
 

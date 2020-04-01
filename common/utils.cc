@@ -1,7 +1,7 @@
 #include <boost/filesystem.hpp>
 #include <glog/logging.h>
 
-#include "utils.h"
+#include "common/utils.h"
 
 namespace bt {
 namespace utils {

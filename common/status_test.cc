@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "status.h"
+#include "common/status.h"
 
 namespace bt {
 namespace {

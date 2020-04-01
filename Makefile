@@ -2,7 +2,7 @@
 #
 # For now, all-in-one binary; this is meant to be split at some point.
 
-CXXFLAGS = -g -Wno-deprecated-declarations -Wall -std=c++17 $(shell freetype-config --cflags) -Iserver -I.
+CXXFLAGS = -g -Wno-deprecated-declarations -Wall -std=c++17 $(shell freetype-config --cflags) -I.
 LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf
 
 SERVER := bin/bt_server
@@ -12,25 +12,29 @@ CXX    := clang++
 FMT    := clang-format
 PBUF   := protoc
 
-SRCS := $(filter-out $(wildcard server/*test.cc), $(wildcard server/*.cc))
-OBJS := $(SRCS:.cc=.o)
-DEPS := $(OBJS:.o=.d)
-
-SRCS_TEST := $(filter-out server/main.cc, $(wildcard server/*.cc))
-OBJS_TEST := $(SRCS_TEST:.cc=.o)
-DEPS_TEST := $(OBJS_TEST:.o=.d)
-
-SRCS_PB   := $(wildcard proto/*.proto)
-OBJS_PB   := $(SRCS_PB:.proto=.pb.o)
-GENS_PB   := $(SRCS_PB:.proto=.pb.cc) $(PROTOS:.proto=.pb.h)
-
-SRCS_GRPC := $(wildcard proto/*.proto)
-OBJS_GRPC := $(SRCS_PB:.proto=.grpc.pb.o)
-GENS_GRPC   := $(SRCS_PB:.proto=.grpc.pb.cc) $(PROTOS:.proto=.pb.grpc.h)
+SRCS_SERVER := $(filter-out $(wildcard server/*test.cc), $(wildcard server/*.cc))
+OBJS_SERVER := $(SRCS_SERVER:.cc=.o)
+DEPS_SERVER := $(OBJS_SERVER:.o=.d)
 
 SRCS_CLIENT := $(wildcard client/*.cc)
 OBJS_CLIENT := $(SRCS_CLIENT:.cc=.o)
 DEPS_CLIENT := $(OBJS_CLIENT:.o=.d)
+
+SRCS_COMMON := $(filter-out $(wildcard common/*test.cc), $(wildcard common/*.cc))
+OBJS_COMMON := $(SRCS_COMMON:.cc=.o)
+DEPS_COMMON := $(OBJS_COMMON:.o=.d)
+
+SRCS_TEST := $(filter-out server/main.cc, $(wildcard server/*.cc)) $(wildcard common/*.cc)
+OBJS_TEST := $(SRCS_TEST:.cc=.o)
+DEPS_TEST := $(OBJS_TEST:.o=.d)
+
+SRCS_PB := $(wildcard proto/*.proto)
+GENS_PB := $(SRCS_PB:.proto=.pb.cc) $(PROTOS:.proto=.pb.h)
+OBJS_PB := $(SRCS_PB:.proto=.pb.o)
+
+SRCS_GRPC := $(wildcard proto/*.proto)
+GENS_GRPC := $(SRCS_PB:.proto=.grpc.pb.cc) $(PROTOS:.proto=.pb.grpc.h)
+OBJS_GRPC := $(SRCS_PB:.proto=.grpc.pb.o)
 
 .PHONY: all clean re test fmt help run inject server client
 
@@ -48,31 +52,23 @@ help:
 	@echo "make client	# inject fixtures into local instance"
 	@echo ""
 
-all: $(SERVER) $(TEST)
+all: $(SERVER) $(CLIENT) $(TEST)
 
 fmt:
-	$(FMT) -i -style Chromium $(SRCS)
+	$(FMT) -i -style Chromium $(SRCS_SERVER) $(SRCS_CLIENT) $(SRCS_COMMON)
 
 clean:
-	rm -rf $(OBJS) $(DEPS) $(SERVER)
+	rm -rf $(OBJS_SERVER) $(DEPS_SERVER) $(SERVER)
+	rm -rf $(OBJS_CLIENT) $(DEPS_CLIENT) $(CLIENT)
+	rm -rf $(OBJS_COMMON) $(DEPS_COMMON)
 	rm -rf $(OBJS_TEST) $(DEPS_TEST) $(TEST)
 	rm -rf $(GENS_PB) $(OBJS_PB)
-	rm -rf $(GENS_GRPC) $(OBJS_GRPC)
-	rm -rf $(OBJS_CLIENT) $(DEPS_CLIENT)
+	rm -rf $(GENS_GRPC) $(OBJS_GRPC) 
 
 bin:
 	mkdir -p bin
 
 re: clean all
-
-$(SERVER): bin $(OBJS) $(OBJS_PB) $(OBJS_GRPC)
-	$(CXX) $(OBJS) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -o $@
-
-$(CLIENT): bin $(OBJS_CLIENT) $(OBJS_PB)
-	$(CXX) $(OBJS_CLIENT) $(OBJS_PB) $(LDLIBS) -o $@
-
-$(TEST): bin $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC)
-	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
 
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
@@ -86,14 +82,23 @@ $(TEST): bin $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC)
 %.pb.o : %.pb.cc
 	$(CXX) $(CXX_FLAGS) -c -o $@ $<
 
+$(SERVER): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_SERVER) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON)
+	$(CXX) $(OBJS_SERVER) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON) $(LDLIBS) -o $@
+
+$(CLIENT): bin $(OBJS_COMMON) $(GENS_PB) $(OBJS_CLIENT) $(OBJS_PB)
+	$(CXX) $(OBJS_CLIENT) $(OBJS_PB) $(OBJS_COMMON) $(LDLIBS) -o $@
+
+$(TEST): bin $(OBJS_GRPC) $(OBJS_TEST) $(OBJS_PB)
+	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
+
 server: $(SERVER)
 	$(SERVER)
 
-test: $(TEST)
-	$(TEST)
-
 client: $(CLIENT)
 	$(CLIENT)
+
+test: $(TEST)
+	$(TEST)
 
 -include $(DEPS)
 -include $(DEPS_TEST)

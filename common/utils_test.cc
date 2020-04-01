@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "utils.h"
+#include "common/utils.h"
 
 namespace bt {
 namespace {

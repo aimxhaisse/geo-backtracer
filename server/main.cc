@@ -1,7 +1,7 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
-#include "server.h"
+#include "server/server.h"
 
 using namespace bt;
 

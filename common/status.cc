@@ -1,6 +1,6 @@
 #include <ostream>
 
-#include "status.h"
+#include "common/status.h"
 
 namespace bt {
 
