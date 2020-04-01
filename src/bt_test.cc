@@ -6,11 +6,14 @@
 namespace bt {
 namespace {
 
-TEST(BtTest, Default) {
-  Status status;
+TEST(BtTest, InitOk) {
   Backtracer tracer;
+  EXPECT_EQ(tracer.Init(::testing::TempDir()), StatusCode::OK);
+}
 
-  EXPECT_EQ(tracer.Init(), StatusCode::NOT_YET_IMPLEMENTED);
+TEST(BtTest, InitKo) {
+  Backtracer tracer;
+  EXPECT_EQ(tracer.Init("/dev/null"), StatusCode::INTERNAL_ERROR);
 }
 
 } // namespace

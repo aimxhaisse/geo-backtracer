@@ -3,7 +3,7 @@
 # For now, all-in-one binary; this is meant to be split at some point.
 
 CXXFLAGS = -g -Wall -std=c++17 $(shell freetype-config --cflags) -Isrc
-LDLIBS = -lglog -lgflags
+LDLIBS = -lglog -lgflags -lrocksdb
 
 PRGM := bin/bt
 TEST := bin/bt_test
@@ -26,7 +26,7 @@ help:
 	@echo "\033[1;31mThis is not production ready, some commands here are destructive.\033[0m"
 	@echo ""
 	@echo "make		# this message"
-	@echo "make all		# build everything"
+	@echo "make all	# build everything"
 	@echo "make test	# run unit tests"
 	@echo "make clean	# clean all build artifacts"
 	@echo "make re		# rebuild covid backtracer"
@@ -55,7 +55,9 @@ $(PRGM): bin $(OBJS)
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
 run: $(PRGM)
-	$(PRGM)
+	rm -rf data/sandbox
+	mkdir -p data/sandbox
+	$(PRGM) -path data/sandbox
 
 inject: $(PRGM)
 
