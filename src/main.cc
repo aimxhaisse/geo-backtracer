@@ -12,8 +12,11 @@ int main(int ac, char **av) {
   ::google::InitGoogleLogging(av[0]);
   ::gflags::ParseCommandLineFlags(&ac, &av, true);
 
+  Options options;
+  options.db_path_ = FLAGS_path;
+
   Backtracer tracer;
-  Status status = tracer.Init(FLAGS_path);
+  Status status = tracer.Init(options);
   if (status != StatusCode::OK) {
     LOG(ERROR) << "Unable to initialize backtracer, status=" << status;
   }

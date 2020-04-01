@@ -55,9 +55,7 @@ $(PRGM): bin $(OBJS)
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
 run: $(PRGM)
-	rm -rf data/sandbox
-	mkdir -p data/sandbox
-	$(PRGM) -path data/sandbox
+	$(PRGM)
 
 inject: $(PRGM)
 
