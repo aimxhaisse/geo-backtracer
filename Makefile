@@ -2,20 +2,20 @@
 #
 # For now, all-in-one binary; this is meant to be split at some point.
 
-CXXFLAGS = -g -Wno-deprecated-declarations -Wall -std=c++17 $(shell freetype-config --cflags) -Isrc -I.
+CXXFLAGS = -g -Wno-deprecated-declarations -Wall -std=c++17 $(shell freetype-config --cflags) -Iserver -I.
 LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf
 
-PRGM := bin/bt
+PRGM := bin/bt_server
 TEST := bin/bt_test
 CXX  := clang++
 FMT  := clang-format
 PBUF := protoc
 
-SRCS := $(filter-out $(wildcard src/*test.cc), $(wildcard src/*.cc))
+SRCS := $(filter-out $(wildcard server/*test.cc), $(wildcard server/*.cc))
 OBJS := $(SRCS:.cc=.o)
 DEPS := $(OBJS:.o=.d)
 
-SRCS_TEST := $(filter-out src/main.cc, $(wildcard src/*.cc))
+SRCS_TEST := $(filter-out server/main.cc, $(wildcard server/*.cc))
 OBJS_TEST := $(SRCS_TEST:.cc=.o)
 DEPS_TEST := $(OBJS_TEST:.o=.d)
 
