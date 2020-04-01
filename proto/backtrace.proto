@@ -11,9 +11,9 @@ service Pusher {
 message Location {
   int64 timestamp = 1;
   int64 user_id = 2;
-  int32 gps_latitude = 3;
-  int32 gps_longitude = 4;
-  int32 gps_altitude = 5;
+  float gps_latitude = 3;
+  float gps_longitude = 4;
+  float gps_altitude = 5;
 }
 
 message PutLocationRequest {
@@ -24,12 +24,15 @@ message PutLocationResponse {}
 
 // --- Database internals.
 
-message DbInternalKey {
+message DbKey {
   int64 timestamp = 1;
   int64 user_id = 2;
-  int64 area = 3;
+  float gps_longitude_zone = 3;
+  float gps_latitude_zone = 4;
 }
 
-message DbInternalValue {
-  int64 location = 1;
+message DbValue {
+  float gps_latitude = 1;
+  float gps_longitude = 2;
+  float gps_altitude = 3;
 }

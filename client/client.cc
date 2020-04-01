@@ -36,8 +36,9 @@ Status Client::BatchPush() {
     proto::Location *loc = request.add_locations();
     loc->set_timestamp(i);
     loc->set_user_id(i);
-    loc->set_gps_latitude(i);
-    loc->set_gps_longitude(i);
+    loc->set_gps_latitude(1.0);
+    loc->set_gps_longitude(1.0);
+    loc->set_gps_altitude(1.0);
   }
 
   // Send this 1000 batch 10 times (i.e: push 10 000 points to database).
