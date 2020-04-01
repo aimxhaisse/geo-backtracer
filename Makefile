@@ -18,17 +18,21 @@ SRCS_TEST := $(filter-out src/main.cc, $(wildcard src/*.cc))
 OBJS_TEST := $(SRCS_TEST:.cc=.o)
 DEPS_TEST := $(OBJS_TEST:.o=.d)
 
-.PHONY: all clean re test fmt help run
+.PHONY: all clean re test fmt help run inject
 
 help:
 	@echo "Help for Covid Backtracer:"
-	@echo "	"
-	@echo "	make		# build all"
-	@echo "	make test	# run unit tests"
-	@echo "	make clean	# clean all build artifacts"
-	@echo "	make re		# rebuild covid backtracer"
-	@echo "	make run	# run a local instance of covid backtracer"
-	@echo "	"
+	@echo ""
+	@echo "\033[1;31mThis is not production ready, some commands here are destructive.\033[0m"
+	@echo ""
+	@echo "make		# this message"
+	@echo "make all		# build everything"
+	@echo "make test	# run unit tests"
+	@echo "make clean	# clean all build artifacts"
+	@echo "make re		# rebuild covid backtracer"
+	@echo "make run	# run a local instance of covid backtracer"
+	@echo "make inject	# inject fixtures into local instance"
+	@echo ""
 
 all: $(PRGM) $(TEST)
 
@@ -52,6 +56,8 @@ $(PRGM): bin $(OBJS)
 
 run: $(PRGM)
 	$(PRGM)
+
+inject: $(PRGM)
 
 $(TEST): bin $(OBJS_TEST)
 	$(CXX) $(OBJS_TEST) $(LDLIBS) -lgtest -o $@
