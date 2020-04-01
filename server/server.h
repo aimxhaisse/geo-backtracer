@@ -49,14 +49,13 @@ public:
   // Service to push points to the database, see threading notes
   // above, there is only one thread accepting requests and writing to
   // the database in batches.
-  class Pusher : public backtracer::Pusher::Service {
+  class Pusher : public proto::Pusher::Service {
   public:
     Status Init();
 
-    grpc::Status
-    PutLocation(grpc::ServerContext *context,
-                const backtracer::PutLocationRequest *request,
-                backtracer::PutLocationResponse *response) override;
+    grpc::Status PutLocation(grpc::ServerContext *context,
+                             const proto::PutLocationRequest *request,
+                             proto::PutLocationResponse *response) override;
   };
 
 private:

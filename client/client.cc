@@ -11,7 +11,7 @@ constexpr char kServerAddress[] = "0.0.0.0:6000";
 } // anonymous namespace
 
 Status Client::Init() {
-  stub_ = backtracer::Pusher::NewStub(
+  stub_ = proto::Pusher::NewStub(
       grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
   return StatusCode::OK;
 }
@@ -28,8 +28,8 @@ Status Client::Run() {
 }
 
 Status Client::BatchPush() {
-  backtracer::PutLocationRequest request;
-  backtracer::PutLocationResponse response;
+  proto::PutLocationRequest request;
+  proto::PutLocationResponse response;
   request.set_user_id(42);
   for (int i = 0; i < 10000; ++i) {
     grpc::ClientContext context;

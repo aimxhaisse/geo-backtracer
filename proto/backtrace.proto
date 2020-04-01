@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package backtracer;
+package proto;
 
 // This service can be used to feed the backtracer with location
 // points.

@@ -26,7 +26,7 @@ private:
 
   // TODO: Configure this via a flag.
   Mode mode_ = BATCH_PUSH;
-  std::unique_ptr<backtracer::Pusher::Stub> stub_;
+  std::unique_ptr<proto::Pusher::Stub> stub_;
 };
 
 } // namespace bt

@@ -66,8 +66,8 @@ Status Server::Pusher::Init() { return StatusCode::OK; }
 
 grpc::Status
 Server::Pusher::PutLocation(grpc::ServerContext *context,
-                            const backtracer::PutLocationRequest *request,
-                            backtracer::PutLocationResponse *response) {
+                            const proto::PutLocationRequest *request,
+                            proto::PutLocationResponse *response) {
   LOG(INFO) << "PutLocation called";
   return grpc::Status::OK;
 }
