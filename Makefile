@@ -1,12 +1,12 @@
-# Covid Tracker.
+# Covid Backtracer.
 #
 # For now, all-in-one binary; this is meant to be split at some point.
 
 CXXFLAGS = -g -Wall -std=c++17 $(shell freetype-config --cflags) -Isrc
 LDLIBS = -lglog -lgflags
 
-PRGM := bin/tracker
-TEST := bin/tracker_test
+PRGM := bin/bt
+TEST := bin/bt_test
 CXX  := clang++
 FMT  := clang-format
 
@@ -14,7 +14,7 @@ SRCS := $(filter-out $(wildcard src/*_test.cc), $(wildcard src/*.cc))
 OBJS := $(SRCS:.cc=.o)
 DEPS := $(OBJS:.o=.d)
 
-SRCS_TEST := $(filter-out src/main.cc, $(wildcard src/*.cc))
+SRCS_TEST := $(filter-out src/bt.cc, $(wildcard src/*.cc))
 OBJS_TEST := $(SRCS_TEST:.cc=.o)
 DEPS_TEST := $(OBJS_TEST:.o=.d)
 
