@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package backtracer;
+
+// This streaming service can be used to feed the backtracer with
+// location points.
+service BacktracePusher {
+  rpc PutLocation(stream PutLocationRequest) returns (PutLocationResponse) {}
+}
+
+// The request message containing the user's name.
+message PutLocationRequest {
+  // Identifier of the user.
+  int64 user_id = 1;
+}
+
+// Empty response for now: we might introduce a retry logic for when
+// the backtracer is restarted, but this likely can be handled via
+// gRPC.
+message PutLocationResponse {}
