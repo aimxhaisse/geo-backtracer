@@ -1,7 +1,7 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
-#include "bt.h"
+#include "server.h"
 
 using namespace bt;
 
@@ -15,12 +15,12 @@ int main(int ac, char **av) {
   Options options;
   options.db_path_ = FLAGS_path;
 
-  Backtracer bt;
-  Status status = bt.Init(options);
+  Server server;
+  Status status = server.Init(options);
   if (status != StatusCode::OK) {
     LOG(ERROR) << "unable to initialize backtracer, status=" << status;
   }
-  status = bt.Run();
+  status = server.Run();
   if (status != StatusCode::OK) {
     LOG(ERROR) << "unable to run backtracer service, status=" << status;
   }

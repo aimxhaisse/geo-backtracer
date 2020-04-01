@@ -21,13 +21,13 @@ struct Options {
   std::optional<std::string> db_path_;
 };
 
-// Main class that provides access to the database.
-class Backtracer {
+// Main class.
+class Server {
 public:
   Status Init(const Options &options);
   Status Run();
 
-  ~Backtracer();
+  ~Server();
 
   // Service to push points to the database.
   class Pusher : public backtracer::Pusher::Service {
