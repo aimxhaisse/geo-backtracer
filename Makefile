@@ -2,8 +2,8 @@
 #
 # For now, all-in-one binary; this is meant to be split at some point.
 
-CXXFLAGS = -g -Wall -std=c++17 $(shell freetype-config --cflags) -Isrc -I.
-LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem
+CXXFLAGS = -g -Wno-deprecated-declarations -Wall -std=c++17 $(shell freetype-config --cflags) -Isrc -I.
+LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf
 
 PRGM := bin/bt
 TEST := bin/bt_test
@@ -22,6 +22,10 @@ DEPS_TEST := $(OBJS_TEST:.o=.d)
 SRCS_PB   := $(wildcard proto/*.proto)
 OBJS_PB   := $(SRCS_PB:.proto=.pb.o)
 GENS_PB   := $(SRCS_PB:.proto=.pb.cc) $(PROTOS:.proto=.pb.h)
+
+SRCS_GRPC := $(wildcard proto/*.proto)
+OBJS_GRPC := $(SRCS_PB:.proto=.grpc.pb.o)
+GENS_GRPC   := $(SRCS_PB:.proto=.grpc.pb.cc) $(PROTOS:.proto=.pb.grpc.h)
 
 .PHONY: all clean re test fmt help run inject
 
@@ -48,17 +52,21 @@ clean:
 	rm -rf $(OBJS) $(DEPS) $(PRGM)
 	rm -rf $(OBJS_TEST) $(DEPS_TEST) $(TEST)
 	rm -rf $(GENS_PB) $(OBJS_PB)
+	rm -rf $(GENS_GRPC) $(OBJS_GRPC)
 
 bin:
 	mkdir -p bin
 
 re: clean all
 
-$(PRGM): bin $(OBJS) $(OBJS_PB)
-	$(CXX) $(OBJS) $(LDLIBS) -o $@
+$(PRGM): bin $(OBJS) $(OBJS_PB) $(OBJS_GRPC)
+	$(CXX) $(OBJS) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -o $@
 
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
+
+%.grpc.pb.cc: %.proto
+	$(PBUF) --grpc_out=. --plugin=protoc-gen-grpc=$(shell which grpc_cpp_plugin) $<
 
 %.pb.cc: %.proto
 	$(PBUF) --cpp_out=. $<
@@ -71,8 +79,8 @@ run: $(PRGM)
 
 inject: $(PRGM)
 
-$(TEST): bin $(OBJS_TEST) $(OBJS_PB)
-	$(CXX) $(OBJS_TEST) $(LDLIBS) -lgtest -o $@
+$(TEST): bin $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC)
+	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
 
 test: $(TEST)
 	$(TEST)

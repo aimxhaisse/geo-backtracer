@@ -15,10 +15,14 @@ int main(int ac, char **av) {
   Options options;
   options.db_path_ = FLAGS_path;
 
-  Backtracer tracer;
-  Status status = tracer.Init(options);
+  Backtracer bt;
+  Status status = bt.Init(options);
   if (status != StatusCode::OK) {
-    LOG(ERROR) << "Unable to initialize backtracer, status=" << status;
+    LOG(ERROR) << "unable to initialize backtracer, status=" << status;
+  }
+  status = bt.Run();
+  if (status != StatusCode::OK) {
+    LOG(ERROR) << "unable to run backtracer service, status=" << status;
   }
 
   return 0;

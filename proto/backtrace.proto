@@ -4,8 +4,8 @@ package backtracer;
 
 // This streaming service can be used to feed the backtracer with
 // location points.
-service BacktracePusher {
-  rpc PutLocation(stream PutLocationRequest) returns (PutLocationResponse) {}
+service Pusher {
+  rpc PutLocation(PutLocationRequest) returns (PutLocationResponse) {}
 }
 
 // The request message containing the user's name.

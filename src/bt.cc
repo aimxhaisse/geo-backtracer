@@ -32,6 +32,23 @@ Status Backtracer::Init(const Options &bt_options) {
   db_.reset(db);
   LOG(INFO) << "initialized database, path=" << path_;
 
+  pusher_ = std::make_unique<Pusher>();
+  RETURN_IF_ERROR(pusher_->Init());
+  LOG(INFO) << "initialized pusher";
+
+  return StatusCode::OK;
+}
+
+Status Backtracer::Run() {
+  const std::string addr("0.0.0.0:6000");
+
+  grpc::ServerBuilder builder;
+  builder.AddListeningPort(addr, grpc::InsecureServerCredentials());
+  builder.RegisterService(pusher_.get());
+  std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+  LOG(INFO) << "server listening on " << addr << std::endl;
+  server->Wait();
+
   return StatusCode::OK;
 }
 
@@ -40,6 +57,16 @@ Backtracer::~Backtracer() {
   if (is_temp_) {
     utils::DeleteDirectory(path_);
   }
+}
+
+Status Backtracer::Pusher::Init() { return StatusCode::OK; }
+
+grpc::Status
+Backtracer::Pusher::PutLocation(grpc::ServerContext *context,
+                                const backtracer::PutLocationRequest *request,
+                                backtracer::PutLocationResponse *response) {
+  LOG(INFO) << "PutLocation called";
+  return grpc::Status::OK;
 }
 
 } // namespace bt
