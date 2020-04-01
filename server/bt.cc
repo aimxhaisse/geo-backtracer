@@ -5,6 +5,8 @@
 
 namespace bt {
 
+constexpr char kServerAddress[] = "0.0.0.0:6000";
+
 Status Backtracer::InitPath(const Options &bt_options) {
   if (bt_options.db_path_.has_value() && !bt_options.db_path_.value().empty()) {
     path_ = bt_options.db_path_.value();
@@ -40,13 +42,11 @@ Status Backtracer::Init(const Options &bt_options) {
 }
 
 Status Backtracer::Run() {
-  const std::string addr("0.0.0.0:6000");
-
   grpc::ServerBuilder builder;
-  builder.AddListeningPort(addr, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(kServerAddress, grpc::InsecureServerCredentials());
   builder.RegisterService(pusher_.get());
   std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-  LOG(INFO) << "server listening on " << addr << std::endl;
+  LOG(INFO) << "server listening on " << kServerAddress << std::endl;
   server->Wait();
 
   return StatusCode::OK;

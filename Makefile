@@ -27,7 +27,7 @@ SRCS_GRPC := $(wildcard proto/*.proto)
 OBJS_GRPC := $(SRCS_PB:.proto=.grpc.pb.o)
 GENS_GRPC   := $(SRCS_PB:.proto=.grpc.pb.cc) $(PROTOS:.proto=.pb.grpc.h)
 
-.PHONY: all clean re test fmt help run inject
+.PHONY: all clean re test fmt help run inject server client
 
 help:
 	@echo "Help for Covid Backtracer:"
@@ -62,6 +62,9 @@ re: clean all
 $(PRGM): bin $(OBJS) $(OBJS_PB) $(OBJS_GRPC)
 	$(CXX) $(OBJS) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -o $@
 
+$(TEST): bin $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC)
+	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
+
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
@@ -74,16 +77,13 @@ $(PRGM): bin $(OBJS) $(OBJS_PB) $(OBJS_GRPC)
 %.pb.o : %.pb.cc
 	$(CXX) $(CXX_FLAGS) -c -o $@ $<
 
-run: $(PRGM)
+server: $(PRGM)
 	$(PRGM)
-
-inject: $(PRGM)
-
-$(TEST): bin $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC)
-	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
 
 test: $(TEST)
 	$(TEST)
+
+inject: $(PRGM)
 
 -include $(DEPS)
 -include $(DEPS_TEST)
