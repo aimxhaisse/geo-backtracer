@@ -1,12 +1,9 @@
-#include <glog/logging.h>
-
 #include "bt.h"
 
-int main(int ac, char **av) {
-  FLAGS_logtostderr = 1;
-  ::google::InitGoogleLogging(av[0]);
+namespace bt {
 
-  LOG(INFO) << "Covid-19 Backtrace Service";
-
-  return 0;
+Status Backtracer::Init() {
+  RETURN_ERROR(NOT_YET_IMPLEMENTED, "Backtracer is not yet implemented");
 }
+
+} // namespace bt

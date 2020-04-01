@@ -40,6 +40,9 @@ std::ostream &operator<<(std::ostream &os, const Status &status) {
   case INTERNAL_ERROR:
     str_code = "INTERNAL_ERROR";
     break;
+  case NOT_YET_IMPLEMENTED:
+    str_code = "NOT_YET_IMPLEMENTED";
+    break;
   default:
     str_code = "UNKNOWN";
     break;

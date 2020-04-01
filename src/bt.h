@@ -1,10 +1,12 @@
 #pragma once
 
-namespace tracker {
+#include "status.h"
 
-class Tracker {
+namespace bt {
+
+class Backtracer {
 public:
-private:
+  Status Init();
 };
 
-} // namespace tracker
+} // namespace bt

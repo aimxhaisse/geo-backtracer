@@ -10,6 +10,7 @@ namespace bt {
 enum StatusCode {
   OK = 0,
   INTERNAL_ERROR,
+  NOT_YET_IMPLEMENTED,
 };
 
 class Status {
