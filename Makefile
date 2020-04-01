@@ -18,9 +18,19 @@ SRCS_TEST := $(filter-out src/main.cc, $(wildcard src/*.cc))
 OBJS_TEST := $(SRCS_TEST:.cc=.o)
 DEPS_TEST := $(OBJS_TEST:.o=.d)
 
-.PHONY: all clean re test fmt
+.PHONY: all clean re test fmt help run
 
-all: $(PRGM)
+help:
+	@echo "Help for Covid Backtracer:"
+	@echo "	"
+	@echo "	make		# build all"
+	@echo "	make test	# run unit tests"
+	@echo "	make clean	# clean all build artifacts"
+	@echo "	make re		# rebuild covid backtracer"
+	@echo "	make run	# run a local instance of covid backtracer"
+	@echo "	"
+
+all: $(PRGM) $(TEST)
 
 fmt:
 	$(FMT) -i -style Chromium $(SRCS)
@@ -39,6 +49,9 @@ $(PRGM): bin $(OBJS)
 
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
+
+run: $(PRGM)
+	$(PRGM)
 
 $(TEST): bin $(OBJS_TEST)
 	$(CXX) $(OBJS_TEST) $(LDLIBS) -lgtest -o $@
