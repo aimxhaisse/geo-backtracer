@@ -14,5 +14,8 @@ StatusOr<std::string> MakeTemporaryDirectory();
 // Recursively deletes a directory and its content.
 void DeleteDirectory(const std::string &path);
 
+// Whether or not a directory exists.
+bool DirExists(const std::string &path);
+
 } // namespace utils
 } // namespace bt

@@ -26,5 +26,9 @@ void DeleteDirectory(const std::string &path) {
   LOG(INFO) << "deleted directory, path=" << path;
 }
 
+bool DirExists(const std::string &path) {
+  return boost::filesystem::exists(path);
+}
+
 } // namespace utils
 } // namespace bt
