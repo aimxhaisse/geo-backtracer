@@ -3,7 +3,7 @@
 # For now, all-in-one binary; this is meant to be split at some point.
 
 CXXFLAGS = -g -Wall -std=c++17 $(shell freetype-config --cflags) -Isrc
-LDLIBS = -lglog -lgflags -lrocksdb
+LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem
 
 PRGM := bin/bt
 TEST := bin/bt_test

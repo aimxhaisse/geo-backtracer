@@ -11,6 +11,7 @@ This is a work in progress.
 
 Install the following dependencies:
 
+    brew install boost
     brew install clang-format
     brew install gflags
     brew install glog

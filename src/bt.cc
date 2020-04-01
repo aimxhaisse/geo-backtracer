@@ -12,10 +12,10 @@ Status Backtracer::Init(const std::string &path) {
   rocksdb::Status status = rocksdb::DB::Open(options, path, &db);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR,
-                 "unable to init database: " << status.ToString());
+                 "unable to init database, error=" << status.ToString());
   }
   db_.reset(db);
-  LOG(INFO) << "using '" << path << "' as a database";
+  LOG(INFO) << "initialized database, path=" << path;
 
   return StatusCode::OK;
 }
