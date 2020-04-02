@@ -7,10 +7,9 @@
 
 #include "common/status.h"
 #include "proto/backtrace.grpc.pb.h"
+#include "server/pusher.h"
 
 namespace bt {
-
-class Pusher;
 
 // Some design notes on the threading model used here:
 //
@@ -45,21 +44,6 @@ public:
   Status Run();
 
   ~Server();
-
-  // Service to push points to the database, see threading notes
-  // above, there is only one thread accepting requests and writing to
-  // the database in batches.
-  class Pusher : public proto::Pusher::Service {
-  public:
-    Status Init(rocksdb::DB *db);
-
-    grpc::Status PutLocation(grpc::ServerContext *context,
-                             const proto::PutLocationRequest *request,
-                             proto::PutLocationResponse *response) override;
-
-  private:
-    rocksdb::DB *db_ = nullptr;
-  };
 
 private:
   Status InitPath(const Options &options);
