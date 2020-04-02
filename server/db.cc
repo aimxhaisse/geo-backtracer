@@ -59,9 +59,9 @@ constexpr char kColumnReverse[] = "by-user";
 // square during a period of 1000 seconds, this is how many points we'll
 // need to store in memory to process a lookup.
 //
-// An alternative here is to change how keys look like and rely on
-// byte comparison. This may yield better results, will this is this
-// function becomes the bottleneck.
+// An alternative here is to change how keys look like raw and rely on
+// byte comparison. This may yield better results, would this function
+// become the bottleneck.
 namespace {
 
 void DecodeTimelineKey(const rocksdb::Slice &key, uint64_t *timestamp_lo,

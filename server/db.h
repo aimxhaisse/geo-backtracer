@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rocksdb/db.h>
+#include <rocksdb/merge_operator.h>
 
 #include "common/status.h"
 
@@ -29,6 +30,25 @@ public:
   void FindShortestSeparator(std::string *start,
                              const rocksdb::Slice &limit) const override {}
   void FindShortSuccessor(std::string *key) const override {}
+};
+
+// Merge for the user column. The idea here is as follows: we have a
+// per-user column with a list of locations to build keys to do a fast
+// lookup in the timelime column. Populating the per-user column implies
+// on each GPS put a random lookup in the database to get the current
+// locations, then an update to add the new location to it. This is not
+// practical.
+//
+// Instead, we use merge semantics, which make it possible to update a
+// value given an incremental update. This happens under the hood
+// whenever compaction is needed, so it's offline the serving path.
+class MergeUserOperator : public rocksdb::AssociativeMergeOperator {
+public:
+  bool Merge(const rocksdb::Slice &key, const rocksdb::Slice *existing_value,
+             const rocksdb::Slice &value, std::string *new_value,
+             rocksdb::Logger *logger) const override;
+
+  const char *Name() const override;
 };
 
 class Db {
