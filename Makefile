@@ -2,7 +2,7 @@
 #
 # For now, all-in-one binary; this is meant to be split at some point.
 
-CXXFLAGS = -g -Wno-deprecated-declarations -Wall -std=c++17 $(shell freetype-config --cflags) -I.
+CXXFLAGS = -g -O3 -Wno-deprecated-declarations -Wall -std=c++17 $(shell freetype-config --cflags) -I.
 LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf
 
 SERVER := bin/bt_server

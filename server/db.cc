@@ -38,12 +38,12 @@ constexpr char kColumnReverse[] = "by-user";
 // Current key layout:
 //
 // +--------------+-----------+----------+---------+--------------+
-// | TIMESTAMP HI | LONG_ZONE | LAT_ZONE | USER_ID | TIMESTAMP LO |
+// | TIMESTAMP LO | LONG_ZONE | LAT_ZONE | USER_ID | TIMESTAMP HI |
 // +--------------+-----------+----------+---------+--------------+
 //
 // What can be tweaked (not safely):
 //
-// - timestamp high granularity (currently: 1000 seconds)
+// - timestamp low granularity (currently: 1000 seconds)
 // - longitude zone granularity (currently: 100 meters)
 // - latitude zone granularity (currently: 100 meters)
 //
@@ -58,9 +58,76 @@ constexpr char kColumnReverse[] = "by-user";
 // to imagine a crowded place in Dublin: how many folks are in a 100x100m
 // square during a period of 1000 seconds, this is how many points we'll
 // need to store in memory to process a lookup.
+namespace {
+
+void DecodeKey(const rocksdb::Slice &key, uint64_t *timestamp_lo,
+               float *long_zone, float *lat_zone, uint64_t *user_id,
+               uint64_t *timestamp_hi) {
+  proto::DbKey db_key;
+  db_key.ParseFromArray(key.data(), key.size());
+
+  *timestamp_lo = db_key.timestamp() / 1000;
+  *long_zone = db_key.gps_longitude_zone();
+  *lat_zone = db_key.gps_latitude_zone();
+  *user_id = db_key.user_id();
+  *timestamp_hi = db_key.timestamp() % 1000;
+}
+
+} // anonymous namespace
+
 int TimelineComparator::Compare(const rocksdb::Slice &a,
                                 const rocksdb::Slice &b) const {
-  // TODO :-)
+  uint64_t left_timestamp_lo;
+  float left_long_zone;
+  float left_lat_zone;
+  uint64_t left_user_id;
+  uint64_t left_timestamp_hi;
+  DecodeKey(a, &left_timestamp_lo, &left_long_zone, &left_lat_zone,
+            &left_user_id, &left_timestamp_hi);
+
+  uint64_t right_timestamp_lo;
+  float right_long_zone;
+  float right_lat_zone;
+  uint64_t right_user_id;
+  uint64_t right_timestamp_hi;
+  DecodeKey(b, &right_timestamp_lo, &right_long_zone, &right_lat_zone,
+            &right_user_id, &right_timestamp_hi);
+
+  if (left_timestamp_lo < right_timestamp_lo) {
+    return -1;
+  }
+  if (left_timestamp_lo > right_timestamp_lo) {
+    return 1;
+  }
+
+  if (left_long_zone < right_long_zone) {
+    return -1;
+  }
+  if (left_long_zone > right_long_zone) {
+    return 1;
+  }
+
+  if (left_lat_zone < right_lat_zone) {
+    return -1;
+  }
+  if (left_lat_zone > right_lat_zone) {
+    return 1;
+  }
+
+  if (left_user_id < right_user_id) {
+    return -1;
+  }
+  if (left_user_id > right_user_id) {
+    return 1;
+  }
+
+  if (left_timestamp_hi < right_timestamp_hi) {
+    return -1;
+  }
+  if (left_timestamp_hi > right_timestamp_hi) {
+    return 1;
+  }
+
   return 0;
 };
 
@@ -88,8 +155,12 @@ Status Db::Init(const Options &options) {
 
   columns_.push_back(rocksdb::ColumnFamilyDescriptor(
       rocksdb::kDefaultColumnFamilyName, rocksdb::ColumnFamilyOptions()));
-  columns_.push_back(rocksdb::ColumnFamilyDescriptor(
-      kColumnTimeline, rocksdb::ColumnFamilyOptions()));
+
+  rocksdb::ColumnFamilyOptions timeline_options;
+  timeline_options.comparator = &timeline_cmp_;
+  columns_.push_back(
+      rocksdb::ColumnFamilyDescriptor(kColumnTimeline, timeline_options));
+
   columns_.push_back(rocksdb::ColumnFamilyDescriptor(
       kColumnReverse, rocksdb::ColumnFamilyOptions()));
 
@@ -134,8 +205,10 @@ Status Db::InitColumnFamilies(const rocksdb::Options &rocksdb_options) {
   // partial results, let's be explicitly boring instead.
 
   rocksdb::ColumnFamilyHandle *time_handle;
-  status = db->CreateColumnFamily(rocksdb::ColumnFamilyOptions(),
-                                  kColumnTimeline, &time_handle);
+  rocksdb::ColumnFamilyOptions timeline_options;
+  timeline_options.comparator = &timeline_cmp_;
+  status =
+      db->CreateColumnFamily(timeline_options, kColumnTimeline, &time_handle);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR,
                  "can't init timeline column, status=" << status.ToString());
