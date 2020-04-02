@@ -38,6 +38,9 @@ public:
   Status Init(const Options &options);
   Status Run();
 
+  Seeker *GetSeeker() { return seeker_.get(); }
+  Pusher *GetPusher() { return pusher_.get(); }
+
 private:
   std::unique_ptr<Db> db_;
   std::unique_ptr<Pusher> pusher_;
