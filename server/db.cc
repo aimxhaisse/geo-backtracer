@@ -60,9 +60,9 @@ constexpr char kColumnReverse[] = "by-user";
 // need to store in memory to process a lookup.
 namespace {
 
-void DecodeKey(const rocksdb::Slice &key, uint64_t *timestamp_lo,
-               float *long_zone, float *lat_zone, uint64_t *user_id,
-               uint64_t *timestamp_hi) {
+void DecodeTimelineKey(const rocksdb::Slice &key, uint64_t *timestamp_lo,
+                       float *long_zone, float *lat_zone, uint64_t *user_id,
+                       uint64_t *timestamp_hi) {
   proto::DbKey db_key;
   db_key.ParseFromArray(key.data(), key.size());
 
@@ -82,16 +82,16 @@ int TimelineComparator::Compare(const rocksdb::Slice &a,
   float left_lat_zone;
   uint64_t left_user_id;
   uint64_t left_timestamp_hi;
-  DecodeKey(a, &left_timestamp_lo, &left_long_zone, &left_lat_zone,
-            &left_user_id, &left_timestamp_hi);
+  DecodeTimelineKey(a, &left_timestamp_lo, &left_long_zone, &left_lat_zone,
+                    &left_user_id, &left_timestamp_hi);
 
   uint64_t right_timestamp_lo;
   float right_long_zone;
   float right_lat_zone;
   uint64_t right_user_id;
   uint64_t right_timestamp_hi;
-  DecodeKey(b, &right_timestamp_lo, &right_long_zone, &right_lat_zone,
-            &right_user_id, &right_timestamp_hi);
+  DecodeTimelineKey(b, &right_timestamp_lo, &right_long_zone, &right_lat_zone,
+                    &right_user_id, &right_timestamp_hi);
 
   if (left_timestamp_lo < right_timestamp_lo) {
     return -1;
