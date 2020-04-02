@@ -22,18 +22,7 @@ public:
   void FindShortSuccessor(std::string *key) const override {}
 };
 
-// Same here, refer to the .cc file for a long explanation.
-class UserComparator : public rocksdb::Comparator {
-public:
-  int Compare(const rocksdb::Slice &a, const rocksdb::Slice &b) const override;
-  const char *Name() const override;
-
-  void FindShortestSeparator(std::string *start,
-                             const rocksdb::Slice &limit) const override {}
-  void FindShortSuccessor(std::string *key) const override {}
-};
-
-// Merge for the user column. The idea here is as follows: we have a
+// Merge for the reverse column. The idea here is as follows: we have a
 // per-user column with a list of locations to build keys to do a fast
 // lookup in the timelime column. Populating the per-user column implies
 // on each GPS put a random lookup in the database to get the current

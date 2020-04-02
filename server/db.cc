@@ -155,7 +155,6 @@ bool MergeUserOperator::Merge(const rocksdb::Slice &key,
   if (existing_value) {
     if (!previous.ParseFromArray(existing_value->data(),
                                  existing_value->size())) {
-      LOG(INFO) << "merge error 1";
       return false;
     }
   }
