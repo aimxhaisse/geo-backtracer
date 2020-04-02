@@ -15,8 +15,9 @@ Status MakeKeysFromLocation(const proto::Location &location,
   key.set_timestamp(location.timestamp());
   key.set_user_id(location.user_id());
   key.set_gps_longitude_zone(
-      round(location.gps_longitude() * kGPSZonePrecision));
-  key.set_gps_latitude_zone(round(location.gps_latitude() * kGPSZonePrecision));
+      round(location.gps_longitude() * kGPSZonePrecision) / kGPSZonePrecision);
+  key.set_gps_latitude_zone(round(location.gps_latitude() * kGPSZonePrecision) /
+                            kGPSZonePrecision);
   keys->push_back(key);
 
   return StatusCode::OK;
