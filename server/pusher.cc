@@ -124,8 +124,9 @@ grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
   counter_ok_ += success;
   counter_ko_ += errors;
 
-  LOG(INFO) << "PutLocation of " << request->locations_size()
-            << ", total_ok=" << counter_ok_ << ", total_ko=" << counter_ko_;
+  LOG_EVERY_N(INFO, 1000) << "PutLocation of " << request->locations_size()
+                          << ", total_ok=" << counter_ok_
+                          << ", total_ko=" << counter_ko_;
 
   return grpc::Status::OK;
 }

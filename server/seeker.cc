@@ -134,8 +134,9 @@ Seeker::GetUserTimeline(grpc::ServerContext *context,
                         "can't build timeline keys");
   }
 
-  LOG(INFO) << "retrieved reverse keys, user_id=" << request->user_id()
-            << ", reverse_keys_count=" << keys.size();
+  LOG_EVERY_N(INFO, 1000) << "retrieved reverse keys, user_id="
+                          << request->user_id()
+                          << ", reverse_keys_count=" << keys.size();
 
   status = BuildTimelineForUser(keys, response);
   if (status != StatusCode::OK) {
@@ -145,8 +146,9 @@ Seeker::GetUserTimeline(grpc::ServerContext *context,
                         "can't build timeline values");
   }
 
-  LOG(INFO) << "retrieved timeline values, user_id=" << request->user_id()
-            << ", timeline_values_count=" << response->point_size();
+  LOG_EVERY_N(INFO, 1000) << "retrieved timeline values, user_id="
+                          << request->user_id() << ", timeline_values_count="
+                          << response->point_size();
 
   return grpc::Status::OK;
 }
