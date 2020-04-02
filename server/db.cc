@@ -2,6 +2,7 @@
 
 #include "common/utils.h"
 #include "server/db.h"
+#include "server/gps.h"
 #include "server/options.h"
 
 namespace bt {
@@ -12,6 +13,63 @@ constexpr char kColumnTimeline[] = "by-timeline";
 constexpr char kColumnReverse[] = "by-user";
 
 } // anonymous namespace
+
+// Timeline comparator.
+//
+// This function defines the order in which points are inserted in the
+// timeline column, and how iterators should jump from a place to
+// another in the database. We want to optimize for two things here:
+//
+// - Writes: we can get high write throughput by writing as close as
+// possible to the final ordering, this is possible if the first part
+// of the comparison is a timestamp.
+//
+// - Reads: we want to be able to lookup in the database nearby users
+// without having to scan the entire database, this is possible if
+// what we are looking for is around in the ordering. It's fine if it
+// results in multiple reads to reconstruct the timeline of a user and
+// folks around it, what we want to avoid is a full scan: we are
+// looking for O(N) here.
+//
+// This function can't be changed without risk: it would result in a
+// corrupt database. Once we release the database, we'll have to stick
+// with it.
+//
+// Current key layout:
+//
+// +--------------+-----------+----------+---------+--------------+
+// | TIMESTAMP HI | LONG_ZONE | LAT_ZONE | USER_ID | TIMESTAMP LO |
+// +--------------+-----------+----------+---------+--------------+
+//
+// What can be tweaked (not safely):
+//
+// - timestamp high granularity (currently: 1000 seconds)
+// - longitude zone granularity (currently: 100 meters)
+// - latitude zone granularity (currently: 100 meters)
+//
+// What this basically means: in a single sequential read in the
+// database, we can get all user ids in a 100x100m zone for a period
+// of 1000 seconds. We can then implement on top of this a smart
+// algorithm that correlates which users where closed for some period
+// of time.
+//
+// The actual parameters we use here need to be tweaked, depending on
+// how the GPS data looks like, and how much time lookups take. We need
+// to imagine a crowded place in Dublin: how many folks are in a 100x100m
+// square during a period of 1000 seconds, this is how many points we'll
+// need to store in memory to process a lookup.
+int TimelineComparator::Compare(const rocksdb::Slice &a,
+                                const rocksdb::Slice &b) const {
+  // TODO :-)
+  return 0;
+};
+
+const char *TimelineComparator::Name() const {
+  // Keep this versioned as long as the implementation isn't changed, so we
+  // ensure we aren't corrupting a database. It's a good idea to have a unit
+  // test here that ensure the order doesn't change.
+  return "timeline-comparator-0.1";
+}
 
 Status Db::Init(const Options &options) {
   RETURN_IF_ERROR(InitPath(options));

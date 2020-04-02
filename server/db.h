@@ -8,6 +8,14 @@ namespace bt {
 
 class Options;
 
+// This is likely the most important part of this project, refer to
+// the .cc file for a long explanation.
+class TimelineComparator : public rocksdb::Comparator {
+public:
+  int Compare(const rocksdb::Slice &a, const rocksdb::Slice &b) const override;
+  const char *Name() const override;
+};
+
 class Db {
 public:
   Status Init(const Options &options);
