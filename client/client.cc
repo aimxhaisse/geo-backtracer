@@ -19,6 +19,8 @@ constexpr char kServerAddress[] = "0.0.0.0:6000";
 Status Client::Init() {
   if (FLAGS_mode == "push") {
     mode_ = BATCH_PUSH;
+  } else if (FLAGS_mode == "wanderings") {
+    mode_ = WANDERINGS;
   } else if (FLAGS_mode == "timeline") {
     if (!FLAGS_user_id) {
       RETURN_ERROR(INTERNAL_ERROR, "--user_id is required in timeline mode");
@@ -36,6 +38,8 @@ Status Client::Run() {
     break;
   case BATCH_PUSH:
     return BatchPush();
+  case WANDERINGS:
+    return Wanderings();
   case USER_TIMELINE:
     return UserTimeline();
   };
@@ -72,6 +76,77 @@ Status Client::UserTimeline() {
   return StatusCode::OK;
 }
 
+Status Client::Wanderings() {
+  LOG(INFO) << "starting to simulate a bunch of users walking around";
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  // 4 digits gives a precision of 1.1km.
+  std::uniform_real_distribution<float> dis(10.11, 10.12);
+
+  // Each move will be between 1 and 5 meters.
+  std::uniform_real_distribution<float> mov(0.0001, 0.0005);
+
+  constexpr int kUserCount = 10000;
+  const std::time_t now = std::time(nullptr);
+  const std::time_t start_at = now - (20 * 3600);
+
+  std::unique_ptr<proto::Pusher::Stub> stub = proto::Pusher::NewStub(
+      grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
+
+  for (int user_id = 0; user_id < kUserCount; ++user_id) {
+    proto::PutLocationRequest request;
+
+    float gps_latitude = dis(gen);
+    float gps_longitude = dis(gen);
+    float gps_altitude = dis(gen);
+
+    float gps_lat_direction = 1.0;
+    float gps_long_direction = 1.0;
+
+    // Prepare a batch of 10 hours of walking.
+    for (int j = 0; j < 60 * 10; ++j) {
+      proto::Location *loc = request.add_locations();
+      loc->set_timestamp(start_at + j * 60);
+      loc->set_user_id(user_id);
+
+      // From time to time, move a bit.
+      if (std::rand() % 2 == 0) {
+        gps_latitude += (mov(gen) * gps_lat_direction);
+      }
+      if (std::rand() % 2 == 0) {
+        gps_longitude += (mov(gen) * gps_long_direction);
+      }
+
+      // From time to time, change direction.
+      if (std::rand() % 10 == 0) {
+        gps_lat_direction *= -1.0;
+      }
+      if (std::rand() % 10 == 0) {
+        gps_long_direction *= -1.0;
+      }
+
+      loc->set_gps_latitude(gps_latitude);
+      loc->set_gps_longitude(gps_longitude);
+      loc->set_gps_altitude(gps_altitude);
+    }
+
+    grpc::ClientContext context;
+    proto::PutLocationResponse response;
+    grpc::Status status = stub->PutLocation(&context, request, &response);
+    if (!status.ok()) {
+      RETURN_ERROR(INTERNAL_ERROR,
+                   "unable to send location to backtracer, status="
+                       << status.error_message());
+    }
+  }
+
+  LOG(INFO) << "done writing points";
+
+  return StatusCode::OK;
+}
+
 Status Client::BatchPush() {
   LOG(INFO) << "starting to write 10 000 000 points";
 
@@ -92,7 +167,6 @@ Status Client::BatchPush() {
       loc->set_timestamp(static_cast<uint64_t>(std::time(nullptr)));
 
       loc->set_user_id(std::rand() % 10000000);
-
       // 3 digits gives a precision of 10km.
       std::uniform_real_distribution<float> dis(10.1, 10.2);
 

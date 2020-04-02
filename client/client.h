@@ -16,6 +16,7 @@ public:
   enum Mode {
     NONE = 0,      // Do nothing,
     BATCH_PUSH,    // Simulates a client pushing points in batches,
+    WANDERINGS,    // Simulates a bunch of users walking around,
     USER_TIMELINE, // Seeks the timeline of a user id.
   };
 
@@ -24,6 +25,7 @@ public:
 
 private:
   Status BatchPush();
+  Status Wanderings();
   Status UserTimeline();
 
   Mode mode_ = NONE;
