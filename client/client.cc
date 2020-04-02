@@ -31,7 +31,7 @@ Status Client::Run() {
 }
 
 Status Client::BatchPush() {
-  LOG(INFO) << "starting to write 1 000 000 points";
+  LOG(INFO) << "starting to write 10 000 000 points";
 
   std::random_device rd;
   std::mt19937 gen(rd());
