@@ -7,7 +7,9 @@
 
 #include "client/client.h"
 
-DEFINE_string(mode, "push", "client mode (one of 'push', 'timeline').");
+DEFINE_string(
+    mode, "push",
+    "client mode (one of 'push', 'timeline', 'nearby-folks', 'wanderings').");
 DEFINE_int64(user_id, 0, "user id (if applicable)");
 
 using namespace bt;
@@ -21,6 +23,14 @@ Status Client::Init() {
     mode_ = BATCH_PUSH;
   } else if (FLAGS_mode == "wanderings") {
     mode_ = WANDERINGS;
+  } else if (FLAGS_mode == "nearby-folks") {
+    mode_ = NEARBY_FOLKS;
+    if (!FLAGS_user_id) {
+      RETURN_ERROR(INTERNAL_ERROR,
+                   "--user_id is required in nearby-folks mode");
+    }
+    user_id_ = FLAGS_user_id;
+    mode_ = NEARBY_FOLKS;
   } else if (FLAGS_mode == "timeline") {
     if (!FLAGS_user_id) {
       RETURN_ERROR(INTERNAL_ERROR, "--user_id is required in timeline mode");
@@ -42,6 +52,8 @@ Status Client::Run() {
     return Wanderings();
   case USER_TIMELINE:
     return UserTimeline();
+  case NEARBY_FOLKS:
+    return NearbyFolks();
   };
 
   return StatusCode::OK;
@@ -72,6 +84,32 @@ Status Client::UserTimeline() {
   }
 
   LOG(INFO) << "retrieved " << response.point().size() << " points";
+
+  return StatusCode::OK;
+}
+
+Status Client::NearbyFolks() {
+  LOG(INFO) << "starting to retrieve nearby folks, user_id=" << user_id_;
+
+  proto::GetUserNearbyFolksRequest request;
+  request.set_user_id(user_id_);
+
+  grpc::ClientContext context;
+  proto::GetUserNearbyFolksResponse response;
+  std::unique_ptr<proto::Seeker::Stub> stub = proto::Seeker::NewStub(
+      grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
+  grpc::Status status = stub->GetUserNearbyFolks(&context, request, &response);
+  if (!status.ok()) {
+    RETURN_ERROR(INTERNAL_ERROR, "unable to retrieve user nearby folks, status="
+                                     << status.error_message());
+  }
+
+  for (int i = 0; i < response.folk().size(); ++i) {
+    const proto::NearbyUserFolk &folk = response.folk(i);
+    LOG(INFO) << "user_id=" << folk.user_id() << ", score=" << folk.score();
+  }
+
+  LOG(INFO) << "retrieved " << response.folk().size() << " nearby folks";
 
   return StatusCode::OK;
 }

@@ -18,6 +18,7 @@ public:
     BATCH_PUSH,    // Simulates a client pushing points in batches,
     WANDERINGS,    // Simulates a bunch of users walking around,
     USER_TIMELINE, // Seeks the timeline of a user id.
+    NEARBY_FOLKS,  // Seeks folks that were close to a user id.
   };
 
   Status Init();
@@ -27,6 +28,7 @@ private:
   Status BatchPush();
   Status Wanderings();
   Status UserTimeline();
+  Status NearbyFolks();
 
   Mode mode_ = NONE;
   uint64_t user_id_ = 0;
