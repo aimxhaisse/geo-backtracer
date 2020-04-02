@@ -1,6 +1,8 @@
 #include <glog/logging.h>
+#include <rocksdb/write_batch.h>
 
 #include "common/utils.h"
+#include "server/gps.h"
 #include "server/server.h"
 
 namespace bt {
@@ -29,16 +31,16 @@ Status Server::Init(const Options &server_options) {
   rocksdb_options.create_if_missing = true;
 
   rocksdb::DB *db = nullptr;
-  rocksdb::Status status = rocksdb::DB::Open(rocksdb_options, path_, &db);
-  if (!status.ok()) {
+  rocksdb::Status db_status = rocksdb::DB::Open(rocksdb_options, path_, &db);
+  if (!db_status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR,
-                 "unable to init database, error=" << status.ToString());
+                 "unable to init database, error=" << db_status.ToString());
   }
   db_.reset(db);
   LOG(INFO) << "initialized database, path=" << path_;
 
   pusher_ = std::make_unique<Pusher>();
-  RETURN_IF_ERROR(pusher_->Init());
+  RETURN_IF_ERROR(pusher_->Init(db_.get()));
   LOG(INFO) << "initialized pusher";
 
   return StatusCode::OK;
@@ -62,13 +64,67 @@ Server::~Server() {
   }
 }
 
-Status Server::Pusher::Init() { return StatusCode::OK; }
+Status Server::Pusher::Init(rocksdb::DB *db) {
+  db_ = db;
+  return StatusCode::OK;
+}
 
 grpc::Status
 Server::Pusher::PutLocation(grpc::ServerContext *context,
                             const proto::PutLocationRequest *request,
                             proto::PutLocationResponse *response) {
-  LOG(INFO) << "PutLocation called ";
+  rocksdb::WriteBatch batch;
+  std::vector<proto::DbKey> keys;
+
+  for (int i = 0; i < request->locations_size(); ++i) {
+    const proto::Location &location = request->locations(i);
+    proto::DbValue value;
+
+    keys.clear();
+
+    Status status = MakeKeysFromLocation(location, &keys);
+    if (status != StatusCode::OK) {
+      LOG(WARNING) << "unable to build key from location, status=" << status;
+      continue;
+    }
+
+    status = MakeValueFromLocation(location, &value);
+    if (status != StatusCode::OK) {
+      LOG(WARNING) << "unable to build value from location, status=" << status;
+      continue;
+    }
+
+    std::string raw_value;
+    if (!value.SerializeToString(&raw_value)) {
+      LOG(WARNING) << "unable to serialize value, skipped";
+      continue;
+    }
+
+    bool skipped = false;
+    for (const auto &key : keys) {
+      std::string raw_key;
+      if (!key.SerializeToString(&raw_key)) {
+        LOG(WARNING) << "unable to serialize key, skipped";
+        skipped = true;
+        break;
+      }
+      if (skipped) {
+        continue;
+      }
+
+      batch.Put(rocksdb::Slice(raw_key), rocksdb::Slice(raw_value));
+    }
+  }
+
+  rocksdb::Status db_status = db_->Write(rocksdb::WriteOptions(), &batch);
+  if (!db_status.ok()) {
+    LOG(WARNING) << "unable to write batch updates, db_status="
+                 << db_status.ToString();
+  } else {
+    LOG(INFO) << "wrote " << request->locations_size()
+              << " GPS locations to database";
+  }
+
   return grpc::Status::OK;
 }
 

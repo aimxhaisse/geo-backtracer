@@ -17,6 +17,7 @@ namespace bt {
 // same values).
 Status MakeKeysFromLocation(const proto::Location &location,
                             std::vector<proto::DbKey> *keys);
-Status MakeValueFromLocation(proto::DbValue *value);
+Status MakeValueFromLocation(const proto::Location &location,
+                             proto::DbValue *value);
 
 } // namespace bt

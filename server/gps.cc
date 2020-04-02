@@ -2,7 +2,7 @@
 
 #include "server/gps.h"
 
-using namespace bt;
+namespace bt {
 
 // Only keep the first 4 digits of a GPS location, this maps to a
 // 1100x1100 area.
@@ -29,3 +29,5 @@ Status MakeValueFromLocation(const proto::Location &location,
   value->set_gps_altitude(location.gps_altitude());
   return StatusCode::OK;
 }
+
+} // namespace bt

@@ -51,11 +51,14 @@ public:
   // the database in batches.
   class Pusher : public proto::Pusher::Service {
   public:
-    Status Init();
+    Status Init(rocksdb::DB *db);
 
     grpc::Status PutLocation(grpc::ServerContext *context,
                              const proto::PutLocationRequest *request,
                              proto::PutLocationResponse *response) override;
+
+  private:
+    rocksdb::DB *db_ = nullptr;
   };
 
 private:
