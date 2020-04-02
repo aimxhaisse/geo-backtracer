@@ -36,7 +36,7 @@ Status Client::BatchPush() {
   std::random_device rd;
   std::mt19937 gen(rd());
 
-  // Send 1.000 batch of 10.000 points (1.000.000 points).
+  // Send 1.000 batch of 10.000 points (10.000.000 points).
   for (int i = 0; i < 1000; ++i) {
     proto::PutLocationRequest request;
 
