@@ -172,13 +172,14 @@ bool MergeUserOperator::Merge(const rocksdb::Slice &key,
     *next.add_reverse_point() = point;
   }
 
-  // New point we want to add to the list.
-  proto::DbReversePoint new_point;
+  // New point(s) we want to add to the list.
+  proto::DbReverseValue new_point;
   if (!new_point.ParseFromArray(value.data(), value.size())) {
     return false;
   }
-  *next.add_reverse_point() = new_point;
-
+  for (int i = 0; i < new_point.reverse_point().size(); ++i) {
+    *next.add_reverse_point() = new_point.reverse_point(i);
+  }
   if (!next.SerializeToString(new_value)) {
     return false;
   }
@@ -213,8 +214,10 @@ Status Db::Init(const Options &options) {
   columns_.push_back(
       rocksdb::ColumnFamilyDescriptor(kColumnTimeline, timeline_options));
 
-  columns_.push_back(rocksdb::ColumnFamilyDescriptor(
-      kColumnReverse, rocksdb::ColumnFamilyOptions()));
+  rocksdb::ColumnFamilyOptions user_options;
+  user_options.merge_operator = std::make_shared<MergeUserOperator>();
+  columns_.push_back(
+      rocksdb::ColumnFamilyDescriptor(kColumnReverse, user_options));
 
   rocksdb::DB *db = nullptr;
   rocksdb::Status db_status =

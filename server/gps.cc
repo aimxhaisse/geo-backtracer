@@ -1,5 +1,3 @@
-#include <math.h>
-
 #include "server/gps.h"
 
 namespace bt {
@@ -8,10 +6,8 @@ Status MakeTimelineKeyFromLocation(const proto::Location &location,
                                    proto::DbKey *key) {
   key->set_timestamp(location.timestamp());
   key->set_user_id(location.user_id());
-  key->set_gps_longitude_zone(
-      round(location.gps_longitude() * kGPSZonePrecision) / kGPSZonePrecision);
-  key->set_gps_latitude_zone(
-      round(location.gps_latitude() * kGPSZonePrecision) / kGPSZonePrecision);
+  key->set_gps_longitude_zone(GPSLocationToGPSZone(location.gps_longitude()));
+  key->set_gps_latitude_zone(GPSLocationToGPSZone(location.gps_latitude()));
   return StatusCode::OK;
 }
 

@@ -23,6 +23,8 @@ public:
 private:
   Status PutTimelineLocation(const proto::Location &location,
                              rocksdb::WriteBatch *batch);
+  Status PutReverseLocation(const proto::Location &location,
+                            rocksdb::WriteBatch *batch);
 
   Db *db_ = nullptr;
 };

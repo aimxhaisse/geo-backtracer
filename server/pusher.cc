@@ -44,6 +44,34 @@ Status Pusher::PutTimelineLocation(const proto::Location &location,
   return StatusCode::OK;
 }
 
+Status Pusher::PutReverseLocation(const proto::Location &location,
+                                  rocksdb::WriteBatch *batch) {
+  proto::DbReverseKey key;
+  key.set_user_id(location.user_id());
+
+  std::string raw_key;
+  if (!key.SerializeToString(&raw_key)) {
+    RETURN_ERROR(INTERNAL_ERROR, "unable to serialize reverse key, skipped");
+  }
+
+  proto::DbReverseValue value;
+  proto::DbReversePoint *point = value.add_reverse_point();
+
+  point->set_timestamp(location.timestamp());
+  point->set_gps_longitude_zone(GPSLocationToGPSZone(location.gps_longitude()));
+  point->set_gps_latitude_zone(GPSLocationToGPSZone(location.gps_latitude()));
+
+  std::string raw_value;
+  if (!value.SerializeToString(&raw_value)) {
+    RETURN_ERROR(INTERNAL_ERROR, "unable to serialize reverse value, skipped");
+  }
+
+  batch->Merge(db_->ReverseHandle(), rocksdb::Slice(raw_key),
+               rocksdb::Slice(raw_value));
+
+  return StatusCode::OK;
+}
+
 grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
                                  const proto::PutLocationRequest *request,
                                  proto::PutLocationResponse *response) {
@@ -54,10 +82,13 @@ grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
     const proto::Location &location = request->locations(i);
     Status status = PutTimelineLocation(location, &batch);
     if (status == StatusCode::OK) {
-      ++success;
-    } else {
-      ++errors;
+      status = PutReverseLocation(location, &batch);
+      if (status == StatusCode::OK) {
+        ++success;
+        continue;
+      }
     }
+    ++errors;
   }
 
   rocksdb::Status db_status =
