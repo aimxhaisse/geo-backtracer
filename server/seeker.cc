@@ -52,7 +52,7 @@ Status Seeker::BuildTimelineKeysForUser(uint64_t user_id,
     }
 
     proto::DbKey key;
-    key.set_timestamp(reverse_key.timestamp());
+    key.set_timestamp(reverse_key.timestamp() * kTimePrecision);
     key.set_user_id(user_id);
     key.set_gps_longitude_zone(reverse_value.gps_longitude_zone());
     key.set_gps_latitude_zone(reverse_value.gps_latitude_zone());
@@ -78,7 +78,7 @@ Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey> &keys,
     const uint64_t timestamp_end = key_it.timestamp() + kTimePrecision;
     timeline_it->Seek(rocksdb::Slice(key_raw_it.data(), key_raw_it.size()));
     while (timeline_it->Valid()) {
-      const rocksdb::Slice key_raw = timeline_it->value();
+      const rocksdb::Slice key_raw = timeline_it->key();
       proto::DbKey key;
       if (!key.ParseFromArray(key_raw.data(), key_raw.size())) {
         RETURN_ERROR(INTERNAL_ERROR,
@@ -129,6 +129,9 @@ Seeker::GetUserTimeline(grpc::ServerContext *context,
                         "can't build timeline keys");
   }
 
+  LOG(INFO) << "retrieved reverse keys, user_id=" << request->user_id()
+            << ", reverse_keys_count=" << keys.size();
+
   status = BuildTimelineForUser(keys, response);
   if (status != StatusCode::OK) {
     LOG(WARNING) << "can't build timeline values for user, user_id="
@@ -136,6 +139,9 @@ Seeker::GetUserTimeline(grpc::ServerContext *context,
     return grpc::Status(grpc::StatusCode::INTERNAL,
                         "can't build timeline values");
   }
+
+  LOG(INFO) << "retrieved timeline values, user_id=" << request->user_id()
+            << ", timeline_values_count=" << response->point_size();
 
   return grpc::Status::OK;
 }
