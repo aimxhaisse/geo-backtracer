@@ -150,6 +150,8 @@ void DecodeReverseKey(const rocksdb::Slice &key, uint64_t *user_id,
                       uint64_t *timestamp) {
   proto::DbReverseKey db_key;
   db_key.ParseFromArray(key.data(), key.size());
+  *user_id = db_key.user_id();
+  *timestamp = db_key.timestamp();
 }
 
 } // anonymous namespace
@@ -162,7 +164,7 @@ int ReverseComparator::Compare(const rocksdb::Slice &a,
 
   uint64_t right_user_id;
   uint64_t right_timestamp;
-  DecodeReverseKey(a, &right_user_id, &right_timestamp);
+  DecodeReverseKey(b, &right_user_id, &right_timestamp);
 
   if (left_user_id < right_user_id) {
     return -1;

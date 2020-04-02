@@ -61,7 +61,8 @@ Status Pusher::PutTimelineLocation(const proto::Location &location) {
 
   rocksdb::Status rocks_status =
       db_->Rocks()->Put(rocksdb::WriteOptions(), db_->TimelineHandle(),
-                        rocksdb::Slice(raw_key), rocksdb::Slice(raw_value));
+                        rocksdb::Slice(raw_key.data(), raw_key.size()),
+                        rocksdb::Slice(raw_value.data(), raw_value.size()));
   if (!rocks_status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR, "failed to put timeline value, status="
                                      << rocks_status.ToString());
@@ -92,7 +93,8 @@ Status Pusher::PutReverseLocation(const proto::Location &location) {
 
   rocksdb::Status status =
       db_->Rocks()->Put(rocksdb::WriteOptions(), db_->ReverseHandle(),
-                        rocksdb::Slice(raw_key), rocksdb::Slice(raw_value));
+                        rocksdb::Slice(raw_key.data(), raw_key.size()),
+                        rocksdb::Slice(raw_value.data(), raw_value.size()));
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR,
                  "failed to merge reverse value, status=" << status.ToString());

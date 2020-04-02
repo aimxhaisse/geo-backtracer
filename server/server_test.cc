@@ -6,7 +6,7 @@
 namespace bt {
 namespace {
 
-constexpr uint64_t kBaseTimestamp = 1585414316;
+constexpr uint64_t kBaseTimestamp = 1582410316;
 constexpr uint64_t kBaseUserId = 678220045;
 constexpr float kBaseGpsLongitude = 53.2876332;
 constexpr float kBaseGpsLatitude = -6.3135357;
@@ -83,7 +83,7 @@ TEST_F(ServerTest, TimelineSinglePointOK) {
   EXPECT_EQ(point.gps_altitude(), kBaseGpsAltitude);
 }
 
-// Tests that retrieving a diffenre user id yields 0 result.
+// Tests that retrieving a diffenrt user id yields 0 result.
 TEST_F(ServerTest, TimelineSinglePointNoResult) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
@@ -94,6 +94,33 @@ TEST_F(ServerTest, TimelineSinglePointNoResult) {
   EXPECT_TRUE(FetchTimeline(kBaseUserId + 1, &response));
 
   EXPECT_EQ(response.point_size(), 0);
+}
+
+// Test that retrieving works with different timestamp localities.
+TEST_F(ServerTest, TimelineSingleUserMultipleTimestampZones) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  constexpr int kTimestampZones = 100;
+
+  // Push 5 points in 100 timestamp zones.
+  for (int i = 0; i < kTimestampZones; ++i) {
+    const uint64_t ts = kBaseTimestamp + kTimePrecision * i;
+    EXPECT_TRUE(PushPoint(ts, kBaseUserId, kBaseGpsLongitude, kBaseGpsLatitude,
+                          kBaseGpsAltitude));
+    EXPECT_TRUE(PushPoint(ts + 67, kBaseUserId, kBaseGpsLongitude,
+                          kBaseGpsLatitude, kBaseGpsAltitude));
+    EXPECT_TRUE(PushPoint(ts + 182, kBaseUserId, kBaseGpsLongitude,
+                          kBaseGpsLatitude, kBaseGpsAltitude));
+    EXPECT_TRUE(PushPoint(ts + 252, kBaseUserId, kBaseGpsLongitude,
+                          kBaseGpsLatitude, kBaseGpsAltitude));
+    EXPECT_TRUE(PushPoint(ts + 345, kBaseUserId, kBaseGpsLongitude,
+                          kBaseGpsLatitude, kBaseGpsAltitude));
+  }
+
+  proto::GetUserTimelineResponse response;
+  EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
+
+  EXPECT_EQ(response.point_size(), 5 * kTimestampZones);
 }
 
 } // namespace

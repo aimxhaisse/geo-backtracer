@@ -41,6 +41,11 @@ Status Seeker::BuildTimelineKeysForUser(uint64_t user_id,
           INTERNAL_ERROR,
           "can't unserialize internal db reverse key, user_id=" << user_id);
     }
+    // If we have a different user ID, we are done scanning keys for
+    // this user.
+    if (reverse_key.user_id() != user_id) {
+      break;
+    }
 
     const rocksdb::Slice reverse_value_raw = reverse_it->value();
     proto::DbReverseValue reverse_value;
