@@ -25,7 +25,7 @@ message PutLocationResponse {}
 // --- Interface to lookup correlations.
 
 service Seeker {
-  rpc GetUserTimelime(GetUserTimelineRequest) returns (GetUserTimelineResponse) {}
+  rpc GetUserTimeline(GetUserTimelineRequest) returns (GetUserTimelineResponse) {}
 }
 
 message GetUserTimelineRequest {

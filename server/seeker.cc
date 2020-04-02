@@ -11,7 +11,7 @@ Status Seeker::Init(Db *db) {
 }
 
 grpc::Status
-Seeker::GetUserTimelime(grpc::ServerContext *context,
+Seeker::GetUserTimeline(grpc::ServerContext *context,
                         const proto::GetUserTimelineRequest *request,
                         proto::GetUserTimelineResponse *response) {
   const uint64_t user_id = request->user_id();
@@ -26,10 +26,12 @@ Seeker::GetUserTimelime(grpc::ServerContext *context,
   }
 
   std::string raw_value;
-  rocksdb::Status status = db_->Rocks()->Get(
-      rocksdb::ReadOptions(), rocksdb::Slice(raw_key), &raw_value);
+  rocksdb::Status status =
+      db_->Rocks()->Get(rocksdb::ReadOptions(), db_->ReverseHandle(),
+                        rocksdb::Slice(raw_key), &raw_value);
   if (!status.ok()) {
-    LOG(WARNING) << "no timeline found, user_id=" << user_id;
+    LOG(WARNING) << "no timeline found, user_id=" << user_id
+                 << ", status=" << status.ToString();
     return grpc::Status(grpc::StatusCode::NOT_FOUND, "no timeline found");
   }
 
@@ -40,7 +42,7 @@ Seeker::GetUserTimelime(grpc::ServerContext *context,
                         "can't parse internal db reverse value");
   }
 
-  for (int i = 0; i < value.point().size(); ++i) {
+  for (int i = 0; i < value.point_size(); ++i) {
     const proto::DbReversePoint &point = value.point(i);
     proto::UserTimelinePoint *timeline_point = response->add_point();
     timeline_point->set_timestamp(point.timestamp());
@@ -50,7 +52,7 @@ Seeker::GetUserTimelime(grpc::ServerContext *context,
   }
 
   LOG(INFO) << "returned timeline, user_id=" << user_id
-            << ", points=" << response->point().size();
+            << ", points=" << response->point_size();
 
   return grpc::Status::OK;
 }

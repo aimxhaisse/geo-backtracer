@@ -14,7 +14,7 @@ public:
   Status Init(Db *db);
 
   grpc::Status
-  GetUserTimelime(grpc::ServerContext *context,
+  GetUserTimeline(grpc::ServerContext *context,
                   const proto::GetUserTimelineRequest *request,
                   proto::GetUserTimelineResponse *response) override;
 

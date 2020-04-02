@@ -14,8 +14,9 @@ class Client {
 public:
   // Available modes.
   enum Mode {
-    NONE = 0,   // Do nothing.
-    BATCH_PUSH, // Simulates a client pushing points in batches.
+    NONE = 0,      // Do nothing,
+    BATCH_PUSH,    // Simulates a client pushing points in batches,
+    USER_TIMELINE, // Seeks the timeline of a user id.
   };
 
   Status Init();
@@ -23,10 +24,10 @@ public:
 
 private:
   Status BatchPush();
+  Status UserTimeline();
 
-  // TODO: Configure this via a flag.
-  Mode mode_ = BATCH_PUSH;
-  std::unique_ptr<proto::Pusher::Stub> stub_;
+  Mode mode_ = NONE;
+  uint64_t user_id_ = 0;
 };
 
 } // namespace bt

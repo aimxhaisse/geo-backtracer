@@ -7,6 +7,9 @@
 
 #include "client/client.h"
 
+DEFINE_string(mode, "push", "client mode (one of 'push', 'timeline').");
+DEFINE_int64(user_id, 0, "user id (if applicable)");
+
 using namespace bt;
 
 namespace {
@@ -14,8 +17,16 @@ constexpr char kServerAddress[] = "0.0.0.0:6000";
 } // anonymous namespace
 
 Status Client::Init() {
-  stub_ = proto::Pusher::NewStub(
-      grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
+  if (FLAGS_mode == "push") {
+    mode_ = BATCH_PUSH;
+  } else if (FLAGS_mode == "timeline") {
+    if (!FLAGS_user_id) {
+      RETURN_ERROR(INTERNAL_ERROR, "--user_id is required in timeline mode");
+    }
+    user_id_ = FLAGS_user_id;
+    mode_ = USER_TIMELINE;
+  }
+
   return StatusCode::OK;
 }
 
@@ -25,7 +36,38 @@ Status Client::Run() {
     break;
   case BATCH_PUSH:
     return BatchPush();
+  case USER_TIMELINE:
+    return UserTimeline();
   };
+
+  return StatusCode::OK;
+}
+
+Status Client::UserTimeline() {
+  LOG(INFO) << "starting to retrieve timeline, user_id=" << user_id_;
+
+  proto::GetUserTimelineRequest request;
+  request.set_user_id(user_id_);
+
+  grpc::ClientContext context;
+  proto::GetUserTimelineResponse response;
+  std::unique_ptr<proto::Seeker::Stub> stub = proto::Seeker::NewStub(
+      grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
+  grpc::Status status = stub->GetUserTimeline(&context, request, &response);
+  if (!status.ok()) {
+    RETURN_ERROR(INTERNAL_ERROR, "unable to retrieve user timeline, status="
+                                     << status.error_message());
+  }
+
+  for (int i = 0; i < response.point().size(); ++i) {
+    const proto::UserTimelinePoint &point = response.point(i);
+    LOG(INFO) << "timestamp=" << point.timestamp()
+              << ", gps_latitude=" << point.gps_latitude()
+              << ", gps_longitude=" << point.gps_longitude()
+              << ", gps_altitude=" << point.gps_altitude();
+  }
+
+  LOG(INFO) << "retrieved " << response.point().size() << " points";
 
   return StatusCode::OK;
 }
@@ -42,13 +84,13 @@ Status Client::BatchPush() {
 
     // Prepare a batch of 10.000 points with:
     //
-    // - different users (purely random),
+    // - different users (with IDs in [1,1000]),
     // - random locations in a 100km^2 area,
     // - current time.
     for (int i = 0; i < 10000; ++i) {
       proto::Location *loc = request.add_locations();
       loc->set_timestamp(static_cast<uint64_t>(std::time(nullptr)));
-      loc->set_user_id(std::rand());
+      loc->set_user_id(std::rand() % 100);
 
       // 3 digits gives a precision of 10km.
       std::uniform_real_distribution<float> dis(10.1, 10.2);
@@ -60,7 +102,10 @@ Status Client::BatchPush() {
 
     grpc::ClientContext context;
     proto::PutLocationResponse response;
-    grpc::Status status = stub_->PutLocation(&context, request, &response);
+    std::unique_ptr<proto::Pusher::Stub> stub =
+        proto::Pusher::NewStub(grpc::CreateChannel(
+            kServerAddress, grpc::InsecureChannelCredentials()));
+    grpc::Status status = stub->PutLocation(&context, request, &response);
     if (!status.ok()) {
       RETURN_ERROR(INTERNAL_ERROR,
                    "unable to send location to backtracer, status="
