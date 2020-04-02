@@ -69,8 +69,8 @@ Status &operator<<(Status &status, std::ostream &os);
 #define ASSIGN_OR_RETURN(what, expr)                                           \
   do {                                                                         \
     auto __status_or = expr;                                                   \
-    what = __status_or.ValueOrDie();                                           \
     RETURN_IF_ERROR(__status_or.GetStatus());                                  \
+    what = __status_or.ValueOrDie();                                           \
   } while (false)
 
 #define MOVE_OR_RETURN(what, expr)                                             \

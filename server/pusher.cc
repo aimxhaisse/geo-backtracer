@@ -46,7 +46,8 @@ grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
       continue;
     }
 
-    batch.Put(rocksdb::Slice(raw_key), rocksdb::Slice(raw_value));
+    batch.Put(db_->TimelineHandle(), rocksdb::Slice(raw_key),
+              rocksdb::Slice(raw_value));
   }
 
   rocksdb::Status db_status =

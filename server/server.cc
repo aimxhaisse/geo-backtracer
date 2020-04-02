@@ -9,8 +9,6 @@ namespace bt {
 namespace {
 
 constexpr char kServerAddress[] = "0.0.0.0:6000";
-constexpr char kColumnTimeline[] = "by-timeline";
-constexpr char kColumnReverse[] = "by-user";
 
 } // anonymous namespace
 
