@@ -12,42 +12,52 @@ Status Pusher::Init(Db *db) {
   return StatusCode::OK;
 }
 
+Status Pusher::PutTimelineLocation(const proto::Location &location,
+                                   rocksdb::WriteBatch *batch) {
+  proto::DbKey key;
+  Status status = MakeTimelineKeyFromLocation(location, &key);
+  if (status != StatusCode::OK) {
+    RETURN_ERROR(INTERNAL_ERROR,
+                 "unable to build key from location, status=" << status);
+  }
+
+  proto::DbValue value;
+  status = MakeTimelineValueFromLocation(location, &value);
+  if (status != StatusCode::OK) {
+    RETURN_ERROR(INTERNAL_ERROR,
+                 "unable to build value from location, status=" << status);
+  }
+
+  std::string raw_value;
+  if (!value.SerializeToString(&raw_value)) {
+    RETURN_ERROR(INTERNAL_ERROR, "unable to serialize value, skipped");
+  }
+
+  std::string raw_key;
+  if (!key.SerializeToString(&raw_key)) {
+    RETURN_ERROR(INTERNAL_ERROR, "unable to serialize key, skipped");
+  }
+
+  batch->Put(db_->TimelineHandle(), rocksdb::Slice(raw_key),
+             rocksdb::Slice(raw_value));
+
+  return StatusCode::OK;
+}
+
 grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
                                  const proto::PutLocationRequest *request,
                                  proto::PutLocationResponse *response) {
   rocksdb::WriteBatch batch;
-
+  int success = 0;
+  int errors = 0;
   for (int i = 0; i < request->locations_size(); ++i) {
     const proto::Location &location = request->locations(i);
-
-    proto::DbKey key;
-    Status status = MakeKeysFromLocation(location, &key);
-    if (status != StatusCode::OK) {
-      LOG(WARNING) << "unable to build key from location, status=" << status;
-      continue;
+    Status status = PutTimelineLocation(location, &batch);
+    if (status == StatusCode::OK) {
+      ++success;
+    } else {
+      ++errors;
     }
-
-    proto::DbValue value;
-    status = MakeValueFromLocation(location, &value);
-    if (status != StatusCode::OK) {
-      LOG(WARNING) << "unable to build value from location, status=" << status;
-      continue;
-    }
-
-    std::string raw_value;
-    if (!value.SerializeToString(&raw_value)) {
-      LOG(WARNING) << "unable to serialize value, skipped";
-      continue;
-    }
-
-    std::string raw_key;
-    if (!key.SerializeToString(&raw_key)) {
-      LOG(WARNING) << "unable to serialize key, skipped";
-      continue;
-    }
-
-    batch.Put(db_->TimelineHandle(), rocksdb::Slice(raw_key),
-              rocksdb::Slice(raw_value));
   }
 
   rocksdb::Status db_status =
@@ -56,8 +66,8 @@ grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
     LOG(WARNING) << "unable to write batch updates, db_status="
                  << db_status.ToString();
   } else {
-    LOG(INFO) << "wrote " << request->locations_size()
-              << " GPS locations to database";
+    LOG(INFO) << "wrote GPS locations to database, success=" << success
+              << ", errors=" << errors;
   }
 
   return grpc::Status::OK;

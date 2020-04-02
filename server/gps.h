@@ -12,9 +12,9 @@ namespace bt {
 // maps to a 110x110m area.
 constexpr float kGPSZonePrecision = 10000.0;
 
-Status MakeKeysFromLocation(const proto::Location &location,
-                            proto::DbKey *keys);
-Status MakeValueFromLocation(const proto::Location &location,
-                             proto::DbValue *value);
+Status MakeTimelineKeyFromLocation(const proto::Location &location,
+                                   proto::DbKey *keys);
+Status MakeTimelineValueFromLocation(const proto::Location &location,
+                                     proto::DbValue *value);
 
 } // namespace bt

@@ -21,6 +21,9 @@ public:
                            proto::PutLocationResponse *response) override;
 
 private:
+  Status PutTimelineLocation(const proto::Location &location,
+                             rocksdb::WriteBatch *batch);
+
   Db *db_ = nullptr;
 };
 

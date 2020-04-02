@@ -20,6 +20,17 @@ public:
   void FindShortSuccessor(std::string *key) const override {}
 };
 
+// Same here, refer to the .cc file for a long explanation.
+class UserComparator : public rocksdb::Comparator {
+public:
+  int Compare(const rocksdb::Slice &a, const rocksdb::Slice &b) const override;
+  const char *Name() const override;
+
+  void FindShortestSeparator(std::string *start,
+                             const rocksdb::Slice &limit) const override {}
+  void FindShortSuccessor(std::string *key) const override {}
+};
+
 class Db {
 public:
   Status Init(const Options &options);
