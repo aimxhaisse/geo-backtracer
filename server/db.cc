@@ -71,11 +71,11 @@ void DecodeTimelineKey(const rocksdb::Slice &key, uint64_t *timestamp_lo,
   proto::DbKey db_key;
   db_key.ParseFromArray(key.data(), key.size());
 
-  *timestamp_lo = db_key.timestamp() / 1000;
+  *timestamp_lo = db_key.timestamp() / kTimePrecision;
   *long_zone = db_key.gps_longitude_zone();
   *lat_zone = db_key.gps_latitude_zone();
   *user_id = db_key.user_id();
-  *timestamp_hi = db_key.timestamp() % 1000;
+  *timestamp_hi = db_key.timestamp() % kTimePrecision;
 }
 
 } // anonymous namespace
