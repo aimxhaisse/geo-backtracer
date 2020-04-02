@@ -1,4 +1,5 @@
 #include <grpcpp/grpcpp.h>
+#include <list>
 
 #include "common/status.h"
 #include "proto/backtrace.grpc.pb.h"
@@ -19,6 +20,11 @@ public:
                   proto::GetUserTimelineResponse *response) override;
 
 private:
+  Status BuildTimelineKeysForUser(uint64_t user_id,
+                                  std::list<proto::DbKey> *keys);
+  Status BuildTimelineForUser(const std::list<proto::DbKey> &keys,
+                              proto::GetUserTimelineResponse *timeline);
+
   Db *db_ = nullptr;
 };
 

@@ -60,8 +60,8 @@ message DbKey {
   int64 timestamp = 1;
   int64 user_id = 2;
   float gps_longitude_zone = 3;
-  float gps_latitude_zone = 4;}
-
+  float gps_latitude_zone = 4;
+}
 
 message DbValue {
   float gps_latitude = 1;
