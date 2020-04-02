@@ -1,8 +1,8 @@
 # Geo Backtracer
 
 A service to store GPS-like locations of O(million) users in
-real-time, and provide a way to backtrace over a period of days, users
-that were close for more than 30 minutes.
+real-time, and provide a way to backtrace over a period of 30 days,
+users that were close for more than 15 minutes.
 
 ## Status
 
@@ -25,35 +25,54 @@ Once done, run the Makefile to get more help about available commands:
 
     make
 
-## Ramblings & Quick Maths
+## Ramblings
 
-This is just ballparking, numbers come from a macbook pro, writing to
-flash, both clients and server are running on the same system. This is
-still a work-in-progress and might evolve in many directions.
+### Assumptions
 
-- inserting 50.000.000 with 5 clients takes 100 seconds, so insert rate is 500.000 points/sec,
-- 50.000.000 take about 1.3G on flash, so average point size after compression is 27 bytes,
-- assuming 1 point per-user every minute, insert currently supports 30 million active users.
+   - 30 days of history,
+   - 1 point per user per minute.
 
-If we aim for 90 days of horizon & a database of 1 TiB, it means we
-can store about 45.000.000.000 points, that's 1 point per minute per
-user for 90 days is 130.000 points, so in terms of size we'd scale to
-350.000 users, this is the current bottleneck.
+### Status
 
-Things that will make these numbers lower:
+Current numbers, inserting 200 000 000 points in an empty database:
 
-- having two column families to support fast per-user look-ups,
-- having read queries running at the same time,
-- having compactions running in the background.
+   - 80 000 inserts / second,
+   - 12.5 byte per GPS point.
 
-Things that will make these numbers higher:
+### Insert rate
 
-- hosting on a real server,
-- quantize time to store less points,
-- tweaking the database for this real server,
-- increasing the number of concurrent clients,
-- multiple-values for a given period (i.e 1 point every hour instead of 60 points).
+    |--------------+----------------|
+    | active users | inserts/second |
+    |--------------+----------------|
+    | 1K users     | 16             |
+    |--------------+----------------|
+    | 10K users    | 160            |
+    |--------------+----------------|
+    | 100K users   | 1.6K           |
+    |--------------+----------------|
+    | 1M users     | 16K            |
+    |--------------+----------------|
+    | 10M users    | 160K           |
+    |--------------+----------------|
+    | 100M users   | 1.6M           |
+    |--------------+----------------|
 
-Before going into this land, let's handle reads as well so that we get
-an idea of the time it takes to fetch the backtrace, and how hard the
-algorithm is.
+### Size
+
+    |------------+-----------------+------------------+-------------------|
+    | point size | 1 million users | 10 million users | 100 million users |
+    |------------+-----------------+------------------+-------------------|
+    | 1 byte     | 43G             | 430G             | 4.3T              |
+    |------------+-----------------+------------------+-------------------|
+    | 2 bytes    | 86G             | 860G             | 8.6T              |
+    |------------+-----------------+------------------+-------------------|
+    | 3 bytes    | 129G            | 1.3T             | 13T               |
+    |------------+-----------------+------------------+-------------------|
+    | 4 bytes    | 172G            | 1.7T             | 17T               |
+    |------------+-----------------+------------------+-------------------|
+    | 5 bytes    | 215G            | 2.2T             | 22T               |
+    |------------+-----------------+------------------+-------------------|
+    | 10 bytes   | 430G            | 4.3T             | 43T               |
+    |------------+-----------------+------------------+-------------------|
+    | 20 bytes   | 860G            | 8.6T             | 86T               |
+    |------------+-----------------+------------------+-------------------|
