@@ -75,15 +75,11 @@ message DbValue {
 
 message DbReverseKey {
   int64 user_id = 1;
+  int64 timestamp = 2;
 }
-
-message DbReversePoint {
-  int64 timestamp = 1;
-  float gps_latitude = 2;
-  float gps_longitude = 3;
-  float gps_altitude = 4;
-};
 
 message DbReverseValue {
-  repeated DbReversePoint point = 1;
-}
+  float gps_latitude = 1;
+  float gps_longitude = 2;
+  float gps_altitude = 3;
+};

@@ -73,6 +73,7 @@ Status Pusher::PutTimelineLocation(const proto::Location &location) {
 Status Pusher::PutReverseLocation(const proto::Location &location) {
   proto::DbReverseKey key;
   key.set_user_id(location.user_id());
+  key.set_timestamp(location.timestamp());
 
   std::string raw_key;
   if (!key.SerializeToString(&raw_key)) {
@@ -80,12 +81,10 @@ Status Pusher::PutReverseLocation(const proto::Location &location) {
   }
 
   proto::DbReverseValue value;
-  proto::DbReversePoint *point = value.add_point();
 
-  point->set_timestamp(location.timestamp());
-  point->set_gps_longitude(location.gps_longitude());
-  point->set_gps_latitude(location.gps_latitude());
-  point->set_gps_altitude(location.gps_altitude());
+  value.set_gps_longitude(location.gps_longitude());
+  value.set_gps_latitude(location.gps_latitude());
+  value.set_gps_altitude(location.gps_altitude());
 
   std::string raw_value;
   if (!value.SerializeToString(&raw_value)) {
@@ -93,8 +92,8 @@ Status Pusher::PutReverseLocation(const proto::Location &location) {
   }
 
   rocksdb::Status status =
-      db_->Rocks()->Merge(rocksdb::WriteOptions(), db_->ReverseHandle(),
-                          rocksdb::Slice(raw_key), rocksdb::Slice(raw_value));
+      db_->Rocks()->Put(rocksdb::WriteOptions(), db_->ReverseHandle(),
+                        rocksdb::Slice(raw_key), rocksdb::Slice(raw_value));
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR,
                  "failed to merge reverse value, status=" << status.ToString());

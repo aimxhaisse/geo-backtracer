@@ -1,7 +1,6 @@
 #pragma once
 
 #include <rocksdb/db.h>
-#include <rocksdb/merge_operator.h>
 
 #include "common/status.h"
 #include "server/constants.h"
@@ -22,23 +21,14 @@ public:
   void FindShortSuccessor(std::string *key) const override {}
 };
 
-// Merge for the reverse column. The idea here is as follows: we have a
-// per-user column with a list of locations to build keys to do a fast
-// lookup in the timelime column. Populating the per-user column implies
-// on each GPS put a random lookup in the database to get the current
-// locations, then an update to add the new location to it. This is not
-// practical.
-//
-// Instead, we use merge semantics, which make it possible to update a
-// value given an incremental update. This happens under the hood
-// whenever compaction is needed, so it's offline the serving path.
-class MergeReverseOperator : public rocksdb::AssociativeMergeOperator {
+class ReverseComparator : public rocksdb::Comparator {
 public:
-  bool Merge(const rocksdb::Slice &key, const rocksdb::Slice *existing_value,
-             const rocksdb::Slice &value, std::string *new_value,
-             rocksdb::Logger *logger) const override;
-
+  int Compare(const rocksdb::Slice &a, const rocksdb::Slice &b) const override;
   const char *Name() const override;
+
+  void FindShortestSeparator(std::string *start,
+                             const rocksdb::Slice &limit) const override {}
+  void FindShortSuccessor(std::string *key) const override {}
 };
 
 class Db {
@@ -67,6 +57,7 @@ private:
   bool is_temp_ = false;
   std::unique_ptr<rocksdb::DB> db_;
 
+  ReverseComparator reverse_cmp_;
   TimelineComparator timeline_cmp_;
   std::vector<rocksdb::ColumnFamilyDescriptor> columns_;
   std::vector<rocksdb::ColumnFamilyHandle *> handles_;

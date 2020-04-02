@@ -144,78 +144,48 @@ const char *TimelineComparator::Name() const {
   return "timeline-comparator-0.1";
 }
 
-bool MergeReverseOperator::Merge(const rocksdb::Slice &key,
-                                 const rocksdb::Slice *existing_value,
-                                 const rocksdb::Slice &value,
-                                 std::string *new_value,
-                                 rocksdb::Logger *logger) const {
-  LOG_EVERY_N(INFO, 10000) << "reverse key merge";
+namespace {
 
-  // Start with an empty proto if we have no point yet, create it
-  // otherwise.
-  proto::DbReverseValue previous;
-  if (existing_value) {
-    previous.ParseFromArray(existing_value->data(), existing_value->size());
-  }
-
-  const std::time_t now = std::time(nullptr);
-
-  // We want to avoid having protobufs that are too large, this is
-  // roughly 100.000 points per user.
-  //
-  // We can't iterate on each merge on all previous points, so we try
-  // to be smart and do it only once in a while (the reason is, the
-  // merge operand can potentially be called O(100k)/seconde, having
-  // it run in O^2 is not possible).
-  bool cleanup_points = false;
-  if ((previous.point_size() + 1) >= kMaxPointsPerUser ||
-      (previous.point_size() > 0 &&
-       ((previous.point(0).timestamp() + 2 * kRetentionPeriodSecond) > now))) {
-    cleanup_points = true;
-  }
-
-  // Filter out old entries from the existing list, to keep the size
-  // of the column under reasonable control.
-  proto::DbReverseValue next;
-  if (cleanup_points) {
-    std::time_t previous_timestamp = 0;
-    for (int i = 0; i < previous.point_size(); ++i) {
-      const proto::DbReversePoint &point = previous.point(i);
-      // Ignore all points that are older than the retention period.
-      if (point.timestamp() + kRetentionPeriodSecond < now) {
-        continue;
-      }
-
-      // Ignore points that are too close in time in case we reach
-      // limits; this ensures we aren't creating too-large protobufs.
-      if (cleanup_points && previous_timestamp &&
-          abs(previous_timestamp - point.timestamp()) >=
-              kMinPeriodBetweenGPSPointSecond) {
-        continue;
-      }
-
-      *next.add_point() = point;
-      previous_timestamp = point.timestamp();
-    }
-  } else {
-    next.CopyFrom(previous);
-  }
-
-  // New point(s) we want to add to the list.
-  proto::DbReverseValue new_point;
-  if (new_point.ParseFromArray(value.data(), value.size())) {
-    for (int j = 0; j < new_point.point_size(); ++j) {
-      *next.add_point() = new_point.point(j);
-    }
-  }
-
-  next.SerializeToString(new_value);
-
-  return true;
+void DecodeReverseKey(const rocksdb::Slice &key, uint64_t *user_id,
+                      uint64_t *timestamp) {
+  proto::DbReverseKey db_key;
+  db_key.ParseFromArray(key.data(), key.size());
 }
 
-const char *MergeReverseOperator::Name() const {
-  return "merge-by-user-operator-0.1";
+} // anonymous namespace
+
+int ReverseComparator::Compare(const rocksdb::Slice &a,
+                               const rocksdb::Slice &b) const {
+  uint64_t left_user_id;
+  uint64_t left_timestamp;
+  DecodeReverseKey(a, &left_user_id, &left_timestamp);
+
+  uint64_t right_user_id;
+  uint64_t right_timestamp;
+  DecodeReverseKey(a, &right_user_id, &right_timestamp);
+
+  if (left_user_id < right_user_id) {
+    return -1;
+  }
+  if (left_user_id > right_user_id) {
+    return 1;
+  }
+
+  if (left_timestamp < right_timestamp) {
+    return -1;
+  }
+  if (left_timestamp > right_timestamp) {
+    return 1;
+  }
+
+  return 0;
+}
+
+const char *ReverseComparator::Name() const {
+  // Keep this versioned as long as the implementation isn't changed, so we
+  // ensure we aren't corrupting a database. It's a good idea to have a unit
+  // test here that ensure the order doesn't change.
+  return "reverse-comparator-0.1";
 }
 
 Status Db::Init(const Options &options) {
@@ -243,7 +213,7 @@ Status Db::Init(const Options &options) {
       rocksdb::ColumnFamilyDescriptor(kColumnTimeline, timeline_options));
 
   rocksdb::ColumnFamilyOptions reverse_options;
-  reverse_options.merge_operator = std::make_shared<MergeReverseOperator>();
+  reverse_options.comparator = &reverse_cmp_;
   reverse_options.compression = rocksdb::kLZ4Compression;
   columns_.push_back(
       rocksdb::ColumnFamilyDescriptor(kColumnReverse, reverse_options));
@@ -300,8 +270,9 @@ Status Db::InitColumnFamilies(const rocksdb::Options &rocksdb_options) {
   LOG(INFO) << "created column " << kColumnTimeline;
 
   rocksdb::ColumnFamilyHandle *rev_handle;
-  status = db->CreateColumnFamily(rocksdb::ColumnFamilyOptions(),
-                                  kColumnReverse, &rev_handle);
+  rocksdb::ColumnFamilyOptions rev_options;
+  rev_options.comparator = &reverse_cmp_;
+  status = db->CreateColumnFamily(rev_options, kColumnReverse, &rev_handle);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR,
                  "can't init reverse column, status=" << status.ToString());
