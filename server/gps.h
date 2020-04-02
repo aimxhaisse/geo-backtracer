@@ -8,15 +8,12 @@
 
 namespace bt {
 
-// This is counter-intuitive: a key represents a zone of about
-// 1000x1000 meters, because GPS is only 4x4 meters accurate, all
-// points that are near borders of the 1000x1000 area are inserted
-// multiple times in the database.
-//
-// Values however, remain the same (i.e: we insert multiple times the
-// same values).
+// Only keep the first 4 digits of a GPS location for a zone, this
+// maps to a 1100x1100m area.
+constexpr float kGPSZonePrecision = 1000.0;
+
 Status MakeKeysFromLocation(const proto::Location &location,
-                            std::vector<proto::DbKey> *keys);
+                            proto::DbKey *keys);
 Status MakeValueFromLocation(const proto::Location &location,
                              proto::DbValue *value);
 

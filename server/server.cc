@@ -10,6 +10,8 @@ namespace bt {
 namespace {
 
 constexpr char kServerAddress[] = "0.0.0.0:6000";
+constexpr char kColumnTimeline[] = "by-timeline";
+constexpr char kColumnReverse[] = "by-user";
 
 } // anonymous namespace
 
@@ -74,6 +76,7 @@ Server::~Server() {
 
 Status Server::Pusher::Init(rocksdb::DB *db) {
   db_ = db;
+
   return StatusCode::OK;
 }
 
@@ -82,20 +85,18 @@ Server::Pusher::PutLocation(grpc::ServerContext *context,
                             const proto::PutLocationRequest *request,
                             proto::PutLocationResponse *response) {
   rocksdb::WriteBatch batch;
-  std::vector<proto::DbKey> keys;
 
   for (int i = 0; i < request->locations_size(); ++i) {
     const proto::Location &location = request->locations(i);
-    proto::DbValue value;
 
-    keys.clear();
-
-    Status status = MakeKeysFromLocation(location, &keys);
+    proto::DbKey key;
+    Status status = MakeKeysFromLocation(location, &key);
     if (status != StatusCode::OK) {
       LOG(WARNING) << "unable to build key from location, status=" << status;
       continue;
     }
 
+    proto::DbValue value;
     status = MakeValueFromLocation(location, &value);
     if (status != StatusCode::OK) {
       LOG(WARNING) << "unable to build value from location, status=" << status;
@@ -108,20 +109,13 @@ Server::Pusher::PutLocation(grpc::ServerContext *context,
       continue;
     }
 
-    bool skipped = false;
-    for (const auto &key : keys) {
-      std::string raw_key;
-      if (!key.SerializeToString(&raw_key)) {
-        LOG(WARNING) << "unable to serialize key, skipped";
-        skipped = true;
-        break;
-      }
-      if (skipped) {
-        continue;
-      }
-
-      batch.Put(rocksdb::Slice(raw_key), rocksdb::Slice(raw_value));
+    std::string raw_key;
+    if (!key.SerializeToString(&raw_key)) {
+      LOG(WARNING) << "unable to serialize key, skipped";
+      continue;
     }
+
+    batch.Put(rocksdb::Slice(raw_key), rocksdb::Slice(raw_value));
   }
 
   rocksdb::Status db_status = db_->Write(rocksdb::WriteOptions(), &batch);

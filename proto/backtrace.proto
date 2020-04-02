@@ -47,3 +47,21 @@ message DbValue {
   float gps_longitude = 2;
   float gps_altitude = 3;
 }
+
+// This is for the reverse table, the goal is to quickly lookup the
+// history of a user and build range keys to directly read the parts
+// of the database we need to lookup.
+
+message DbReverseKey {
+  int64 user_id = 1;
+}
+
+message DbReversePoint {
+  int64 timestamp = 1;
+  float gps_longitude_zone = 2;
+  float gps_latitude_zone = 3;
+};
+
+message DbReverseValue {
+  repeated DbReversePoint reverse_point = 1;
+}
