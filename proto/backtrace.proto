@@ -23,6 +23,17 @@ message PutLocationRequest {
 message PutLocationResponse {}
 
 // --- Database internals.
+//
+// Note: it doesn't seem that the types here have an impact on the
+// database size, for instance downscaling timestamp from int64 to
+// int32 doesn't have a noticeable benefit. Similarly, using an int32
+// instead of a float (which isn't variable in size in protobuf)
+// should in theory be an improvement in size, but it doesn't. I
+// suspect LZ4 compression does a very good job, which is good as it
+// simplifies the implementation.
+//
+// Let's try to keep those as close as possible to what the
+// implementation needs.
 
 message DbKey {
   int64 timestamp = 1;

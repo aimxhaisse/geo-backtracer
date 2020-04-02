@@ -8,7 +8,9 @@
 namespace bt {
 
 namespace {
+
 constexpr char kServerAddress[] = "0.0.0.0:6000";
+
 } // anonymous namespace
 
 Status Server::InitPath(const Options &server_options) {
