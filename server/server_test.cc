@@ -123,6 +123,32 @@ TEST_F(ServerTest, TimelineSingleUserMultipleTimestampZones) {
   EXPECT_EQ(response.point_size(), 5 * kTimestampZones);
 }
 
+// Test that retrieving works with different users under same
+// timestamp zone.
+TEST_F(ServerTest, TimelineMultipleUserSameTimestampZones) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  constexpr int kUserCount = 100;
+
+  // Push points for 100 different users, first user gets 1 point,
+  // second 2, and so on.
+  for (int i = 0; i < kUserCount; ++i) {
+    for (int j = 0; j <= i; ++j) {
+      const uint64_t ts = kBaseTimestamp + j;
+      EXPECT_TRUE(PushPoint(ts, kBaseUserId + i, kBaseGpsLongitude,
+                            kBaseGpsLatitude, kBaseGpsAltitude));
+    }
+  }
+
+  for (int i = 0; i < kUserCount; ++i) {
+    for (int j = 0; j <= i; ++j) {
+      proto::GetUserTimelineResponse response;
+      EXPECT_TRUE(FetchTimeline(kBaseUserId + i, &response));
+      EXPECT_EQ(response.point_size(), i + 1);
+    }
+  }
+}
+
 // Test that retrieving works with different users under multiple
 // timestamp zone.
 TEST_F(ServerTest, TimelineMultipleUserMultipleTimestampZones) {
