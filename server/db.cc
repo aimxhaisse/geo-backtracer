@@ -1,3 +1,4 @@
+#include <ctime>
 #include <glog/logging.h>
 
 #include "common/utils.h"
@@ -140,6 +141,53 @@ const char *TimelineComparator::Name() const {
   // ensure we aren't corrupting a database. It's a good idea to have a unit
   // test here that ensure the order doesn't change.
   return "timeline-comparator-0.1";
+}
+
+bool MergeUserOperator::Merge(const rocksdb::Slice &key,
+                              const rocksdb::Slice *existing_value,
+                              const rocksdb::Slice &value,
+                              std::string *new_value,
+                              rocksdb::Logger *logger) const {
+  // Start with an empty proto if we have no point yet, create it
+  // otherwise.
+  proto::DbReverseValue previous;
+  if (existing_value) {
+    if (!previous.ParseFromArray(existing_value->data(),
+                                 existing_value->size())) {
+      return false;
+    }
+  }
+
+  // Filter out old entries from the existing list, to keep the size
+  // of the column under reasonable control.
+  proto::DbReverseValue next;
+  const std::time_t now = std::time(nullptr);
+  for (int i = 0; i < previous.reverse_point().size(); ++i) {
+    const proto::DbReversePoint &point = previous.reverse_point(i);
+    // Ignore all points that are older than the retention period.
+    if (point.timestamp() + kRetentionPeriodSecond < now) {
+      continue;
+    }
+
+    *next.add_reverse_point() = point;
+  }
+
+  // New point we want to add to the list.
+  proto::DbReversePoint new_point;
+  if (!new_point.ParseFromArray(value.data(), value.size())) {
+    return false;
+  }
+  *next.add_reverse_point() = new_point;
+
+  if (!next.SerializeToString(new_value)) {
+    return false;
+  }
+
+  return true;
+}
+
+const char *MergeUserOperator::Name() const {
+  return "merge-by-user-operator-0.1";
 }
 
 Status Db::Init(const Options &options) {

@@ -9,6 +9,12 @@ namespace bt {
 
 class Options;
 
+// Make these configurable.
+
+// Retention period of points in the database, anything older than
+// this is considered for deletion.
+constexpr int kRetentionPeriodSecond = 24 * 3600 * 15;
+
 // This is likely the most important part of this project, refer to
 // the .cc file for a long explanation.
 class TimelineComparator : public rocksdb::Comparator {
