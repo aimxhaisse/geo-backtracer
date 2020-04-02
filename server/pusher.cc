@@ -6,7 +6,7 @@
 
 namespace bt {
 
-Status Pusher::Init(rocksdb::DB *db) {
+Status Pusher::Init(Db *db) {
   db_ = db;
 
   return StatusCode::OK;
@@ -49,7 +49,8 @@ grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
     batch.Put(rocksdb::Slice(raw_key), rocksdb::Slice(raw_value));
   }
 
-  rocksdb::Status db_status = db_->Write(rocksdb::WriteOptions(), &batch);
+  rocksdb::Status db_status =
+      db_->Rocks()->Write(rocksdb::WriteOptions(), &batch);
   if (!db_status.ok()) {
     LOG(WARNING) << "unable to write batch updates, db_status="
                  << db_status.ToString();

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "server/options.h"
 #include "server/server.h"
 
 namespace bt {

@@ -3,13 +3,15 @@
 #include <grpcpp/grpcpp.h>
 #include <memory>
 #include <optional>
-#include <rocksdb/db.h>
 
 #include "common/status.h"
 #include "proto/backtrace.grpc.pb.h"
 #include "server/pusher.h"
 
 namespace bt {
+
+class Db;
+class Options;
 
 // Some design notes on the threading model used here:
 //
@@ -29,28 +31,14 @@ namespace bt {
 // requests there and the single writer thread will push them in
 // order).
 
-// Options to initialize the db.
-struct Options {
-  // Path to an existing database, if no path is set, an ephemeral
-  // database is created from a temporary directory, and cleaned up at
-  // exit.
-  std::optional<std::string> db_path_;
-};
-
 // Main class.
 class Server {
 public:
   Status Init(const Options &options);
   Status Run();
 
-  ~Server();
-
 private:
-  Status InitPath(const Options &options);
-
-  std::string path_;
-  bool is_temp_ = false;
-  std::unique_ptr<rocksdb::DB> db_;
+  std::unique_ptr<Db> db_;
   std::unique_ptr<Pusher> pusher_;
 };
 
