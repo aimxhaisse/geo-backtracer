@@ -1,3 +1,4 @@
+#include <atomic>
 #include <grpcpp/grpcpp.h>
 #include <rocksdb/db.h>
 
@@ -21,12 +22,13 @@ public:
                            proto::PutLocationResponse *response) override;
 
 private:
-  Status PutTimelineLocation(const proto::Location &location,
-                             rocksdb::WriteBatch *batch);
-  Status PutReverseLocation(const proto::Location &location,
-                            rocksdb::WriteBatch *batch);
+  Status PutTimelineLocation(const proto::Location &location);
+  Status PutReverseLocation(const proto::Location &location);
 
   Db *db_ = nullptr;
+
+  std::atomic<uint64_t> counter_ok_ = 0;
+  std::atomic<uint64_t> counter_ko_ = 0;
 };
 
 } // namespace bt

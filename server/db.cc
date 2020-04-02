@@ -144,67 +144,77 @@ const char *TimelineComparator::Name() const {
   return "timeline-comparator-0.1";
 }
 
-bool MergeUserOperator::Merge(const rocksdb::Slice &key,
-                              const rocksdb::Slice *existing_value,
-                              const rocksdb::Slice &value,
-                              std::string *new_value,
-                              rocksdb::Logger *logger) const {
+bool MergeReverseOperator::Merge(const rocksdb::Slice &key,
+                                 const rocksdb::Slice *existing_value,
+                                 const rocksdb::Slice &value,
+                                 std::string *new_value,
+                                 rocksdb::Logger *logger) const {
+  LOG_EVERY_N(INFO, 10000) << "reverse key merge";
+
   // Start with an empty proto if we have no point yet, create it
   // otherwise.
   proto::DbReverseValue previous;
   if (existing_value) {
-    if (!previous.ParseFromArray(existing_value->data(),
-                                 existing_value->size())) {
-      return false;
-    }
+    previous.ParseFromArray(existing_value->data(), existing_value->size());
   }
+
+  const std::time_t now = std::time(nullptr);
 
   // We want to avoid having protobufs that are too large, this is
   // roughly 100.000 points per user.
+  //
+  // We can't iterate on each merge on all previous points, so we try
+  // to be smart and do it only once in a while (the reason is, the
+  // merge operand can potentially be called O(100k)/seconde, having
+  // it run in O^2 is not possible).
   bool cleanup_points = false;
-  if ((previous.point_size() + 1) >= kMaxPointsPerUser) {
+  if ((previous.point_size() + 1) >= kMaxPointsPerUser ||
+      (previous.point_size() > 0 &&
+       ((previous.point(0).timestamp() + 2 * kRetentionPeriodSecond) > now))) {
     cleanup_points = true;
   }
 
   // Filter out old entries from the existing list, to keep the size
   // of the column under reasonable control.
   proto::DbReverseValue next;
-  const std::time_t now = std::time(nullptr);
-  std::time_t previous_timestamp = 0;
-  for (int i = 0; i < previous.point_size(); ++i) {
-    const proto::DbReversePoint &point = previous.point(i);
-    // Ignore all points that are older than the retention period.
-    if (point.timestamp() + kRetentionPeriodSecond < now) {
-      continue;
-    }
+  if (cleanup_points) {
+    std::time_t previous_timestamp = 0;
+    for (int i = 0; i < previous.point_size(); ++i) {
+      const proto::DbReversePoint &point = previous.point(i);
+      // Ignore all points that are older than the retention period.
+      if (point.timestamp() + kRetentionPeriodSecond < now) {
+        continue;
+      }
 
-    // Ignore points that are too close in time in case we reach
-    // limits; this ensures we aren't creating too-large protobufs.
-    if (cleanup_points && abs(previous_timestamp - point.timestamp()) >=
-                              kMinPeriodBetweenGPSPointSecond) {
-      continue;
-    }
+      // Ignore points that are too close in time in case we reach
+      // limits; this ensures we aren't creating too-large protobufs.
+      if (cleanup_points && previous_timestamp &&
+          abs(previous_timestamp - point.timestamp()) >=
+              kMinPeriodBetweenGPSPointSecond) {
+        continue;
+      }
 
-    *next.add_point() = point;
-    previous_timestamp = point.timestamp();
+      *next.add_point() = point;
+      previous_timestamp = point.timestamp();
+    }
+  } else {
+    next.CopyFrom(previous);
   }
 
   // New point(s) we want to add to the list.
   proto::DbReverseValue new_point;
-  if (!new_point.ParseFromArray(value.data(), value.size())) {
-    return false;
+  if (new_point.ParseFromArray(value.data(), value.size())) {
+    for (int j = 0; j < new_point.point_size(); ++j) {
+      *next.add_point() = new_point.point(j);
+    }
   }
-  for (int i = 0; i < new_point.point_size(); ++i) {
-    *next.add_point() = new_point.point(i);
-  }
-  if (!next.SerializeToString(new_value)) {
-    return false;
-  }
+
+  next.SerializeToString(new_value);
 
   return true;
 }
 
-const char *MergeUserOperator::Name() const {
+const char *MergeReverseOperator::Name() const {
   return "merge-by-user-operator-0.1";
 }
 
@@ -228,13 +238,15 @@ Status Db::Init(const Options &options) {
 
   rocksdb::ColumnFamilyOptions timeline_options;
   timeline_options.comparator = &timeline_cmp_;
+  timeline_options.compression = rocksdb::kLZ4Compression;
   columns_.push_back(
       rocksdb::ColumnFamilyDescriptor(kColumnTimeline, timeline_options));
 
-  rocksdb::ColumnFamilyOptions user_options;
-  user_options.merge_operator = std::make_shared<MergeUserOperator>();
+  rocksdb::ColumnFamilyOptions reverse_options;
+  reverse_options.merge_operator = std::make_shared<MergeReverseOperator>();
+  reverse_options.compression = rocksdb::kLZ4Compression;
   columns_.push_back(
-      rocksdb::ColumnFamilyDescriptor(kColumnReverse, user_options));
+      rocksdb::ColumnFamilyDescriptor(kColumnReverse, reverse_options));
 
   rocksdb::DB *db = nullptr;
   rocksdb::Status db_status =

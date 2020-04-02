@@ -32,7 +32,7 @@ public:
 // Instead, we use merge semantics, which make it possible to update a
 // value given an incremental update. This happens under the hood
 // whenever compaction is needed, so it's offline the serving path.
-class MergeUserOperator : public rocksdb::AssociativeMergeOperator {
+class MergeReverseOperator : public rocksdb::AssociativeMergeOperator {
 public:
   bool Merge(const rocksdb::Slice &key, const rocksdb::Slice *existing_value,
              const rocksdb::Slice &value, std::string *new_value,
