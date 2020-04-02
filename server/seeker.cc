@@ -1,6 +1,8 @@
 #include <glog/logging.h>
 #include <memory>
 #include <rocksdb/db.h>
+#include <utility>
+#include <vector>
 
 #include "server/seeker.h"
 
@@ -153,6 +155,18 @@ Seeker::GetUserTimeline(grpc::ServerContext *context,
   return grpc::Status::OK;
 }
 
+Status Seeker::BuildLogicalBlock(
+    const proto::DbKey &timelime_key, uint64_t user_id,
+    std::vector<std::pair<proto::DbKey, proto::DbValue>> *user_entries,
+    std::vector<std::pair<proto::DbKey, proto::DbValue>> *folk_entries) {
+  return StatusCode::NOT_YET_IMPLEMENTED;
+}
+
+bool Seeker::IsNearbyFolk(const proto::DbValue &user_value,
+                          const proto::DbValue &folk_value) {
+  return false;
+}
+
 grpc::Status
 Seeker::GetUserNearbyFolks(grpc::ServerContext *context,
                            const proto::GetUserNearbyFolksRequest *request,
@@ -164,6 +178,34 @@ Seeker::GetUserNearbyFolks(grpc::ServerContext *context,
                  << request->user_id() << ", status=" << status;
     return grpc::Status(grpc::StatusCode::INTERNAL,
                         "can't build timeline keys");
+  }
+
+  // Naive implementation, this is to be optimized with bitmaps etc.
+  std::map<uint64_t, int> scores;
+  for (const auto &timeline_key : keys) {
+    std::vector<std::pair<proto::DbKey, proto::DbValue>> user_entries;
+    std::vector<std::pair<proto::DbKey, proto::DbValue>> folk_entries;
+
+    status = BuildLogicalBlock(timeline_key, request->user_id(), &user_entries,
+                               &folk_entries);
+    if (status != StatusCode::OK) {
+      LOG(WARNING) << "can't get timeline block, status=" << status;
+      continue;
+    }
+
+    for (const auto &user_entry : user_entries) {
+      for (const auto &folk_entry : folk_entries) {
+        if (IsNearbyFolk(user_entry.second, folk_entry.second)) {
+          scores[folk_entry.first.user_id()]++;
+        }
+      }
+    }
+  }
+
+  for (const auto &score : scores) {
+    proto::NearbyUserFolk *folk = response->add_folk();
+    folk->set_user_id(score.first);
+    folk->set_score(score.second);
   }
 
   LOG_EVERY_N(INFO, 1000) << "retrieved reverse keys, user_id="

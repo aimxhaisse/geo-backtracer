@@ -29,6 +29,13 @@ private:
                                   std::list<proto::DbKey> *keys);
   Status BuildTimelineForUser(const std::list<proto::DbKey> &keys,
                               proto::GetUserTimelineResponse *timeline);
+  Status BuildLogicalBlock(
+      const proto::DbKey &timelime_key, uint64_t user_id,
+      std::vector<std::pair<proto::DbKey, proto::DbValue>> *user_entries,
+      std::vector<std::pair<proto::DbKey, proto::DbValue>> *folk_entries);
+
+  bool IsNearbyFolk(const proto::DbValue &user_value,
+                    const proto::DbValue &folk_value);
 
   Db *db_ = nullptr;
 };
