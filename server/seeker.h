@@ -19,6 +19,11 @@ public:
                   const proto::GetUserTimelineRequest *request,
                   proto::GetUserTimelineResponse *response) override;
 
+  grpc::Status
+  GetUserNearbyFolks(grpc::ServerContext *context,
+                     const proto::GetUserNearbyFolksRequest *request,
+                     proto::GetUserNearbyFolksResponse *response) override;
+
 private:
   Status BuildTimelineKeysForUser(uint64_t user_id,
                                   std::list<proto::DbKey> *keys);

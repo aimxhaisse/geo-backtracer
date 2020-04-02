@@ -153,4 +153,24 @@ Seeker::GetUserTimeline(grpc::ServerContext *context,
   return grpc::Status::OK;
 }
 
+grpc::Status
+Seeker::GetUserNearbyFolks(grpc::ServerContext *context,
+                           const proto::GetUserNearbyFolksRequest *request,
+                           proto::GetUserNearbyFolksResponse *response) {
+  std::list<proto::DbKey> keys;
+  Status status = BuildTimelineKeysForUser(request->user_id(), &keys);
+  if (status != StatusCode::OK) {
+    LOG(WARNING) << "can't build timeline keys for user, user_id="
+                 << request->user_id() << ", status=" << status;
+    return grpc::Status(grpc::StatusCode::INTERNAL,
+                        "can't build timeline keys");
+  }
+
+  LOG_EVERY_N(INFO, 1000) << "retrieved reverse keys, user_id="
+                          << request->user_id()
+                          << ", reverse_keys_count=" << keys.size();
+
+  return grpc::Status::OK;
+}
+
 } // namespace bt
