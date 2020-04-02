@@ -155,14 +155,23 @@ bool MergeUserOperator::Merge(const rocksdb::Slice &key,
   if (existing_value) {
     if (!previous.ParseFromArray(existing_value->data(),
                                  existing_value->size())) {
+      LOG(INFO) << "merge error 1";
       return false;
     }
+  }
+
+  // We want to avoid having protobufs that are too large, this is
+  // roughly 100.000 points per user.
+  bool cleanup_points = false;
+  if ((previous.point_size() + 1) >= kMaxPointsPerUser) {
+    cleanup_points = true;
   }
 
   // Filter out old entries from the existing list, to keep the size
   // of the column under reasonable control.
   proto::DbReverseValue next;
   const std::time_t now = std::time(nullptr);
+  std::time_t previous_timestamp = 0;
   for (int i = 0; i < previous.point_size(); ++i) {
     const proto::DbReversePoint &point = previous.point(i);
     // Ignore all points that are older than the retention period.
@@ -170,7 +179,15 @@ bool MergeUserOperator::Merge(const rocksdb::Slice &key,
       continue;
     }
 
+    // Ignore points that are too close in time in case we reach
+    // limits; this ensures we aren't creating too-large protobufs.
+    if (cleanup_points && abs(previous_timestamp - point.timestamp()) >=
+                              kMinPeriodBetweenGPSPointSecond) {
+      continue;
+    }
+
     *next.add_point() = point;
+    previous_timestamp = point.timestamp();
   }
 
   // New point(s) we want to add to the list.

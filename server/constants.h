@@ -23,4 +23,14 @@ constexpr int kTimePrecision = 1000;
 // existing database, as it doesn't touch the internal layout.
 constexpr int kRetentionPeriodSecond = 24 * 3600 * 15;
 
+// Min interval expected between user timestamps. This is to prevent
+// overloading the database, we can drop points that are too close
+// once we start reaching per-user limits over a long period.
+constexpr int kMinPeriodBetweenGPSPointSecond = 60;
+
+// Hard limit on the number of points we can store per-user, after
+// this we might start collecting points that are too close in time.
+constexpr int kMaxPointsPerUser =
+    (kRetentionPeriodSecond / kMinPeriodBetweenGPSPointSecond) * 2;
+
 } // namespace bt

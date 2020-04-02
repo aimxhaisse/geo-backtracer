@@ -90,7 +90,7 @@ Status Client::BatchPush() {
     for (int i = 0; i < 10000; ++i) {
       proto::Location *loc = request.add_locations();
       loc->set_timestamp(static_cast<uint64_t>(std::time(nullptr)));
-      loc->set_user_id(std::rand() % 100);
+      loc->set_user_id(std::rand() % 1000);
 
       // 3 digits gives a precision of 10km.
       std::uniform_real_distribution<float> dis(10.1, 10.2);
