@@ -22,6 +22,27 @@ message PutLocationRequest {
 
 message PutLocationResponse {}
 
+// --- Interface to lookup correlations.
+
+service Seeker {
+  rpc GetUserTimelime(GetUserTimelineRequest) returns (GetUserTimelineResponse) {}
+}
+
+message GetUserTimelineRequest {
+  uint64 user_id = 1;
+}
+
+message UserTimelinePoint {
+  int64 timestamp = 1;
+  float gps_latitude = 2;
+  float gps_longitude = 3;
+  float gps_altitude = 4;
+};
+
+message GetUserTimelineResponse {
+  repeated UserTimelinePoint point = 1;
+}
+
 // --- Database internals.
 //
 // Note: it doesn't seem that the types here have an impact on the
@@ -58,10 +79,11 @@ message DbReverseKey {
 
 message DbReversePoint {
   int64 timestamp = 1;
-  float gps_longitude_zone = 2;
-  float gps_latitude_zone = 3;
+  float gps_latitude = 2;
+  float gps_longitude = 3;
+  float gps_altitude = 4;
 };
 
 message DbReverseValue {
-  repeated DbReversePoint reverse_point = 1;
+  repeated DbReversePoint point = 1;
 }

@@ -7,6 +7,7 @@
 #include "common/status.h"
 #include "proto/backtrace.grpc.pb.h"
 #include "server/pusher.h"
+#include "server/seeker.h"
 
 namespace bt {
 
@@ -40,6 +41,7 @@ public:
 private:
   std::unique_ptr<Db> db_;
   std::unique_ptr<Pusher> pusher_;
+  std::unique_ptr<Seeker> seeker_;
 };
 
 } // namespace bt

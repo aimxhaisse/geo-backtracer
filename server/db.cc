@@ -163,14 +163,14 @@ bool MergeUserOperator::Merge(const rocksdb::Slice &key,
   // of the column under reasonable control.
   proto::DbReverseValue next;
   const std::time_t now = std::time(nullptr);
-  for (int i = 0; i < previous.reverse_point().size(); ++i) {
-    const proto::DbReversePoint &point = previous.reverse_point(i);
+  for (int i = 0; i < previous.point().size(); ++i) {
+    const proto::DbReversePoint &point = previous.point(i);
     // Ignore all points that are older than the retention period.
     if (point.timestamp() + kRetentionPeriodSecond < now) {
       continue;
     }
 
-    *next.add_reverse_point() = point;
+    *next.add_point() = point;
   }
 
   // New point(s) we want to add to the list.
@@ -178,8 +178,8 @@ bool MergeUserOperator::Merge(const rocksdb::Slice &key,
   if (!new_point.ParseFromArray(value.data(), value.size())) {
     return false;
   }
-  for (int i = 0; i < new_point.reverse_point().size(); ++i) {
-    *next.add_reverse_point() = new_point.reverse_point(i);
+  for (int i = 0; i < new_point.point().size(); ++i) {
+    *next.add_point() = new_point.point(i);
   }
   if (!next.SerializeToString(new_value)) {
     return false;

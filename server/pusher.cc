@@ -76,11 +76,12 @@ Status Pusher::PutReverseLocation(const proto::Location &location,
   }
 
   proto::DbReverseValue value;
-  proto::DbReversePoint *point = value.add_reverse_point();
+  proto::DbReversePoint *point = value.add_point();
 
   point->set_timestamp(location.timestamp());
-  point->set_gps_longitude_zone(GPSLocationToGPSZone(location.gps_longitude()));
-  point->set_gps_latitude_zone(GPSLocationToGPSZone(location.gps_latitude()));
+  point->set_gps_longitude(location.gps_longitude());
+  point->set_gps_latitude(location.gps_latitude());
+  point->set_gps_altitude(location.gps_altitude());
 
   std::string raw_value;
   if (!value.SerializeToString(&raw_value)) {

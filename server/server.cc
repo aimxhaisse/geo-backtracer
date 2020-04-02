@@ -21,15 +21,23 @@ Status Server::Init(const Options &options) {
   RETURN_IF_ERROR(pusher_->Init(db_.get()));
   LOG(INFO) << "initialized pusher";
 
+  seeker_ = std::make_unique<Seeker>();
+  RETURN_IF_ERROR(seeker_->Init(db_.get()));
+  LOG(INFO) << "initialized seeker";
+
   return StatusCode::OK;
 }
 
 Status Server::Run() {
   grpc::ServerBuilder builder;
   builder.AddListeningPort(kServerAddress, grpc::InsecureServerCredentials());
+
   builder.RegisterService(pusher_.get());
+  builder.RegisterService(seeker_.get());
+
   std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
   LOG(INFO) << "server listening on " << kServerAddress << std::endl;
+
   server->Wait();
 
   return StatusCode::OK;
