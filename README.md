@@ -1,7 +1,8 @@
-# Covid Backtrace
+# Geo Backtracer
 
-A service to correlate GPS user locations and backtrace the list of
-potential Covid contaminations, given a specific contaminated user.
+A service to store GPS-like locations of O(million) users in
+real-time, and provide a way to backtrace over a period of days, users
+that were close for more than 30 minutes.
 
 ## Status
 
