@@ -1,6 +1,9 @@
+#include <cstdint>
+#include <ctime>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <grpcpp/grpcpp.h>
+#include <random>
 
 #include "client/client.h"
 
@@ -28,22 +31,35 @@ Status Client::Run() {
 }
 
 Status Client::BatchPush() {
-  proto::PutLocationRequest request;
-  proto::PutLocationResponse response;
+  LOG(INFO) << "starting to write 1 000 000 points";
 
-  // Prepare a batch of 1000 points.
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  // Send 1.000 batch of 10.000 points (1.000.000 points).
   for (int i = 0; i < 1000; ++i) {
-    proto::Location *loc = request.add_locations();
-    loc->set_timestamp(i);
-    loc->set_user_id(i);
-    loc->set_gps_latitude(1.0);
-    loc->set_gps_longitude(1.0);
-    loc->set_gps_altitude(1.0);
-  }
+    proto::PutLocationRequest request;
 
-  // Send this 1000 batch 10 times (i.e: push 10 000 points to database).
-  for (int i = 0; i < 10; ++i) {
+    // Prepare a batch of 10.000 points with:
+    //
+    // - different users (purely random),
+    // - random locations in a 100km^2 area,
+    // - current time.
+    for (int i = 0; i < 10000; ++i) {
+      proto::Location *loc = request.add_locations();
+      loc->set_timestamp(static_cast<uint64_t>(std::time(nullptr)));
+      loc->set_user_id(std::rand());
+
+      // 3 digits gives a precision of 10km.
+      std::uniform_real_distribution<float> dis(10.1, 10.2);
+
+      loc->set_gps_latitude(dis(gen));
+      loc->set_gps_longitude(dis(gen));
+      loc->set_gps_altitude(dis(gen));
+    }
+
     grpc::ClientContext context;
+    proto::PutLocationResponse response;
     grpc::Status status = stub_->PutLocation(&context, request, &response);
     if (!status.ok()) {
       RETURN_ERROR(INTERNAL_ERROR,
@@ -51,6 +67,8 @@ Status Client::BatchPush() {
                        << status.error_message());
     }
   }
+
+  LOG(INFO) << "done writing points";
 
   return StatusCode::OK;
 }
