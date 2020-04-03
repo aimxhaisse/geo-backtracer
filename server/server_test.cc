@@ -55,6 +55,20 @@ struct ServerTest : public testing::Test {
     return status.ok();
   }
 
+  // Retrieves nearby folks for a given user.
+  bool GetNearbyFolks(uint64_t user_id,
+                      proto::GetUserNearbyFolksResponse *response) {
+    grpc::ServerContext context;
+    proto::GetUserNearbyFolksRequest request;
+
+    request.set_user_id(user_id);
+
+    grpc::Status status =
+        server_->GetSeeker()->GetUserNearbyFolks(&context, &request, response);
+
+    return status.ok();
+  }
+
   Options options_;
   std::unique_ptr<Server> server_;
 };
@@ -172,6 +186,30 @@ TEST_F(ServerTest, TimelineMultipleUserMultipleTimestampZones) {
       EXPECT_TRUE(FetchTimeline(kBaseUserId + i, &response));
       EXPECT_EQ(response.point_size(), i + 1);
     }
+  }
+}
+
+TEST_F(ServerTest, NoNearbyFolks) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  constexpr int kUserCount = 100;
+  constexpr int kNbPoints = 10;
+
+  // Push points for 100 different users, separated by > 100 km,
+  // expect 0 correlation for the 100 users.
+  for (int i = 0; i < kUserCount; ++i) {
+    for (int j = 0; j <= kNbPoints; ++j) {
+      const uint64_t ts = kBaseTimestamp + kTimePrecision * i + j;
+      EXPECT_TRUE(PushPoint(
+          ts, kBaseUserId + i, kBaseGpsLongitude + i * 0.1 + j * 0.001,
+          kBaseGpsLatitude + i * 0.1 + j * 0.001, kBaseGpsAltitude));
+    }
+  }
+
+  for (int i = 0; i < kUserCount; ++i) {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + i, &response));
+    EXPECT_EQ(0, response.folk_size());
   }
 }
 
