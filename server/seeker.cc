@@ -159,7 +159,61 @@ Status Seeker::BuildLogicalBlock(
     const proto::DbKey &timelime_key, uint64_t user_id,
     std::vector<std::pair<proto::DbKey, proto::DbValue>> *user_entries,
     std::vector<std::pair<proto::DbKey, proto::DbValue>> *folk_entries) {
-  return StatusCode::NOT_YET_IMPLEMENTED;
+  // Reset the user ID so we retrieve all user IDs for this block. We
+  // do not handle borders here, they are handled in a slightly
+  // different way: by inserting multiple points cross-borders in the
+  // database, this makes the algorithm here easier.
+  proto::DbKey start_key = timelime_key;
+  start_key.set_user_id(0);
+
+  const uint64_t timestamp_end = start_key.timestamp() + kTimePrecision;
+
+  std::string start_key_raw;
+  if (!start_key.SerializeToString(&start_key_raw)) {
+    RETURN_ERROR(INTERNAL_ERROR, "can't serialize internal db timeline key");
+  }
+
+  std::unique_ptr<rocksdb::Iterator> timeline_it(
+      db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->TimelineHandle()));
+  timeline_it->Seek(rocksdb::Slice(start_key_raw.data(), start_key_raw.size()));
+
+  while (timeline_it->Valid()) {
+    const rocksdb::Slice key_raw = timeline_it->key();
+    proto::DbKey key;
+    if (!key.ParseFromArray(key_raw.data(), key_raw.size())) {
+      RETURN_ERROR(INTERNAL_ERROR,
+                   "can't unserialize internal db timeline key, user_id="
+                       << key.user_id());
+    }
+
+    const bool end_of_zone =
+        (key.timestamp() > timestamp_end) ||
+        (key.gps_longitude_zone() != start_key.gps_longitude_zone()) ||
+        (key.gps_latitude_zone() != start_key.gps_latitude_zone());
+    if (end_of_zone) {
+      break;
+    }
+
+    const rocksdb::Slice value_raw = timeline_it->value();
+    proto::DbValue value;
+    if (!value.ParseFromArray(value_raw.data(), value_raw.size())) {
+      RETURN_ERROR(INTERNAL_ERROR,
+                   "can't unserialize internal db timeline value, user_id="
+                       << key.user_id());
+    }
+
+    if (key.user_id() == user_id) {
+      user_entries->push_back({key, value});
+    } else {
+      folk_entries->push_back({key, value});
+    }
+  }
+
+  LOG_EVERY_N(INFO, 10000) << "built logical block with user_entries="
+                           << user_entries->size()
+                           << ", folk_entries=" << folk_entries->size();
+
+  return StatusCode::OK;
 }
 
 bool Seeker::IsNearbyFolk(const proto::DbValue &user_value,
