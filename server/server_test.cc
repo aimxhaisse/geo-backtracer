@@ -257,5 +257,27 @@ TEST_F(ServerTest, NoNearbyFolkCloseLongitude) {
   }
 }
 
+TEST_F(ServerTest, NoNearbyFolkSamePositionDifferentTime) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  // Push two points for two users with at the same position but separated
+  // in time by 5 minutes, expect no match.
+  EXPECT_TRUE(PushPoint(kBaseTimestamp + 300, kBaseUserId, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(0, response.folk_size());
+  }
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(0, response.folk_size());
+  }
+}
+
 } // namespace
 } // namespace bt
