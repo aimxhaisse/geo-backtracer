@@ -1,4 +1,5 @@
 #include <glog/logging.h>
+#include <math.h>
 #include <memory>
 #include <rocksdb/db.h>
 #include <utility>
@@ -207,6 +208,8 @@ Status Seeker::BuildLogicalBlock(
     } else {
       folk_entries->push_back({key, value});
     }
+
+    timeline_it->Next();
   }
 
   LOG_EVERY_N(INFO, 10000) << "built logical block with user_entries="
@@ -218,7 +221,15 @@ Status Seeker::BuildLogicalBlock(
 
 bool Seeker::IsNearbyFolk(const proto::DbValue &user_value,
                           const proto::DbValue &folk_value) {
-  return false;
+  // This is a small approximation, needs real maths here.
+  const bool is_within_4_meters_long =
+      fabs(user_value.gps_longitude() - folk_value.gps_longitude()) <
+      kGPSZoneNearbyApproximation;
+  const bool is_within_4_meters_lat =
+      fabs(user_value.gps_latitude() - folk_value.gps_latitude()) <
+      kGPSZoneNearbyApproximation;
+
+  return is_within_4_meters_long && is_within_4_meters_lat;
 }
 
 grpc::Status
@@ -249,8 +260,11 @@ Seeker::GetUserNearbyFolks(grpc::ServerContext *context,
 
     for (const auto &user_entry : user_entries) {
       for (const auto &folk_entry : folk_entries) {
-        if (IsNearbyFolk(user_entry.second, folk_entry.second)) {
-          scores[folk_entry.first.user_id()]++;
+        if (abs(user_entry.first.timestamp() - folk_entry.first.timestamp()) <=
+            30) {
+          if (IsNearbyFolk(user_entry.second, folk_entry.second)) {
+            scores[folk_entry.first.user_id()]++;
+          }
         }
       }
     }

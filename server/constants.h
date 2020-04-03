@@ -4,13 +4,16 @@ namespace bt {
 
 // Size of the GPS zone used to group entries in the database, this is
 // the number of digits we want to keep. A precision of 5 digits (i.e:
-// 12.345 yields an area of 110mx100m on GPS).
+// 12.345 yields an area of 110mx110m on GPS).
 //
 // Changing this implies to re-create the database, it also changes
 // the performance characteristics of the database. Beware that hot
 // paths in the database are likely cached in memory, so there
 // shouldn't be much use to have a too-large area here.
 constexpr float kGPSZonePrecision = 10000.0;
+
+// About 4.4 meters, which corresponds to GPS' precision.
+constexpr float kGPSZoneNearbyApproximation = 4.0 * 0.000001;
 
 // This is similar to the previous setting, but for time. Entries will
 // be grouped in 1000 second batches in the database, this likely
