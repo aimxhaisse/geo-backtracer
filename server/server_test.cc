@@ -233,8 +233,29 @@ TEST_F(ServerTest, NoNearbyFolkCloseLatitude) {
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(0, response.folk_size());
   }
+}
 
-} // namespace
+TEST_F(ServerTest, NoNearbyFolkCloseLongitude) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  // Push two points for two users with the same longitude but faw
+  // away, expect no match.
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
+                        kBaseGpsLatitude + 0.1, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(0, response.folk_size());
+  }
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(0, response.folk_size());
+  }
+}
 
 } // namespace
 } // namespace bt
