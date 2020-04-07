@@ -7,6 +7,7 @@
 using namespace bt;
 
 DEFINE_string(path, "", "path to the database files");
+DEFINE_int32(retention, 30, "retention period in days");
 
 int main(int ac, char **av) {
   FLAGS_logtostderr = 1;
@@ -15,6 +16,7 @@ int main(int ac, char **av) {
 
   Options options;
   options.db_path_ = FLAGS_path;
+  options.retention_period_days_ = FLAGS_retention;
 
   Server server;
   Status status = server.Init(options);

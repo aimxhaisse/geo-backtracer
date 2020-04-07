@@ -12,6 +12,9 @@ public:
   // database is created from a temporary directory, and cleaned up at
   // exit.
   std::optional<std::string> db_path_;
+
+  // Retention period in days.
+  std::optional<int> retention_period_days_;
 };
 
 } // namespace bt
