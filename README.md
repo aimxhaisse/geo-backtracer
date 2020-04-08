@@ -39,7 +39,7 @@ Current numbers, inserting 200 000 000 points in an empty database:
    - 80 000 inserts / second,
    - 12.5 byte per GPS point.
 
-### Insert rate
+### Target Insert rate
 
     |--------------+----------------|
     | active users | inserts/second |
@@ -57,7 +57,7 @@ Current numbers, inserting 200 000 000 points in an empty database:
     | 100M users   | 1.6M           |
     |--------------+----------------|
 
-### Size
+### Target Size
 
     |------------+-----------------+------------------+-------------------|
     | point size | 1 million users | 10 million users | 100 million users |
