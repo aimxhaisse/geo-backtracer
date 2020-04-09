@@ -92,24 +92,24 @@ such an approach:
     kSendRateSeconds = 60
 
     while (true) {
-        # Get position at second 0 of the minute, all phones are
-        # calibrated on time with GPS data, so they have a somewhat
-        # consistent view of time. This means they can all get a point at
-        # second 0, in a synchronized way, with little effort.
-	#
-	# This makes correlation easy: we can assume that two points
-	# that are close were close at the same time and then movement
-	# doesn't matter: we don't need to compute speed or direction.
-	current_time_ms = now()
-        padded_time_ms = (current_time_ms / (1000 * kSendRateSeconds)) * (1000 * kSendRateSeconds)
-	sleep_ms(current_time_ms - padded_time_ms)
+	  # Get position at second 0 of the minute, all phones are
+	  # calibrated on time with GPS data, so they have a somewhat
+	  # consistent view of time. This means they can all get a point at
+	  # second 0, in a synchronized way, with little effort.
+	  #
+	  # This makes correlation easy: we can assume that two points
+	  # that are close were close at the same time and then movement
+	  # doesn't matter: we don't need to compute speed or direction.
+	  current_time_ms = now()
+	  padded_time_ms = (current_time_ms / (1000 * kSendRateSeconds)) * (1000 * kSendRateSeconds)
+	  sleep_ms(current_time_ms - padded_time_ms)
 
-	# Send GPS position.
-	current_position = get_position()
-        send_position(current_position)
+	  # Send GPS position.
+	  current_position = get_position()
+	  send_position(current_position)
 
-	# Move a bit the clock, so that we pick the next cycle.
-	sleep_ms(kSendRateSeconds * 1000)
+	  # Move a bit the clock, so that we pick the next cycle.
+	  sleep_ms(kSendRateSeconds * 1000)
     }
 
 Ideally, a phone that is not moving should not be sending points, but
