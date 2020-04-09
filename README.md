@@ -2,13 +2,25 @@
 
 A service to store GPS-like locations of O(million) users in
 real-time, and provide a way to backtrace over a period of 30 days,
-users that were close for more than 15 minutes.
+users that were close for more than 15 minutes. This is just one brick
+that can be coupled with backends aggregating points from mobile
+phones; it is meant to be scalable and solve this single problem.
 
 ## Status
 
-This is a work in progress.
+This is a work in progress, at the moment, this service can handle
+about 1 million active users sending 1 GPS point every minute. Next
+steps are:
+
+- API to delete points for a user (to comply with GDPR)
+- garbage collection after a given horizon of days (WIP)
+- optimization for users not moving (see the Client Side section below)
+- horizontal scaling
 
 ## Development
+
+Development environment for now is on Mac OS, but could likely be
+adapted to Unices (goal is to have this run on GNU/Linux).
 
 Install the following dependencies:
 
@@ -77,7 +89,7 @@ Current numbers, inserting 200 000 000 points in an empty database:
     | 20 bytes   | 860G            | 8.6T             | 86T               |
     |------------+-----------------+------------------+-------------------|
 
-### Input Points
+### Client Side
 
 One requirement for this approach to be effective is to have aligned
 points as input: i.e: have mobile applications emit GPS points during
