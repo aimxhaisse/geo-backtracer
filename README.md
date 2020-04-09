@@ -70,7 +70,7 @@ such an approach:
 	  send_position(current_position)
 
 	  # Move a bit the clock, so that we pick the next cycle.
-	  sleep_ms(kSendRateSeconds * 1000)
+	  sleep_ms((kSendRateSeconds / 2) * 1000)
     }
 
 Ideally, a phone that is not moving should not be sending points, but
