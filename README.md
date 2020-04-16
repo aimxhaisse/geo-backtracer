@@ -17,6 +17,11 @@ steps are:
 - optimization for users not moving (see Integration with mobile data below)
 - horizontal scaling
 
+## Contributors
+
+This project is backed by [Protocol Labs](https://protocol.ai) as part
+of the [COVID-19 Open Innovation Grants](https://research.protocol.ai/posts/202003-covid-grants/).
+
 ## Development
 
 Development environment for now is on Mac OS, but could likely be
