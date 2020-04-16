@@ -42,7 +42,18 @@ Install the following dependencies:
 
 Once done, run the Makefile to get more help about available commands:
 
-    make
+    $ make
+    Help for Covid Backtracer:
+
+    This is not production ready, some commands here are destructive.
+
+    make            # this message
+    make all        # build everything
+    make test       # run unit tests
+    make clean      # clean all build artifacts
+    make re         # rebuild covid backtracer
+    make server     # run a local instance of covid backtracer
+    make client     # inject fixtures into local instance
 
 
 ## Integration with mobile data
