@@ -34,15 +34,17 @@ Status WaitForExit() {
   std::time_t previous_signal_at = 0;
   std::unique_lock lock(gExitMutex);
   while (true) {
-    if (!previous_signal_at) {
+    if (gSignaledAt) {
+      if ((gSignaledAt - previous_signal_at) < kSignalExpireDelaySec) {
+        LOG(INFO) << "exiting...";
+        break;
+      } else {
+        LOG(INFO)
+            << "are you sure to exit? ctrl+c to confirm (offer expires in "
+            << kSignalExpireDelaySec << "seconds)";
+      }
       previous_signal_at = gSignaledAt;
-    } else if (gSignaledAt - previous_signal_at < kSignalExpireDelaySec) {
-      LOG(INFO) << "exiting...";
-      break;
-    } else {
-      previous_signal_at = 0;
     }
-    LOG(INFO) << "are you sure to exit? ctrl+c to confirm";
     gDoExit.wait(lock);
   }
 

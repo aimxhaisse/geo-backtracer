@@ -1,8 +1,10 @@
 #include <glog/logging.h>
+#include <thread>
 
 #include "common/utils.h"
 #include "server/options.h"
 #include "server/server.h"
+#include "server/signal.h"
 
 namespace bt {
 
@@ -35,10 +37,21 @@ Status Server::Run() {
   builder.RegisterService(pusher_.get());
   builder.RegisterService(seeker_.get());
 
+  std::vector<std::thread> threads;
+
   std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
   LOG(INFO) << "server listening on " << kServerAddress << std::endl;
 
-  server->Wait();
+  threads.push_back(
+      std::thread([](grpc::Server *server) { server->Wait(); }, server.get()));
+
+  WaitForExit();
+
+  server->Shutdown();
+
+  for (auto &task : threads) {
+    task.join();
+  }
 
   return StatusCode::OK;
 }
