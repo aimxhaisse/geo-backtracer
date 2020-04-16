@@ -19,6 +19,8 @@ steps are:
 
 ## Contributors
 
+![Protocol Labs](https://github.com/aimxhaisse/geo-backtracer/raw/master/assets/protocol-labs.png "Protocol Labs Logo")
+
 This project is backed by [Protocol Labs](https://protocol.ai) as part
 of the [COVID-19 Open Innovation Grants](https://research.protocol.ai/posts/202003-covid-grants/).
 
