@@ -42,9 +42,12 @@ public:
   Pusher *GetPusher() { return pusher_.get(); }
 
 private:
+  Status InitServer();
+
   std::unique_ptr<Db> db_;
   std::unique_ptr<Pusher> pusher_;
   std::unique_ptr<Seeker> seeker_;
+  std::unique_ptr<grpc::Server> server_;
 };
 
 } // namespace bt

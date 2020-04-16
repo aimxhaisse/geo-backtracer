@@ -27,27 +27,33 @@ Status Server::Init(const Options &options) {
   RETURN_IF_ERROR(seeker_->Init(db_.get()));
   LOG(INFO) << "initialized seeker";
 
+  RETURN_IF_ERROR(InitServer());
+  LOG(INFO) << "initialized server, listening on " << kServerAddress;
+
   return StatusCode::OK;
 }
 
-Status Server::Run() {
+Status Server::InitServer() {
   grpc::ServerBuilder builder;
   builder.AddListeningPort(kServerAddress, grpc::InsecureServerCredentials());
 
   builder.RegisterService(pusher_.get());
   builder.RegisterService(seeker_.get());
 
+  server_ = builder.BuildAndStart();
+
+  return StatusCode::OK;
+}
+
+Status Server::Run() {
   std::vector<std::thread> threads;
 
-  std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-  LOG(INFO) << "server listening on " << kServerAddress << std::endl;
-
   threads.push_back(
-      std::thread([](grpc::Server *server) { server->Wait(); }, server.get()));
+      std::thread([](grpc::Server *server) { server->Wait(); }, server_.get()));
 
   WaitForExit();
 
-  server->Shutdown();
+  server_->Shutdown();
 
   for (auto &task : threads) {
     task.join();
