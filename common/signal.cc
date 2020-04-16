@@ -4,9 +4,10 @@
 #include <glog/logging.h>
 #include <mutex>
 
-#include "server/signal.h"
+#include "common/signal.h"
 
 namespace bt {
+namespace utils {
 
 std::mutex gExitMutex;
 std::condition_variable gDoExit;
@@ -26,7 +27,7 @@ void HandleSignal(int sig) {
 
 } // anonymous namespace
 
-Status WaitForExit() {
+Status WaitForExitSignal() {
   std::signal(SIGINT, HandleSignal);
 
   LOG(INFO) << "waiting for signal, press ctrl+c to exit...";
@@ -51,4 +52,5 @@ Status WaitForExit() {
   return StatusCode::OK;
 }
 
+} // namespace utils
 } // namespace bt

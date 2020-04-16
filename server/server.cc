@@ -1,10 +1,10 @@
 #include <glog/logging.h>
 #include <thread>
 
+#include "common/signal.h"
 #include "common/utils.h"
 #include "server/options.h"
 #include "server/server.h"
-#include "server/signal.h"
 
 namespace bt {
 
@@ -51,7 +51,7 @@ Status Server::Run() {
   threads.push_back(
       std::thread([](grpc::Server *server) { server->Wait(); }, server_.get()));
 
-  WaitForExit();
+  utils::WaitForExitSignal();
 
   server_->Shutdown();
 
