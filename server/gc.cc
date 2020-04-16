@@ -45,7 +45,6 @@ Status Gc::Shutdown() {
 }
 
 Status Gc::Cleanup() {
-
   LOG(INFO) << "garbage collection pass done";
 
   return StatusCode::OK;

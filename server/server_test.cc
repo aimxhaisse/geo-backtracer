@@ -110,7 +110,7 @@ TEST_F(ServerTest, TimelineSinglePointNoResult) {
   EXPECT_EQ(response.point_size(), 0);
 }
 
-// Test that retrieving works with different timestamp localities.
+// Tests that retrieving works with different timestamp localities.
 TEST_F(ServerTest, TimelineSingleUserMultipleTimestampZones) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
@@ -137,14 +137,14 @@ TEST_F(ServerTest, TimelineSingleUserMultipleTimestampZones) {
   EXPECT_EQ(response.point_size(), 5 * kTimestampZones);
 }
 
-// Test that retrieving works with different users under same
+// Tests that retrieving works with different users under same
 // timestamp zone.
 TEST_F(ServerTest, TimelineMultipleUserSameTimestampZones) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
   constexpr int kUserCount = 100;
 
-  // Push points for 100 different users, first user gets 1 point,
+  // Pushes points for 100 different users, first user gets 1 point,
   // second 2, and so on.
   for (int i = 0; i < kUserCount; ++i) {
     for (int j = 0; j <= i; ++j) {
@@ -163,14 +163,14 @@ TEST_F(ServerTest, TimelineMultipleUserSameTimestampZones) {
   }
 }
 
-// Test that retrieving works with different users under multiple
+// Tests that retrieving works with different users under multiple
 // timestamp zone.
 TEST_F(ServerTest, TimelineMultipleUserMultipleTimestampZones) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
   constexpr int kUserCount = 100;
 
-  // Push points for 100 different users, first user gets 1 point,
+  // Pushes points for 100 different users, first user gets 1 point,
   // second 2, and so on.
   for (int i = 0; i < kUserCount; ++i) {
     for (int j = 0; j <= i; ++j) {
@@ -195,7 +195,7 @@ TEST_F(ServerTest, NoNearbyFolks) {
   constexpr int kUserCount = 100;
   constexpr int kNbPoints = 10;
 
-  // Push points for 100 different users, separated by > 100 km,
+  // Pushes points for 100 different users, separated by > 100 km,
   // expect 0 correlation for the 100 users.
   for (int i = 0; i < kUserCount; ++i) {
     for (int j = 0; j <= kNbPoints; ++j) {
@@ -216,7 +216,7 @@ TEST_F(ServerTest, NoNearbyFolks) {
 TEST_F(ServerTest, NoNearbyFolkCloseLatitude) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  // Push two points for two users with the same latitude but faw
+  // Pushes two points for two users with the same latitude but faw
   // away, expect no match.
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude + 0.1,
                         kBaseGpsLatitude, kBaseGpsAltitude));
@@ -238,7 +238,7 @@ TEST_F(ServerTest, NoNearbyFolkCloseLatitude) {
 TEST_F(ServerTest, NoNearbyFolkCloseLongitude) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  // Push two points for two users with the same longitude but faw
+  // Pushes two points for two users with the same longitude but faw
   // away, expect no match.
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
                         kBaseGpsLatitude + 0.1, kBaseGpsAltitude));
@@ -260,7 +260,7 @@ TEST_F(ServerTest, NoNearbyFolkCloseLongitude) {
 TEST_F(ServerTest, NoNearbyFolkSamePositionDifferentTime) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  // Push two points for two users with at the same position but separated
+  // Pushes two points for two users with at the same position but separated
   // in time by 5 minutes, expect no match.
   EXPECT_TRUE(PushPoint(kBaseTimestamp + 300, kBaseUserId, kBaseGpsLongitude,
                         kBaseGpsLatitude, kBaseGpsAltitude));
@@ -282,7 +282,7 @@ TEST_F(ServerTest, NoNearbyFolkSamePositionDifferentTime) {
 TEST_F(ServerTest, NoNearbyFolkOk) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  // Push two points for two users with at almost the same position
+  // Pushes two points for two users with at almost the same position
   // and time, except a match.
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId,
                         kBaseGpsLongitude + 0.000001,
