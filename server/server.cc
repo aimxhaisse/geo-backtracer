@@ -27,6 +27,10 @@ Status Server::Init(const Options &options) {
   RETURN_IF_ERROR(seeker_->Init(db_.get()));
   LOG(INFO) << "initialized seeker";
 
+  gc_ = std::make_unique<Gc>();
+  RETURN_IF_ERROR(gc_->Init(db_.get(), options));
+  LOG(INFO) << "initialized garbage collector";
+
   RETURN_IF_ERROR(InitServer());
   LOG(INFO) << "initialized server, listening on " << kServerAddress;
 
@@ -50,10 +54,12 @@ Status Server::Run() {
 
   threads.push_back(
       std::thread([](grpc::Server *server) { server->Wait(); }, server_.get()));
+  threads.push_back(std::thread([](Gc *gc) { gc->Wait(); }, gc_.get()));
 
   utils::WaitForExitSignal();
 
   server_->Shutdown();
+  gc_->Shutdown();
 
   for (auto &task : threads) {
     task.join();

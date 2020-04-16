@@ -6,6 +6,7 @@
 
 #include "common/status.h"
 #include "proto/backtrace.grpc.pb.h"
+#include "server/gc.h"
 #include "server/pusher.h"
 #include "server/seeker.h"
 
@@ -47,6 +48,7 @@ private:
   std::unique_ptr<Db> db_;
   std::unique_ptr<Pusher> pusher_;
   std::unique_ptr<Seeker> seeker_;
+  std::unique_ptr<Gc> gc_;
   std::unique_ptr<grpc::Server> server_;
 };
 
