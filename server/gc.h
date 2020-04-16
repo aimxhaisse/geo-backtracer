@@ -20,6 +20,9 @@ private:
   Status Cleanup();
 
   Db *db_ = nullptr;
+  std::mutex gc_wakeup_lock_;
+  std::condition_variable gc_wakeup_;
+  bool do_exit_ = false;
 };
 
 } // namespace bt
