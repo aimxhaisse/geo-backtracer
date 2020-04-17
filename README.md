@@ -38,6 +38,7 @@ Install the following dependencies:
     brew install grpc
     brew install protobuf
     brew install rocksdb
+    brew install yaml-cpp
     brew install --HEAD https://gist.githubusercontent.com/Kronuz/96ac10fbd8472eb1e7566d740c4034f8/raw/gtest.rb
 
 Once done, run the Makefile to get more help about available commands:
