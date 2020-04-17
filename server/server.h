@@ -32,6 +32,12 @@ class Options;
 // queue seems to be a good approach (clients will queue large
 // requests there and the single writer thread will push them in
 // order).
+//
+// - Garbage collection is running in a background thread, that wakes
+//   up every now and then to delete expired points.
+//
+// - The main thread waits for a SIGINT to notify other threads to
+//   exit via condition variables.
 
 // Main class.
 class Server {
