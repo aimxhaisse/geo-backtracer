@@ -1,5 +1,6 @@
 #include <boost/filesystem.hpp>
 #include <glog/logging.h>
+#include <sstream>
 
 #include "common/utils.h"
 
@@ -28,6 +29,20 @@ void DeleteDirectory(const std::string &path) {
 
 bool DirExists(const std::string &path) {
   return boost::filesystem::exists(path);
+}
+
+std::vector<std::string> StringSplit(const std::string &str, char delim) {
+  std::stringstream ss(str);
+  std::vector<std::string> tokens;
+  std::string item;
+
+  while (getline(ss, item, delim)) {
+    if (!item.empty()) {
+      tokens.push_back(item);
+    }
+  }
+
+  return tokens;
 }
 
 } // namespace utils

@@ -17,5 +17,8 @@ void DeleteDirectory(const std::string &path);
 // Whether or not a directory exists.
 bool DirExists(const std::string &path);
 
+// Split a string with a delimiter.
+std::vector<std::string> StringSplit(const std::string &str, char delim);
+
 } // namespace utils
 } // namespace bt
