@@ -1,0 +1,12 @@
+# Configuration file for the Geo Backtracer.
+
+db:
+  # Path to the database, if empty, a temporary database is created
+  # and deleted at exit (used for testing).
+  path: data/
+
+gc:
+  # Retention period in days, points older than this number of days
+  # are automatically deleted from the database. Changing this value
+  # has immediate effect on all existing points.
+  retention_period_days: 15
