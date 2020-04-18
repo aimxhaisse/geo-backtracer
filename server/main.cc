@@ -9,6 +9,15 @@ using namespace bt;
 
 DEFINE_string(config, "etc/config.yml", "path to the configuration file");
 
+namespace {
+
+void MakeOptions(const Config &config, Options *options) {
+  options->db_path_ = config.Get<std::string>("db.path");
+  options->retention_period_days_ = config.Get<int>("gc.retention_period_days");
+}
+
+} // anonymous namespace
+
 int main(int ac, char **av) {
   FLAGS_logtostderr = 1;
   ::google::InitGoogleLogging(av[0]);
@@ -21,10 +30,8 @@ int main(int ac, char **av) {
     return -1;
   }
 
-  std::unique_ptr<Config> config = std::move(config_status.ValueOrDie());
   Options options;
-  options.db_path_ = config->Get<std::string>("db.path");
-  options.retention_period_days_ = config->Get<int>("gc.retention_period_days");
+  MakeOptions(*config_status.ValueOrDie(), &options);
 
   Server server;
   Status status = server.Init(options);
