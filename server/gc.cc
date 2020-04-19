@@ -57,6 +57,9 @@ Status Gc::Shutdown() {
 Status Gc::Cleanup() {
   LOG(INFO) << "starting garbage collection iteration";
 
+  long timeline_gc_count = 0;
+  long reverse_gc_count = 0;
+
   proto::DbKey start_key;
   const std::time_t start_ts =
       std::time(nullptr) - (retention_period_days_ * 24 * 3600);
@@ -75,12 +78,48 @@ Status Gc::Cleanup() {
       db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->TimelineHandle()));
   it->Seek(rocksdb::Slice(start_key_raw.data(), start_key_raw.size()));
   while (it->Valid()) {
-    RETURN_IF_ERROR(CleanupReverseKey(*it));
-    RETURN_IF_ERROR(CleanupTimelineKey(*it));
+    const rocksdb::Slice key_raw = it->key();
+    proto::DbKey key;
+    if (!key.ParseFromArray(key_raw.data(), key_raw.size())) {
+      RETURN_ERROR(INTERNAL_ERROR,
+                   "can't unserialize internal db timeline key");
+    }
+
+    const rocksdb::Slice value_raw = it->value();
+    proto::DbValue value;
+    if (!value.ParseFromArray(value_raw.data(), value_raw.size())) {
+      RETURN_ERROR(INTERNAL_ERROR,
+                   "can't unserialize internal db timeline value");
+    }
+
+    rocksdb::WriteOptions opt;
+
+    if (db_->Rocks()->Delete(opt, db_->TimelineHandle(), key_raw).ok()) {
+      ++timeline_gc_count;
+    }
+
+    proto::DbReverseKey reverse_key;
+    reverse_key.set_user_id(key.user_id());
+    reverse_key.set_timestamp(key.timestamp() / kTimePrecision);
+    std::string reverse_raw_key;
+    if (!reverse_key.SerializeToString(&reverse_raw_key)) {
+      RETURN_ERROR(INTERNAL_ERROR, "unable to serialize reverse key, skipped");
+    }
+
+    if (db_->Rocks()
+            ->Delete(
+                opt, db_->ReverseHandle(),
+                rocksdb::Slice(reverse_raw_key.data(), reverse_raw_key.size()))
+            .ok()) {
+      ++reverse_gc_count;
+    }
+
     it->Next();
   }
 
-  LOG(INFO) << "garbage collection iteration done";
+  LOG(INFO) << "garbage collection iteration done, reverse_gc_count="
+            << reverse_gc_count << ", timeline_gc_count=" << timeline_gc_count;
+
   return StatusCode::OK;
 }
 

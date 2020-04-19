@@ -20,8 +20,6 @@ public:
 
 private:
   Status Cleanup();
-  Status CleanupReverseKey(rocksdb::Iterator &it) { return StatusCode::OK; }
-  Status CleanupTimelineKey(rocksdb::Iterator &it) { return StatusCode::OK; }
 
   Db *db_ = nullptr;
 
