@@ -234,8 +234,8 @@ Status Db::Init(const Options &options) {
 }
 
 Status Db::InitPath(const Options &options) {
-  if (options.db_path_.has_value() && !options.db_path_.value().empty()) {
-    path_ = options.db_path_.value();
+  if (!options.db_path_.empty()) {
+    path_ = options.db_path_;
     is_temp_ = false;
   } else {
     ASSIGN_OR_RETURN(path_, utils::MakeTemporaryDirectory());

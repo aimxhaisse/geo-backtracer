@@ -43,6 +43,9 @@ std::ostream &operator<<(std::ostream &os, const Status &status) {
   case NOT_YET_IMPLEMENTED:
     str_code = "NOT_YET_IMPLEMENTED";
     break;
+  case INVALID_CONFIG:
+    str_code = "INVALID_CONFIG";
+    break;
   default:
     str_code = "UNKNOWN";
     break;

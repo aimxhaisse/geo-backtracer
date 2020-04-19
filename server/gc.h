@@ -1,5 +1,7 @@
 #pragma once
 
+#include <rocksdb/db.h>
+
 #include "common/status.h"
 #include "server/db.h"
 #include "server/options.h"
@@ -18,8 +20,14 @@ public:
 
 private:
   Status Cleanup();
+  Status CleanupReverseKey(rocksdb::Iterator &it) { return StatusCode::OK; }
+  Status CleanupTimelineKey(rocksdb::Iterator &it) { return StatusCode::OK; }
 
   Db *db_ = nullptr;
+
+  int retention_period_days_ = 0;
+  int delay_between_rounds_sec_ = 0;
+
   std::mutex gc_wakeup_lock_;
   std::condition_variable gc_wakeup_;
   bool do_exit_ = false;
