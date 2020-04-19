@@ -13,8 +13,12 @@ public:
   // exit.
   std::optional<std::string> db_path_;
 
-  // Retention period in days.
-  std::optional<int> retention_period_days_;
+  // Retention period in days before points are deleted from the
+  // database.
+  std::optional<int> gc_retention_period_days_;
+
+  // Delay in seconds between two GC pass.
+  std::optional<int> gc_delay_between_rounds_sec_;
 };
 
 } // namespace bt

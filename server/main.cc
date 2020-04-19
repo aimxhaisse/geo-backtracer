@@ -12,8 +12,14 @@ DEFINE_string(config, "etc/config.yml", "path to the configuration file");
 namespace {
 
 void MakeOptions(const Config &config, Options *options) {
+  // Database settings
   options->db_path_ = config.Get<std::string>("db.path");
-  options->retention_period_days_ = config.Get<int>("gc.retention_period_days");
+
+  // GC settings
+  options->gc_retention_period_days_ =
+      config.Get<int>("gc.retention_period_days");
+  options->gc_delay_between_rounds_sec_ =
+      config.Get<int>("gc.delay_between_rounds_sec");
 }
 
 } // anonymous namespace
