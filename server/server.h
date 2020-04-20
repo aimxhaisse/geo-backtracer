@@ -47,6 +47,8 @@ public:
 
   Seeker *GetSeeker() { return seeker_.get(); }
   Pusher *GetPusher() { return pusher_.get(); }
+  Gc *GetGc() { return gc_.get(); }
+  Db *GetDb() { return db_.get(); }
 
 private:
   Status InitServer();
@@ -56,6 +58,6 @@ private:
   std::unique_ptr<Seeker> seeker_;
   std::unique_ptr<Gc> gc_;
   std::unique_ptr<grpc::Server> server_;
-};
+}; // namespace bt
 
 } // namespace bt

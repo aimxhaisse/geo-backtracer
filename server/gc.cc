@@ -55,14 +55,15 @@ Status Gc::Shutdown() {
 }
 
 Status Gc::Cleanup() {
-  LOG(INFO) << "starting garbage collection iteration";
+  LOG(INFO) << "starting garbage collection iteration for points older than "
+            << retention_period_days_ << " days";
 
   long timeline_gc_count = 0;
   long reverse_gc_count = 0;
 
   proto::DbKey start_key;
   const std::time_t start_ts =
-      std::time(nullptr) - (retention_period_days_ * 24 * 3600);
+      std::time(nullptr) - (retention_period_days_ * 24 * 60 * 60);
   start_key.set_timestamp(start_ts);
   start_key.set_user_id(0);
   start_key.set_gps_longitude_zone(0);
@@ -76,8 +77,11 @@ Status Gc::Cleanup() {
 
   std::unique_ptr<rocksdb::Iterator> it(
       db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->TimelineHandle()));
+
   it->Seek(rocksdb::Slice(start_key_raw.data(), start_key_raw.size()));
+
   while (it->Valid()) {
+
     const rocksdb::Slice key_raw = it->key();
     proto::DbKey key;
     if (!key.ParseFromArray(key_raw.data(), key_raw.size())) {
@@ -115,6 +119,11 @@ Status Gc::Cleanup() {
     }
 
     it->Next();
+  }
+
+  if (!it->status().ok()) {
+    RETURN_ERROR(INTERNAL_ERROR, "GC unable to seek in database, error="
+                                     << it->status().ToString());
   }
 
   LOG(INFO) << "garbage collection iteration done, reverse_gc_count="

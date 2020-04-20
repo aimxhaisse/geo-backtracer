@@ -17,10 +17,9 @@ public:
 
   Status Wait();
   Status Shutdown();
-
-private:
   Status Cleanup();
 
+private:
   Db *db_ = nullptr;
 
   int retention_period_days_ = 0;
