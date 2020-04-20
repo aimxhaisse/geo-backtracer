@@ -69,6 +69,8 @@ void ServerTestBase::DumpTimeline() {
 
   LOG(INFO) << "starting to dump timeline database";
 
+  int64_t count = 1;
+
   while (it->Valid()) {
     const rocksdb::Slice key_raw = it->key();
     proto::DbKey key;
@@ -78,10 +80,13 @@ void ServerTestBase::DumpTimeline() {
     proto::DbValue value;
     EXPECT_TRUE(value.ParseFromArray(value_raw.data(), value_raw.size()));
 
-    LOG(INFO) << "[@" << key.timestamp() << ", user=" << key.user_id() << " "
-              << key.gps_longitude_zone() << "x" << key.gps_latitude_zone()
-              << "] ---> " << value.gps_longitude() << "x"
-              << value.gps_latitude() << " " << value.gps_altitude();
+    LOG(INFO) << "@" << key.timestamp() << " user=" << key.user_id() << " ["
+              << key.gps_longitude_zone() << "," << key.gps_latitude_zone()
+              << "] ---> [" << value.gps_longitude() << ","
+              << value.gps_latitude() << "] " << value.gps_altitude() << " #"
+              << count;
+
+    ++count;
 
     it->Next();
   }
