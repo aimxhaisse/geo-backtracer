@@ -42,14 +42,14 @@ TEST_F(GcTest, ClearExpiredPoints) {
 
   // Push some points after the GC cutoff.
   for (int i = 0; i < 128; ++i) {
-    EXPECT_TRUE(PushPoint(now - cutoff + i + 100, kBaseUserId,
+    EXPECT_TRUE(PushPoint(now - cutoff + i + kTimePrecision * 2, kBaseUserId,
                           kBaseGpsLongitude, kBaseGpsLatitude,
                           kBaseGpsAltitude));
   }
 
   // Push some points before the GC cutoff (to be deleted).
   for (int i = 0; i < 512; ++i) {
-    EXPECT_TRUE(PushPoint(now - cutoff - i - 100, kBaseUserId,
+    EXPECT_TRUE(PushPoint(now - cutoff - i - kTimePrecision * 2, kBaseUserId,
                           kBaseGpsLongitude, kBaseGpsLatitude,
                           kBaseGpsAltitude));
   }
