@@ -1,7 +1,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-#include "proto/backtrace.pb.h"
+#include "server/proto.h"
 #include "server/test.h"
 
 namespace bt {
@@ -80,18 +80,14 @@ void ServerTestBase::DumpTimeline() {
     proto::DbValue value;
     EXPECT_TRUE(value.ParseFromArray(value_raw.data(), value_raw.size()));
 
-    LOG(INFO) << "@" << key.timestamp() << " user=" << key.user_id() << " ["
-              << key.gps_longitude_zone() << "," << key.gps_latitude_zone()
-              << "] ---> [" << value.gps_longitude() << ","
-              << value.gps_latitude() << "] " << value.gps_altitude() << " #"
-              << count;
+    DumpDbTimelineEntry(key, value);
 
     ++count;
 
     it->Next();
   }
 
-  LOG(INFO) << "finished to dump timeline database";
+  LOG(INFO) << "finished to dump timeline database, count=" << count;
 }
 
 } // namespace bt
