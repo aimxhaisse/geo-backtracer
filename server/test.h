@@ -32,6 +32,9 @@ public:
   bool GetNearbyFolks(uint64_t user_id,
                       proto::GetUserNearbyFolksResponse *response);
 
+  // Dump the timeline database, useful for debugging.
+  void DumpTimeline();
+
   Options options_;
   std::unique_ptr<Server> server_;
 };

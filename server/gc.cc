@@ -77,9 +77,7 @@ Status Gc::Cleanup() {
 
   std::unique_ptr<rocksdb::Iterator> it(
       db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->TimelineHandle()));
-
-  it->Seek(rocksdb::Slice(start_key_raw.data(), start_key_raw.size()));
-
+  it->SeekForPrev(rocksdb::Slice(start_key_raw.data(), start_key_raw.size()));
   while (it->Valid()) {
 
     const rocksdb::Slice key_raw = it->key();
@@ -118,7 +116,7 @@ Status Gc::Cleanup() {
       ++reverse_gc_count;
     }
 
-    it->Next();
+    it->Prev();
   }
 
   if (!it->status().ok()) {
