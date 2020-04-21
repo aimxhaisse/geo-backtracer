@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "server/options.h"
+#include "server/proto.h"
 #include "server/server.h"
 #include "server/test.h"
 

@@ -22,4 +22,13 @@ void DumpDbTimelineValue(const proto::DbValue &value) {
             << "] " << value.gps_altitude();
 }
 
+void DumpProtoTimelineResponse(int64_t user_id,
+                               const proto::GetUserTimelineResponse &timeline) {
+  for (int i = 0; i < timeline.point_size(); ++i) {
+    const proto::UserTimelinePoint &entry = timeline.point(i);
+    LOG(INFO) << "@" << entry.timestamp() << " user=" << user_id << " ["
+              << entry.gps_longitude() << "," << entry.gps_latitude() << "]";
+  }
+}
+
 } // namespace bt

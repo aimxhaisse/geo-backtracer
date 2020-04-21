@@ -40,28 +40,31 @@ TEST_F(GcTest, ClearExpiredPoints) {
   std::time_t now = std::time(nullptr);
   std::time_t cutoff = 14 * 24 * 60 * 60;
 
+  constexpr int kFreshCount = 10000;
+  constexpr int kExpiredCount = 5000;
+
   // Push some points after the GC cutoff.
-  for (int i = 0; i < 128; ++i) {
-    EXPECT_TRUE(PushPoint(now - cutoff + i + kTimePrecision * 2, kBaseUserId,
+  for (int i = 0; i < kFreshCount; ++i) {
+    EXPECT_TRUE(PushPoint(now - cutoff + i + kTimePrecision * 3, kBaseUserId,
                           kBaseGpsLongitude, kBaseGpsLatitude,
                           kBaseGpsAltitude));
   }
 
   // Push some points before the GC cutoff (to be deleted).
-  for (int i = 0; i < 512; ++i) {
-    EXPECT_TRUE(PushPoint(now - cutoff - i - kTimePrecision * 2, kBaseUserId,
+  for (int i = 0; i < kExpiredCount; ++i) {
+    EXPECT_TRUE(PushPoint(now - cutoff - i - kTimePrecision * 3, kBaseUserId,
                           kBaseGpsLongitude, kBaseGpsLatitude,
                           kBaseGpsAltitude));
   }
-
-  DumpTimeline();
 
   // Expect all points to be there before GC pass.
   {
     proto::GetUserTimelineResponse response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
-    EXPECT_EQ(response.point_size(), 128 + 512);
+    EXPECT_EQ(response.point_size(), kFreshCount + kExpiredCount);
   }
+
+  DumpTimeline();
 
   EXPECT_EQ(server_->GetGc()->Cleanup(), StatusCode::OK);
 
@@ -71,7 +74,8 @@ TEST_F(GcTest, ClearExpiredPoints) {
   {
     proto::GetUserTimelineResponse response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
-    EXPECT_EQ(response.point_size(), 128);
+    DumpProtoTimelineResponse(kBaseUserId, response);
+    EXPECT_EQ(response.point_size(), kFreshCount);
   }
 }
 
