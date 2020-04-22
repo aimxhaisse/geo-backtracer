@@ -12,15 +12,19 @@ namespace utils {
 std::mutex gExitMutex;
 std::condition_variable gDoExit;
 std::time_t gSignaledAt;
+bool gKilled = false;
 
 constexpr int kSignalExpireDelaySec = 5;
 
 namespace {
 
 void HandleSignal(int sig) {
-  if (sig == SIGINT) {
+  if (sig == SIGINT || sig == SIGKILL) {
     std::unique_lock lock(gExitMutex);
     gSignaledAt = std::time(nullptr);
+    if (sig == SIGKILL) {
+      gKilled = true;
+    }
   }
   gDoExit.notify_one();
 }
@@ -35,9 +39,14 @@ Status WaitForExitSignal() {
   std::time_t previous_signal_at = 0;
   std::unique_lock lock(gExitMutex);
   while (true) {
+    if (gKilled) {
+      LOG(INFO) << "killed, exiting...";
+      break;
+    }
+
     if (gSignaledAt) {
       if ((gSignaledAt - previous_signal_at) < kSignalExpireDelaySec) {
-        LOG(INFO) << "exiting...";
+        LOG(INFO) << "interrupted twice in a short time, exiting...";
         break;
       } else {
         LOG(INFO)
@@ -46,6 +55,7 @@ Status WaitForExitSignal() {
       }
       previous_signal_at = gSignaledAt;
     }
+
     gDoExit.wait(lock);
   }
 
