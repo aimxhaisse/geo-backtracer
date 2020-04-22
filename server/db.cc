@@ -79,6 +79,8 @@ void DecodeTimelineKey(const rocksdb::Slice &key, uint64_t *timestamp_lo,
   *timestamp_hi = db_key.timestamp() % kTimePrecision;
 }
 
+constexpr float kEpsilon = 0.0000001;
+
 } // anonymous namespace
 
 int TimelineComparator::Compare(const rocksdb::Slice &a,
@@ -106,17 +108,21 @@ int TimelineComparator::Compare(const rocksdb::Slice &a,
     return 1;
   }
 
-  if (left_long_zone < right_long_zone) {
+  float fdiff;
+
+  fdiff = left_long_zone - right_long_zone;
+  if (fdiff > kEpsilon) {
     return -1;
   }
-  if (left_long_zone > right_long_zone) {
+  if (fdiff < -kEpsilon) {
     return 1;
   }
 
-  if (left_lat_zone < right_lat_zone) {
+  fdiff = left_lat_zone - right_lat_zone;
+  if (fdiff > kEpsilon) {
     return -1;
   }
-  if (left_lat_zone > right_lat_zone) {
+  if (fdiff < -kEpsilon) {
     return 1;
   }
 
