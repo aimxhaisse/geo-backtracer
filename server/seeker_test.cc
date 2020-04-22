@@ -116,6 +116,32 @@ TEST_F(SeekerTest, TimelineMultipleUserMultipleTimestampZones) {
   }
 }
 
+// Tests that retrieving works with different timestamp localities
+// near a ts border; this is to reproduce a bug fixed in 882e9b3:
+TEST_F(SeekerTest, TimelineBorderNoDoubleEntriesBug) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  // Pick a TS that is a border (i.e: a multiple of kTimePrecision).
+  constexpr uint64_t border_ts = 1582410000;
+
+  // Push 1 points before the border.
+  EXPECT_TRUE(PushPoint(border_ts - 1, kBaseUserId, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+
+  // Push 1 point at the border.
+  EXPECT_TRUE(PushPoint(border_ts, kBaseUserId, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+
+  // Push 1 point after the border.
+  EXPECT_TRUE(PushPoint(border_ts + 1, kBaseUserId, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+
+  // Now, expect to get three points for this user.
+  proto::GetUserTimelineResponse response;
+  EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
+  EXPECT_EQ(response.point_size(), 3);
+}
+
 TEST_F(SeekerTest, NoNearbyFolks) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
