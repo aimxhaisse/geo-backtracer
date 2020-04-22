@@ -83,7 +83,7 @@ Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey> &keys,
       RETURN_ERROR(INTERNAL_ERROR, "can't serialize internal db timeline key");
     }
 
-    const uint64_t timestamp_end = key_it.timestamp() + kTimePrecision;
+    const uint64_t timestamp_end = key_it.timestamp() + kTimePrecision - 1;
     timeline_it->Seek(rocksdb::Slice(key_raw_it.data(), key_raw_it.size()));
     while (timeline_it->Valid()) {
       const rocksdb::Slice key_raw = timeline_it->key();
