@@ -2,8 +2,8 @@
 #
 # For now, all-in-one binary; this is meant to be split at some point.
 
-CXXFLAGS = -O3 -Wno-deprecated-declarations -Wall -std=c++17 $(shell freetype-config --cflags) -I. -I/usr/include
-LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf -lyaml-cpp
+CXXFLAGS = -O3 -Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -std=c++17 $(shell freetype-config --cflags 2>/dev/null) -I. -I/usr/local/include/google/protobuf
+LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf -lyaml-cpp -lpthread -lboost_system
 
 SERVER := bin/bt_server
 CLIENT := bin/bt_client
@@ -82,7 +82,7 @@ re: clean all
 	$(PBUF) --cpp_out=. $<
 
 %.pb.o : %.pb.cc
-	$(CXX) $(CXX_FLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(SERVER): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_SERVER) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON)
 	$(CXX) $(OBJS_SERVER) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON) $(LDLIBS) -o $@

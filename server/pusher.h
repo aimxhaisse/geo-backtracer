@@ -1,5 +1,5 @@
 #include <atomic>
-#include <grpcpp/grpcpp.h>
+#include <grpc++/grpc++.h>
 #include <rocksdb/db.h>
 
 #include "common/status.h"

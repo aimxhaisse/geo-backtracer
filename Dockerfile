@@ -15,6 +15,8 @@ RUN apt install -y librocksdb-dev
 RUN apt install -y libyaml-cpp-dev
 RUN apt install -y libprotobuf-dev
 RUN apt install -y protobuf-compiler
+RUN apt install -y protobuf-compiler-grpc
+RUN apt install -y libgrpc++-dev
 
 ADD . /build
 

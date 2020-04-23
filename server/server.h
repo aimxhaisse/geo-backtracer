@@ -1,6 +1,6 @@
 #pragma once
 
-#include <grpcpp/grpcpp.h>
+#include <grpc++/grpc++.h>
 #include <memory>
 #include <optional>
 
