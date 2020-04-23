@@ -6,6 +6,7 @@
 
 #include "proto/backtrace.grpc.pb.h"
 #include "server/gc.h"
+#include "server/gps.h"
 
 using namespace std::chrono_literals;
 
@@ -105,7 +106,12 @@ Status Gc::Cleanup() {
 
     proto::DbReverseKey reverse_key;
     reverse_key.set_user_id(key.user_id());
-    reverse_key.set_timestamp(key.timestamp() / kTimePrecision);
+    reverse_key.set_timestamp_zone(key.timestamp() / kTimePrecision);
+    reverse_key.set_gps_longitude_zone(
+        GPSLocationToGPSZone(value.gps_longitude()));
+    reverse_key.set_gps_latitude_zone(
+        GPSLocationToGPSZone(value.gps_latitude()));
+
     std::string reverse_raw_key;
     if (!reverse_key.SerializeToString(&reverse_raw_key)) {
       RETURN_ERROR(INTERNAL_ERROR, "unable to serialize reverse key, skipped");

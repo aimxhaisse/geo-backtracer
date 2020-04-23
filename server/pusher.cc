@@ -74,7 +74,9 @@ Status Pusher::PutTimelineLocation(const proto::Location &location) {
 Status Pusher::PutReverseLocation(const proto::Location &location) {
   proto::DbReverseKey key;
   key.set_user_id(location.user_id());
-  key.set_timestamp(location.timestamp() / kTimePrecision);
+  key.set_timestamp_zone(location.timestamp() / kTimePrecision);
+  key.set_gps_longitude_zone(GPSLocationToGPSZone(location.gps_longitude()));
+  key.set_gps_latitude_zone(GPSLocationToGPSZone(location.gps_latitude()));
 
   std::string raw_key;
   if (!key.SerializeToString(&raw_key)) {
@@ -82,10 +84,6 @@ Status Pusher::PutReverseLocation(const proto::Location &location) {
   }
 
   proto::DbReverseValue value;
-
-  value.set_gps_longitude_zone(GPSLocationToGPSZone(location.gps_longitude()));
-  value.set_gps_latitude_zone(GPSLocationToGPSZone(location.gps_latitude()));
-
   std::string raw_value;
   if (!value.SerializeToString(&raw_value)) {
     RETURN_ERROR(INTERNAL_ERROR, "unable to serialize reverse value, skipped");

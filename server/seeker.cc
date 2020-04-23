@@ -21,7 +21,10 @@ Status Seeker::BuildTimelineKeysForUser(uint64_t user_id,
   // corresponding keys.
   proto::DbReverseKey reverse_key_it;
   reverse_key_it.set_user_id(user_id);
-  reverse_key_it.set_timestamp(0);
+  reverse_key_it.set_timestamp_zone(0);
+  reverse_key_it.set_gps_longitude_zone(0.0);
+  reverse_key_it.set_gps_latitude_zone(0.0);
+
   std::string reverse_raw_key_it;
   if (!reverse_key_it.SerializeToString(&reverse_raw_key_it)) {
     RETURN_ERROR(
@@ -50,20 +53,11 @@ Status Seeker::BuildTimelineKeysForUser(uint64_t user_id,
       break;
     }
 
-    const rocksdb::Slice reverse_value_raw = reverse_it->value();
-    proto::DbReverseValue reverse_value;
-    if (!reverse_value.ParseFromArray(reverse_value_raw.data(),
-                                      reverse_value_raw.size())) {
-      RETURN_ERROR(
-          INTERNAL_ERROR,
-          "can't unserialize internal db reverse value, user_id=" << user_id);
-    }
-
     proto::DbKey key;
-    key.set_timestamp(reverse_key.timestamp() * kTimePrecision);
+    key.set_timestamp(reverse_key.timestamp_zone() * kTimePrecision);
     key.set_user_id(user_id);
-    key.set_gps_longitude_zone(reverse_value.gps_longitude_zone());
-    key.set_gps_latitude_zone(reverse_value.gps_latitude_zone());
+    key.set_gps_longitude_zone(reverse_key.gps_longitude_zone());
+    key.set_gps_latitude_zone(reverse_key.gps_latitude_zone());
     keys->push_back(key);
 
     reverse_it->Next();

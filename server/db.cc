@@ -11,6 +11,9 @@ namespace bt {
 
 namespace {
 
+// Used for GPS float comparisons.
+constexpr float kEpsilon = 0.0000001;
+
 constexpr char kColumnTimeline[] = "by-timeline";
 constexpr char kColumnReverse[] = "by-user";
 
@@ -78,8 +81,6 @@ void DecodeTimelineKey(const rocksdb::Slice &key, uint64_t *timestamp_lo,
   *user_id = db_key.user_id();
   *timestamp_hi = db_key.timestamp() % kTimePrecision;
 }
-
-constexpr float kEpsilon = 0.0000001;
 
 } // anonymous namespace
 
@@ -153,11 +154,14 @@ const char *TimelineComparator::Name() const {
 namespace {
 
 void DecodeReverseKey(const rocksdb::Slice &key, uint64_t *user_id,
-                      uint64_t *timestamp) {
+                      uint64_t *timestamp_zone, float *gps_longitude_zone,
+                      float *gps_latitude_zone) {
   proto::DbReverseKey db_key;
   db_key.ParseFromArray(key.data(), key.size());
   *user_id = db_key.user_id();
-  *timestamp = db_key.timestamp();
+  *timestamp_zone = db_key.timestamp_zone();
+  *gps_longitude_zone = db_key.gps_longitude_zone();
+  *gps_latitude_zone = db_key.gps_latitude_zone();
 }
 
 } // anonymous namespace
@@ -165,12 +169,18 @@ void DecodeReverseKey(const rocksdb::Slice &key, uint64_t *user_id,
 int ReverseComparator::Compare(const rocksdb::Slice &a,
                                const rocksdb::Slice &b) const {
   uint64_t left_user_id;
-  uint64_t left_timestamp;
-  DecodeReverseKey(a, &left_user_id, &left_timestamp);
+  uint64_t left_timestamp_zone;
+  float left_gps_longitude_zone;
+  float left_gps_latitude_zone;
+  DecodeReverseKey(a, &left_user_id, &left_timestamp_zone,
+                   &left_gps_longitude_zone, &left_gps_latitude_zone);
 
   uint64_t right_user_id;
-  uint64_t right_timestamp;
-  DecodeReverseKey(b, &right_user_id, &right_timestamp);
+  uint64_t right_timestamp_zone;
+  float right_gps_longitude_zone;
+  float right_gps_latitude_zone;
+  DecodeReverseKey(b, &right_user_id, &right_timestamp_zone,
+                   &right_gps_longitude_zone, &right_gps_latitude_zone);
 
   if (left_user_id < right_user_id) {
     return -1;
@@ -179,10 +189,28 @@ int ReverseComparator::Compare(const rocksdb::Slice &a,
     return 1;
   }
 
-  if (left_timestamp < right_timestamp) {
+  if (left_timestamp_zone < right_timestamp_zone) {
     return -1;
   }
-  if (left_timestamp > right_timestamp) {
+  if (left_timestamp_zone > right_timestamp_zone) {
+    return 1;
+  }
+
+  float fdiff;
+
+  fdiff = left_gps_longitude_zone - right_gps_longitude_zone;
+  if (fdiff > kEpsilon) {
+    return -1;
+  }
+  if (fdiff < -kEpsilon) {
+    return 1;
+  }
+
+  fdiff = left_gps_latitude_zone - right_gps_latitude_zone;
+  if (fdiff > kEpsilon) {
+    return -1;
+  }
+  if (fdiff < -kEpsilon) {
     return 1;
   }
 

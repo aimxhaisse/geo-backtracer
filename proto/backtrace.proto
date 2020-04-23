@@ -89,10 +89,9 @@ message DbValue {
 
 message DbReverseKey {
   int64 user_id = 1;
-  int64 timestamp = 2;
-}
-
-message DbReverseValue {
+  int64 timestamp_zone = 2;
   float gps_longitude_zone = 3;
   float gps_latitude_zone = 4;
 };
+
+message DbReverseValue {}
