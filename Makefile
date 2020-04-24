@@ -3,7 +3,7 @@
 # For now, all-in-one binary; this is meant to be split at some point.
 
 CXXFLAGS = -O3 -Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -std=c++17 $(shell freetype-config --cflags 2>/dev/null) -I. -I/usr/local/include/google/protobuf
-LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf -lyaml-cpp -lpthread -lboost_system
+LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf -lyaml-cpp -lpthread -lboost_system -lz -ldl -lzstd -lsnappy -lbz2 -llz4
 
 SERVER := bin/bt_server
 CLIENT := bin/bt_client

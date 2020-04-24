@@ -2,7 +2,7 @@
 #include <ctime>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
-#include <grpcpp/grpcpp.h>
+#include <grpc++/grpc++.h>
 #include <random>
 
 #include "client/client.h"
