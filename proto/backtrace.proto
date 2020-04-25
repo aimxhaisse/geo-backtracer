@@ -94,4 +94,17 @@ message DbReverseKey {
   float gps_latitude_zone = 4;
 };
 
-message DbReverseValue {}
+message DbReverseValue {
+  enum AdjacentZone {
+    NO = 0;
+    PREVIOUS = 1;
+    NEXT = 2;
+  };
+
+  // Whether or not timestamp zone, gps longitude zone, or gps
+  // latitude zone is adjacent within a close enough distance from
+  // another zone.
+  AdjacentZone adj_timestamp = 1;
+  AdjacentZone adj_gps_longitude = 2;
+  AdjacentZone adj_gps_latitude = 3;
+}
