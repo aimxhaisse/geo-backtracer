@@ -260,5 +260,35 @@ TEST_F(SeekerTest, NoNearbyFolkOk) {
   }
 }
 
+TEST_F(SeekerTest, NearbyFolkTimestampZone) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  constexpr int kBaseTs = 1582410000;
+
+  // Pushes two points for two users with at almost the same position
+  // but in different timestamp zones.
+  EXPECT_TRUE(PushPoint(kBaseTs - 1, kBaseUserId, kBaseGpsLongitude + 0.000001,
+                        kBaseGpsLatitude - 0.000002, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs + 1, kBaseUserId + 1, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+
+  // Expect to find correlations
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+}
+
 } // namespace
 } // namespace bt
