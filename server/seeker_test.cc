@@ -236,7 +236,7 @@ TEST_F(SeekerTest, NoNearbyFolkOk) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
   // Pushes two points for two users with at almost the same position
-  // and time, except a match.
+  // and time, expect a match.
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId,
                         kBaseGpsLongitude + 0.000001,
                         kBaseGpsLatitude - 0.000002, kBaseGpsAltitude));
