@@ -10,7 +10,7 @@ namespace bt {
 
 namespace {
 
-constexpr char kServerAddress[] = "0.0.0.0:6000";
+constexpr char kServerAddress[] = "127.0.0.1:6000";
 
 } // anonymous namespace
 

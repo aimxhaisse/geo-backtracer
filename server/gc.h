@@ -1,5 +1,6 @@
 #pragma once
 
+#include <condition_variable>
 #include <rocksdb/db.h>
 
 #include "common/status.h"
