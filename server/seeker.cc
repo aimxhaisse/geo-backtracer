@@ -255,7 +255,7 @@ Seeker::GetUserNearbyFolks(grpc::ServerContext *context,
     for (const auto &user_entry : user_entries) {
       for (const auto &folk_entry : folk_entries) {
         if (abs(user_entry.first.timestamp() - folk_entry.first.timestamp()) <=
-            30) {
+            kTimeNearbyApproximation) {
           if (IsNearbyFolk(user_entry.second, folk_entry.second)) {
             scores[folk_entry.first.user_id()]++;
           }

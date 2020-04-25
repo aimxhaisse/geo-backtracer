@@ -20,20 +20,10 @@ constexpr float kGPSZoneNearbyApproximation = 4.0 * 0.000001;
 // needs to be tuned a bit more.
 constexpr int kTimePrecision = 1000;
 
-// Retention period of points in the database, anything older than
-// this is considered for deletion. This keeps the database under
-// reasonable size. It is currently 15 days. This can be changed on an
-// existing database, as it doesn't touch the internal layout.
-constexpr int kRetentionPeriodSecond = 24 * 3600 * 15;
-
-// Min interval expected between user timestamps. This is to prevent
-// overloading the database, we can drop points that are too close
-// once we start reaching per-user limits over a long period.
-constexpr int kMinPeriodBetweenGPSPointSecond = 60;
-
-// Hard limit on the number of points we can store per-user, after
-// this we might start collecting points that are too close in time.
-constexpr int kMaxPointsPerUser =
-    (kRetentionPeriodSecond / kMinPeriodBetweenGPSPointSecond) * 2;
+// Time in seconds to approximate two points in time. Note that we
+// implicitly rely on the GPS input data to be aligned. If input data
+// is not aligned, this is a lose approximation which works if users aren't
+// moving.
+constexpr int kTimeNearbyApproximation = 30;
 
 } // namespace bt
