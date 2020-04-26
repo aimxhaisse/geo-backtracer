@@ -12,10 +12,9 @@ This is a work in progress, at the moment, this service can handle
 about 1 million active users sending 1 GPS point every minute. Next
 steps are:
 
-- API to delete points for a user (to comply with GDPR)
-- garbage collection after a given horizon of days (WIP)
+- API to delete points for a user (GDPR)
 - optimization for users not moving (see Integration with mobile data below)
-- horizontal scaling
+- horizontal scaling (which will enable O(100M) users)
 
 ## Contributors
 
@@ -26,8 +25,8 @@ of the [COVID-19 Open Innovation Grants](https://research.protocol.ai/posts/2020
 
 ## Development
 
-Development environment for now is on Mac OS, but could likely be
-adapted to Unices (goal is to have this run on GNU/Linux).
+Development environment for now is on Mac OS, but the project compiles
+and runs on Linux as well (see Dockerfile):
 
 Install the following dependencies:
 
