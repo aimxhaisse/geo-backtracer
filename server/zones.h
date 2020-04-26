@@ -40,18 +40,19 @@ enum LocIsNearZone {
 // Whether or not the given timestamp is near an adjacent zone, which
 // would require extra scanning to fetch points outside of the current
 // zone.
-inline LocIsNearZone TsIsNearZone(int64_t timestamp) {
-  if ((timestamp % kTimePrecision) < 30) {
-    return PREVIOUS;
-  }
-  if ((kTimePrecision - (timestamp % kTimePrecision)) < 30) {
-    return NEXT;
-  }
-  return NONE;
-}
+LocIsNearZone TsIsNearZone(int64_t timestamp);
 
-inline float GPSLocationToGPSZone(float gps_location) {
-  return roundf(gps_location * kGPSZonePrecision) / kGPSZonePrecision;
-}
+// Converts a timestamp to a timestamp zone.
+int64_t TsToZone(int64_t timestamp);
+
+// Get the next timestamp zone for the given timestamp.
+int64_t TsNextZone(int64_t timestamp);
+
+// Get the previous timestamp zone for the given timestamp.
+int64_t TsPreviousZone(int64_t timestamp);
+
+// Converts a GPS position to a GPS zone (works for both latitude and
+// longitude).
+float GPSLocationToGPSZone(float gps_location);
 
 } // namespace bt
