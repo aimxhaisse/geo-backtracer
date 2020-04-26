@@ -266,8 +266,8 @@ TEST_F(SeekerTest, NearbyFolkTimestampZone) {
 
   constexpr int kBaseTs = 1582410000;
 
-  // Pushes two points for two users with at almost the same position
-  // but in different timestamp zones.
+  // Pushes two points for two users with at the same position but in
+  // different timestamp zones.
   EXPECT_TRUE(PushPoint(kBaseTs - 1, kBaseUserId, kBaseGpsLongitude + 0.000001,
                         kBaseGpsLatitude - 0.000002, kBaseGpsAltitude));
   EXPECT_TRUE(PushPoint(kBaseTs + 1, kBaseUserId + 1, kBaseGpsLongitude,

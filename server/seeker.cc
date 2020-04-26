@@ -227,32 +227,94 @@ bool Seeker::IsNearbyFolk(const proto::DbValue &user_value,
   return is_within_4_meters_long && is_within_4_meters_lat;
 }
 
+namespace {
+
+proto::DbKey MakeKey(int64_t timestamp, int64_t user_id,
+                     float gps_longitude_zone, float gps_latitude_zone) {
+  proto::DbKey key;
+
+  key.set_timestamp(timestamp);
+  key.set_user_id(user_id);
+  key.set_gps_longitude_zone(gps_longitude_zone);
+  key.set_gps_latitude_zone(gps_latitude_zone);
+
+  return key;
+}
+
+} // anonymous namespace
+
+Status
+Seeker::BuildKeysToSearchAroundPoint(uint64_t user_id,
+                                     const proto::UserTimelinePoint &point,
+                                     std::list<proto::DbKey> *keys) {
+  // Order in which we create keys here is probably little relevant,
+  // but might have an impact on the way we find blocks, maybe worth
+  // do some performance testing here once we have a huge database to
+  // test with.
+  const LocIsNearZone ts_near_zone = TsIsNearZone(point.timestamp());
+
+  if (ts_near_zone == PREVIOUS) {
+    keys->push_back(
+        MakeKey((TsPreviousZone(point.timestamp()) * kTimePrecision), user_id,
+                GPSLocationToGPSZone(point.gps_longitude()),
+                GPSLocationToGPSZone(point.gps_latitude())));
+  }
+  if (ts_near_zone == NEXT) {
+    keys->push_back(MakeKey((TsNextZone(point.timestamp()) * kTimePrecision),
+                            user_id,
+                            GPSLocationToGPSZone(point.gps_longitude()),
+                            GPSLocationToGPSZone(point.gps_latitude())));
+  }
+
+  // TODO: handle GPS zones here.
+
+  // Current zone.
+  keys->push_back(MakeKey((TsToZone(point.timestamp()) * kTimePrecision),
+                          user_id, GPSLocationToGPSZone(point.gps_longitude()),
+                          GPSLocationToGPSZone(point.gps_latitude())));
+
+  return StatusCode::OK;
+}
+
 grpc::Status
 Seeker::GetUserNearbyFolks(grpc::ServerContext *context,
                            const proto::GetUserNearbyFolksRequest *request,
                            proto::GetUserNearbyFolksResponse *response) {
-  std::list<proto::DbKey> keys;
-  Status status = BuildTimelineKeysForUser(request->user_id(), &keys);
-  if (status != StatusCode::OK) {
-    LOG(WARNING) << "can't build timeline keys for user, user_id="
-                 << request->user_id() << ", status=" << status;
-    return grpc::Status(grpc::StatusCode::INTERNAL,
-                        "can't build timeline keys");
+  // First step, get the user timeline, this is needed because we need
+  // exact timestamps to build the logical blocks.
+  proto::GetUserTimelineResponse tl_rsp;
+  proto::GetUserTimelineRequest tl_request;
+  tl_request.set_user_id(request->user_id());
+  grpc::Status grpc_status = GetUserTimeline(context, &tl_request, &tl_rsp);
+  if (!grpc_status.ok()) {
+    return grpc_status;
   }
 
-  // Naive implementation, this is to be optimized with bitmaps etc.
   std::map<uint64_t, int> scores;
-  for (const auto &timeline_key : keys) {
-    std::vector<std::pair<proto::DbKey, proto::DbValue>> user_entries;
-    std::vector<std::pair<proto::DbKey, proto::DbValue>> folk_entries;
 
-    status = BuildLogicalBlock(timeline_key, request->user_id(), &user_entries,
-                               &folk_entries);
+  for (int i = 0; i < tl_rsp.point_size(); ++i) {
+    const auto &point = tl_rsp.point(i);
+    std::list<proto::DbKey> keys;
+    Status status =
+        BuildKeysToSearchAroundPoint(request->user_id(), point, &keys);
     if (status != StatusCode::OK) {
-      LOG(WARNING) << "can't get timeline block, status=" << status;
+      LOG(WARNING) << "can't build key for block, status=" << status;
       continue;
     }
 
+    std::vector<std::pair<proto::DbKey, proto::DbValue>> user_entries;
+    std::vector<std::pair<proto::DbKey, proto::DbValue>> folk_entries;
+    for (const auto &key : keys) {
+      status = BuildLogicalBlock(key, request->user_id(), &user_entries,
+                                 &folk_entries);
+
+      if (status != StatusCode::OK) {
+        LOG(WARNING) << "can't get timeline block, status=" << status;
+        continue;
+      }
+    }
+
+    // Naive implementation, this is to be optimized with bitmaps etc.
     for (const auto &user_entry : user_entries) {
       for (const auto &folk_entry : folk_entries) {
         if (abs(user_entry.first.timestamp() - folk_entry.first.timestamp()) <=
@@ -270,10 +332,6 @@ Seeker::GetUserNearbyFolks(grpc::ServerContext *context,
     folk->set_user_id(score.first);
     folk->set_score(score.second);
   }
-
-  LOG_EVERY_N(INFO, 1000) << "retrieved reverse keys, user_id="
-                          << request->user_id()
-                          << ", reverse_keys_count=" << keys.size();
 
   return grpc::Status::OK;
 }

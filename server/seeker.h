@@ -29,6 +29,10 @@ private:
                                   std::list<proto::DbKey> *keys);
   Status BuildTimelineForUser(const std::list<proto::DbKey> &keys,
                               proto::GetUserTimelineResponse *timeline);
+  Status BuildKeysToSearchAroundPoint(uint64_t user_id,
+                                      const proto::UserTimelinePoint &point,
+                                      std::list<proto::DbKey> *keys);
+
   Status BuildLogicalBlock(
       const proto::DbKey &timelime_key, uint64_t user_id,
       std::vector<std::pair<proto::DbKey, proto::DbValue>> *user_entries,
