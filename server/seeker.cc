@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "server/seeker.h"
+#include "server/zones.h"
 
 namespace bt {
 

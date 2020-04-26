@@ -3,7 +3,6 @@
 #include <rocksdb/db.h>
 
 #include "common/status.h"
-#include "server/constants.h"
 
 namespace bt {
 

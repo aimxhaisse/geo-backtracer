@@ -2,6 +2,7 @@
 #include <glog/logging.h>
 
 #include "server/test.h"
+#include "server/zones.h"
 
 namespace bt {
 namespace {
