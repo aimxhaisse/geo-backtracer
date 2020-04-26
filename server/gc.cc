@@ -5,7 +5,7 @@
 
 #include "proto/backtrace.grpc.pb.h"
 #include "server/gc.h"
-#include "server/gps.h"
+#include "server/zones.h"
 
 using namespace std::chrono_literals;
 

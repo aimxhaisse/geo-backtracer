@@ -2,8 +2,8 @@
 #include <glog/logging.h>
 #include <rocksdb/write_batch.h>
 
-#include "server/gps.h"
 #include "server/pusher.h"
+#include "server/zones.h"
 
 namespace bt {
 

@@ -4,8 +4,8 @@
 #include "common/utils.h"
 #include "proto/backtrace.pb.h"
 #include "server/db.h"
-#include "server/gps.h"
 #include "server/options.h"
+#include "server/zones.h"
 
 namespace bt {
 

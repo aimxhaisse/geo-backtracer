@@ -7,6 +7,8 @@
 
 namespace bt {
 
+// Tools to manipulate zones.
+
 inline float GPSLocationToGPSZone(float gps_location) {
   return roundf(gps_location * kGPSZonePrecision) / kGPSZonePrecision;
 }
