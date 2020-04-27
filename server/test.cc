@@ -90,6 +90,18 @@ void ServerTestBase::DumpTimeline() {
   LOG(INFO) << "finished to dump timeline database, count=" << count;
 }
 
+bool ServerTestBase::DeleteUser(uint64_t user_id) {
+  grpc::ServerContext context;
+  proto::DeleteUserResponse response;
+  proto::DeleteUserRequest request;
+  request.set_user_id(user_id);
+
+  grpc::Status status =
+      server_->GetPusher()->DeleteUser(&context, &request, &response);
+
+  return status.ok();
+}
+
 } // namespace bt
 
 int main(int argc, char **argv) {

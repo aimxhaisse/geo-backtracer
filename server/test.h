@@ -36,6 +36,9 @@ public:
   // Dump the timeline database, useful for debugging.
   void DumpTimeline();
 
+  // Delete a user from the database.
+  bool DeleteUser(uint64_t user_id);
+
   Options options_;
   std::unique_ptr<Server> server_;
 };
