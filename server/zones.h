@@ -13,7 +13,8 @@ namespace bt {
 // the performance characteristics of the database. Beware that hot
 // paths in the database are likely cached in memory, so there
 // shouldn't be much use to have a too-large area here.
-constexpr float kGPSZonePrecision = 10000.0;
+constexpr float kGPSZonePrecision = 1000.0;
+constexpr float kGPSZoneDistance = 0.001;
 
 // About 4.4 meters, which corresponds to GPS' precision.
 constexpr float kGPSZoneNearbyApproximation = 4.0 * 0.000001;
@@ -54,5 +55,14 @@ int64_t TsPreviousZone(int64_t timestamp);
 // Converts a GPS position to a GPS zone (works for both latitude and
 // longitude).
 float GPSLocationToGPSZone(float gps_location);
+
+// Get the next GPS zone for a given location.
+float GPSNextZone(float gps_location);
+
+// Get the previous GPS zone for a given location.
+float GPSPreviousZone(float gps_location);
+
+// Whether or not the GPS location is near a zone border.
+LocIsNearZone GPSIsNearZone(float gps_location);
 
 } // namespace bt
