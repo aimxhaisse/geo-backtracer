@@ -129,4 +129,140 @@ grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
   return grpc::Status::OK;
 }
 
+Status Pusher::DeleteUserFromBlock(uint64_t user_id,
+                                   const proto::DbKey &start_key,
+                                   int64_t *timeline_count) {
+  std::string start_key_raw;
+  if (!start_key.SerializeToString(&start_key_raw)) {
+    RETURN_ERROR(INTERNAL_ERROR, "can't serialize internal db timeline key");
+  }
+
+  std::unique_ptr<rocksdb::Iterator> it(
+      db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->TimelineHandle()));
+  it->SeekForPrev(rocksdb::Slice(start_key_raw.data(), start_key_raw.size()));
+
+  while (it->Valid()) {
+    const rocksdb::Slice key_raw = it->key();
+    proto::DbKey key;
+    if (!key.ParseFromArray(key_raw.data(), key_raw.size())) {
+      RETURN_ERROR(INTERNAL_ERROR,
+                   "can't unserialize internal db timeline key");
+    }
+
+    if (user_id == key.user_id()) {
+      rocksdb::Status rocksdb_status = db_->Rocks()->Delete(
+          rocksdb::WriteOptions(), db_->TimelineHandle(), key_raw);
+
+      // We don't check for NOT_FOUND here, this is because the point
+      // here may be older than the expiration date and compete with the
+      // GC, so we may be double-deleting points; that's fine.
+      if (!rocksdb_status.ok()) {
+        RETURN_ERROR(INTERNAL_ERROR,
+                     "can't delete user data from block for user_id="
+                         << user_id
+                         << ", status=" << rocksdb_status.ToString());
+      } else {
+        ++(*timeline_count);
+      }
+    }
+
+    const bool end_of_zone =
+        (TsToZone(key.timestamp()) != TsToZone(start_key.timestamp())) ||
+        (key.gps_longitude_zone() != start_key.gps_longitude_zone()) ||
+        (key.gps_latitude_zone() != start_key.gps_latitude_zone());
+    if (end_of_zone) {
+      break;
+    }
+
+    it->Next();
+  }
+
+  return StatusCode::OK;
+}
+
+grpc::Status Pusher::DeleteUser(grpc::ServerContext *context,
+                                const proto::DeleteUserRequest *request,
+                                proto::DeleteUserResponse *response) {
+  uint64_t user_id = request->user_id();
+  int64_t reverse_count = 0;
+  int64_t timeline_count = 0;
+
+  LOG(INFO) << "deleting history for user " << user_id;
+
+  proto::DbReverseKey reverse_key_it;
+
+  reverse_key_it.set_user_id(user_id);
+  reverse_key_it.set_timestamp_zone(0);
+  reverse_key_it.set_gps_longitude_zone(0.0);
+  reverse_key_it.set_gps_latitude_zone(0.0);
+
+  std::string reverse_raw_key_it;
+  if (!reverse_key_it.SerializeToString(&reverse_raw_key_it)) {
+    LOG(WARNING) << "can't serialize internal reverse key, user_id=" << user_id;
+    return grpc::Status(grpc::StatusCode::INTERNAL,
+                        "can't serialize internal reverse key");
+  }
+
+  std::unique_ptr<rocksdb::Iterator> reverse_it(
+      db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->ReverseHandle()));
+  reverse_it->Seek(
+      rocksdb::Slice(reverse_raw_key_it.data(), reverse_raw_key_it.size()));
+
+  while (reverse_it->Valid()) {
+    const rocksdb::Slice reverse_key_raw = reverse_it->key();
+    proto::DbReverseKey reverse_key;
+    if (!reverse_key.ParseFromArray(reverse_key_raw.data(),
+                                    reverse_key_raw.size())) {
+      LOG(WARNING) << "can't unserialize internal reverse key, user_id="
+                   << user_id;
+      return grpc::Status(grpc::StatusCode::INTERNAL,
+                          "can't unserialize internal reverse key");
+    }
+
+    // If we have a different user ID, we are done scanning keys for
+    // this user.
+    if (reverse_key.user_id() != user_id) {
+      break;
+    }
+
+    proto::DbKey key_begin;
+
+    key_begin.set_timestamp(reverse_key.timestamp_zone() * kTimePrecision);
+    key_begin.set_user_id(user_id);
+    key_begin.set_gps_longitude_zone(reverse_key.gps_longitude_zone());
+    key_begin.set_gps_latitude_zone(reverse_key.gps_latitude_zone());
+
+    Status status = DeleteUserFromBlock(user_id, key_begin, &timeline_count);
+    if (status != StatusCode::OK) {
+      LOG(WARNING) << "can't delete user data from block for user_id="
+                   << user_id << ", status=" << status;
+      return grpc::Status(grpc::StatusCode::INTERNAL,
+                          "can't delete user data from block");
+    }
+
+    rocksdb::Status rocksdb_status = db_->Rocks()->Delete(
+        rocksdb::WriteOptions(), db_->ReverseHandle(), reverse_key_raw);
+
+    // We don't check for NOT_FOUND here, this is because the point
+    // here may be older than the expiration date and compete with the
+    // GC, so we may be double-deleting points; that's fine.
+    if (!rocksdb_status.ok()) {
+      LOG(WARNING) << "can't delete user data from block for user_id="
+                   << user_id << ", status=" << rocksdb_status.ToString();
+      return grpc::Status(grpc::StatusCode::INTERNAL,
+                          "can't delete user data from block");
+    } else {
+      ++reverse_count;
+    }
+
+    reverse_it->Next();
+  }
+
+  LOG(INFO) << "deleted all data for user_id=" << user_id
+            << ", reverse_count=" << reverse_count
+            << ", timeline_count=" << timeline_count;
+
+  return grpc::Status::OK;
+}
+
 } // namespace bt

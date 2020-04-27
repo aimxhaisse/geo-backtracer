@@ -21,9 +21,15 @@ public:
                            const proto::PutLocationRequest *request,
                            proto::PutLocationResponse *response) override;
 
+  grpc::Status DeleteUser(grpc::ServerContext *context,
+                          const proto::DeleteUserRequest *request,
+                          proto::DeleteUserResponse *response) override;
+
 private:
   Status PutTimelineLocation(const proto::Location &location);
   Status PutReverseLocation(const proto::Location &location);
+  Status DeleteUserFromBlock(uint64_t user_id, const proto::DbKey &begin,
+                             int64_t *count);
 
   Db *db_ = nullptr;
 
