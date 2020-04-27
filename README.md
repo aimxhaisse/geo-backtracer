@@ -9,12 +9,18 @@ phones; it is meant to be scalable and solve this single problem.
 ## Status
 
 This is a work in progress, at the moment, this service can handle
-about 1 million active users sending 1 GPS point every minute. Next
-steps are:
+about 1 million active users sending 1 GPS point every minute.
+Horizontal scaling will increase this limit by orders of magnitude.
 
-- API to delete points for a user (GDPR)
-- optimization for users not moving (see Integration with mobile data below)
-- horizontal scaling (which will enable O(100M) users)
+## Features
+
+The current features are implemented:
+
+- API to push GPS points from users,
+- API to fetch the timeline of a user,
+- API to delete all data of a user (GDPR),
+- API to seek correlations at scale,
+- Garbage collection of points older than 14 days (can be configured).
 
 ## Contributors
 
@@ -25,7 +31,10 @@ of the [COVID-19 Open Innovation Grants](https://research.protocol.ai/posts/2020
 
 ## How it works
 
-The Geo Backtracer uses an internal database layout that optimizes
+The Geo Backtracer stores GPS points from user identifiers and, given
+an identifier, is able to compute identifiers that were in a close
+distance for more than 15 minutes in the last 14 days. To do so at a
+large scale, it uses an internal database layout that optimizes
 heavily to solve this single problem:
 
 - high throughput is achieved with little database compaction as data
