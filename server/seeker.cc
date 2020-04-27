@@ -162,7 +162,7 @@ Status Seeker::BuildLogicalBlock(
   proto::DbKey start_key = timelime_key;
   start_key.set_user_id(0);
 
-  const uint64_t timestamp_end = start_key.timestamp() + kTimePrecision;
+  const uint64_t timestamp_end = start_key.timestamp() + kTimePrecision - 1;
 
   std::string start_key_raw;
   if (!start_key.SerializeToString(&start_key_raw)) {
@@ -252,26 +252,44 @@ Seeker::BuildKeysToSearchAroundPoint(uint64_t user_id,
   // do some performance testing here once we have a huge database to
   // test with.
   const LocIsNearZone ts_near_zone = TsIsNearZone(point.timestamp());
+  const LocIsNearZone long_near_zone = GPSIsNearZone(point.gps_longitude());
+  const LocIsNearZone lat_near_zone = GPSIsNearZone(point.gps_latitude());
 
+  std::vector<uint64_t> timestamp_zones;
+  std::vector<float> longitude_zones;
+  std::vector<float> latitude_zones;
+
+  timestamp_zones.push_back(TsToZone(point.timestamp()));
   if (ts_near_zone == PREVIOUS) {
-    keys->push_back(
-        MakeKey((TsPreviousZone(point.timestamp()) * kTimePrecision), user_id,
-                GPSLocationToGPSZone(point.gps_longitude()),
-                GPSLocationToGPSZone(point.gps_latitude())));
-  }
-  if (ts_near_zone == NEXT) {
-    keys->push_back(MakeKey((TsNextZone(point.timestamp()) * kTimePrecision),
-                            user_id,
-                            GPSLocationToGPSZone(point.gps_longitude()),
-                            GPSLocationToGPSZone(point.gps_latitude())));
+    timestamp_zones.push_back(TsPreviousZone(point.timestamp()));
+  } else if (ts_near_zone == NEXT) {
+    timestamp_zones.push_back(TsNextZone(point.timestamp()));
   }
 
-  // TODO: handle GPS zones here.
+  longitude_zones.push_back(GPSLocationToGPSZone(point.gps_longitude()));
+  if (long_near_zone == PREVIOUS) {
+    longitude_zones.push_back(GPSPreviousZone(point.gps_longitude()));
+  }
+  if (long_near_zone == NEXT) {
+    longitude_zones.push_back(GPSNextZone(point.gps_longitude()));
+  }
 
-  // Current zone.
-  keys->push_back(MakeKey((TsToZone(point.timestamp()) * kTimePrecision),
-                          user_id, GPSLocationToGPSZone(point.gps_longitude()),
-                          GPSLocationToGPSZone(point.gps_latitude())));
+  latitude_zones.push_back(GPSLocationToGPSZone(point.gps_latitude()));
+  if (lat_near_zone == PREVIOUS) {
+    latitude_zones.push_back(GPSPreviousZone(point.gps_latitude()));
+  }
+  if (lat_near_zone == NEXT) {
+    latitude_zones.push_back(GPSNextZone(point.gps_latitude()));
+  }
+
+  for (const auto &ts_zone : timestamp_zones) {
+    for (const auto &long_zone : longitude_zones) {
+      for (const auto &lat_zone : latitude_zones) {
+        keys->push_back(
+            MakeKey(ts_zone * kTimePrecision, user_id, long_zone, lat_zone));
+      }
+    }
+  }
 
   return StatusCode::OK;
 }

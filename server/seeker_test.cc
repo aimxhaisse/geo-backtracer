@@ -291,5 +291,125 @@ TEST_F(SeekerTest, NearbyFolkTimestampZone) {
   }
 }
 
+TEST_F(SeekerTest, NearbyFolkGPSZoneLongitude) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  constexpr int kBaseTs = 1582410000;
+
+  // Pushes two points for two users with at the same time, nearly
+  // same location, but in different GPS zones.
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId, 1.234000001, kBaseGpsLatitude,
+                        kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId + 1, 1.233999999, kBaseGpsLatitude,
+                        kBaseGpsAltitude));
+
+  // Expect to find correlations
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+}
+
+TEST_F(SeekerTest, NearbyFolkGPSZoneLatitude) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  constexpr int kBaseTs = 1582410000;
+
+  // Pushes two points for two users with at the same time, nearly
+  // same location, but in different GPS zones.
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId, kBaseGpsLongitude, 13.4460000001,
+                        kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId + 1, kBaseGpsLongitude,
+                        13.4459999999, kBaseGpsAltitude));
+
+  // Expect to find correlations
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+}
+
+TEST_F(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitude) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  constexpr int kBaseTs = 1582410000;
+
+  // Pushes two points for two users with at the same time, nearly
+  // same location, but in different GPS zones.
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId, 0.001000001, 3.2460000001,
+                        kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId + 1, 0.000999999, 3.2459999999,
+                        kBaseGpsAltitude));
+
+  // Expect to find correlations
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+}
+
+TEST_F(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitudeAndTimestamp) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  constexpr int kBaseTs = 1582410000;
+
+  // Pushes two points for two users with at the same time, nearly
+  // same location, but in different GPS zones.
+  EXPECT_TRUE(PushPoint(kBaseTs + 1, kBaseUserId, 10.001000001, 77.2460000001,
+                        kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs - 1, kBaseUserId + 1, 10.000999999,
+                        77.2459999999, kBaseGpsAltitude));
+
+  // Expect to find correlations
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(1, response.folk_size());
+    EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
+    EXPECT_EQ(1, response.folk(0).score());
+  }
+}
+
 } // namespace
 } // namespace bt
