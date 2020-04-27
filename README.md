@@ -1,7 +1,7 @@
 # Geo Backtracer
 
 A service to store GPS-like locations of O(million) users in
-real-time, and provide a way to backtrace over a period of 30 days,
+real-time, and provide a way to backtrace over a period of 15 days,
 users that were close for more than 15 minutes. This is just one brick
 that can be coupled with backends aggregating points from mobile
 phones; it is meant to be scalable and solve this single problem.
@@ -123,7 +123,7 @@ the above mentioned approach would need to be slightly adapted.
 
 ### Assumptions
 
-   - 30 days of history,
+   - 15 days of history,
    - 1 point per user per minute.
 
 ### Status
@@ -156,17 +156,17 @@ Current numbers, inserting 200 000 000 points in an empty database:
     |------------+-----------------+------------------+-------------------|
     | point size | 1 million users | 10 million users | 100 million users |
     |------------+-----------------+------------------+-------------------|
-    | 1 byte     | 43G             | 430G             | 4.3T              |
+    | 1 byte     | 22G             | 220G             | 2.2T              |
     |------------+-----------------+------------------+-------------------|
-    | 2 bytes    | 86G             | 860G             | 8.6T              |
+    | 2 bytes    | 43G             | 430G             | 4.3T              |
     |------------+-----------------+------------------+-------------------|
-    | 3 bytes    | 129G            | 1.3T             | 13T               |
+    | 3 bytes    | 65G             | 0.7T             | 7T                |
     |------------+-----------------+------------------+-------------------|
-    | 4 bytes    | 172G            | 1.7T             | 17T               |
+    | 4 bytes    | 86G             | 0.9T             | 9T                |
     |------------+-----------------+------------------+-------------------|
-    | 5 bytes    | 215G            | 2.2T             | 22T               |
+    | 5 bytes    | 108G            | 1.1T             | 11T               |
     |------------+-----------------+------------------+-------------------|
-    | 10 bytes   | 430G            | 4.3T             | 43T               |
+    | 10 bytes   | 220G            | 2.2T             | 22T               |
     |------------+-----------------+------------------+-------------------|
-    | 20 bytes   | 860G            | 8.6T             | 86T               |
+    | 20 bytes   | 430G            | 4.3T             | 43T               |
     |------------+-----------------+------------------+-------------------|
