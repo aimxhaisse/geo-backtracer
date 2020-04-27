@@ -6,6 +6,7 @@ package proto;
 
 service Pusher {
   rpc PutLocation(PutLocationRequest) returns (PutLocationResponse) {}
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
 }
 
 message Location {
@@ -21,6 +22,12 @@ message PutLocationRequest {
 }
 
 message PutLocationResponse {}
+
+message DeleteUserRequest {
+  uint64 user_id = 1;
+}
+
+message DeleteUserResponse {}
 
 // --- Interface to lookup correlations.
 

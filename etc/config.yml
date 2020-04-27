@@ -14,4 +14,4 @@ gc:
   # Delay in seconds between two GC pass; time between passes can be
   # longer than this, as this delay is between the end of a pass and
   # the beginning of another.
-  delay_between_rounds_sec = 3600
+  delay_between_rounds_sec: 3600
