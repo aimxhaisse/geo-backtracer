@@ -155,10 +155,6 @@ Status Seeker::BuildLogicalBlock(
     const proto::DbKey &timelime_key, uint64_t user_id,
     std::vector<std::pair<proto::DbKey, proto::DbValue>> *user_entries,
     std::vector<std::pair<proto::DbKey, proto::DbValue>> *folk_entries) {
-  // Reset the user ID so we retrieve all user IDs for this block. We
-  // do not handle borders here, they are handled in a slightly
-  // different way: by inserting multiple points cross-borders in the
-  // database, this makes the algorithm here easier.
   proto::DbKey start_key = timelime_key;
   start_key.set_user_id(0);
 
