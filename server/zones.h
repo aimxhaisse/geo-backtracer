@@ -19,6 +19,9 @@ constexpr float kGPSZoneDistance = 0.001;
 // About 4.4 meters, which corresponds to GPS' precision.
 constexpr float kGPSZoneNearbyApproximation = 4.0 * 0.000001;
 
+// About 2 meters of altitude.
+constexpr float kGPSNearbyAltitude = 2.0;
+
 // This is similar to the previous setting, but for time. Entries will
 // be grouped in 1000 second batches in the database, this likely
 // needs to be tuned a bit more.

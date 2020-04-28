@@ -411,5 +411,49 @@ TEST_F(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitudeAndTimestamp) {
   }
 }
 
+TEST_F(SeekerTest, NoNearbyFolkCloseAltitude) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  // Pushes two points for two users with the same latitude/longitude
+  // but a different altitude, expect no match.
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude + 10.0));
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(0, response.folk_size());
+  }
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(0, response.folk_size());
+  }
+}
+
+TEST_F(SeekerTest, NearbyFolkCloseAltitude) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  // Pushes two points for two users with the same latitude/longitude
+  // but a different altitude, expect no match.
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude + 1.0));
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(1, response.folk_size());
+  }
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(1, response.folk_size());
+  }
+}
+
 } // namespace
 } // namespace bt

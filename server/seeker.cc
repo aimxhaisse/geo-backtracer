@@ -217,14 +217,17 @@ Status Seeker::BuildLogicalBlock(
 bool Seeker::IsNearbyFolk(const proto::DbValue &user_value,
                           const proto::DbValue &folk_value) {
   // This is a small approximation, needs real maths here.
-  const bool is_within_4_meters_long =
+  const bool is_nearby_long =
       fabs(user_value.gps_longitude() - folk_value.gps_longitude()) <
       kGPSZoneNearbyApproximation;
-  const bool is_within_4_meters_lat =
+  const bool is_nearby_lat =
       fabs(user_value.gps_latitude() - folk_value.gps_latitude()) <
       kGPSZoneNearbyApproximation;
+  const bool is_nearby_alt =
+      fabs(user_value.gps_altitude() - folk_value.gps_altitude()) <
+      kGPSNearbyAltitude;
 
-  return is_within_4_meters_long && is_within_4_meters_lat;
+  return is_nearby_long && is_nearby_lat && is_nearby_alt;
 }
 
 namespace {
