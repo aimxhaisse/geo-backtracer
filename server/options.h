@@ -18,6 +18,25 @@ public:
 
   // Delay in seconds between two GC pass.
   int gc_delay_between_rounds_sec_ = 3600;
+
+  // Type of a backtracer instance.
+  enum InstanceType {
+    // In primary mode, the bt handles all writes to the database
+    // (garbage collection, inserting points, deleting user
+    // data). There can only be one primary instacne per database.
+    PRIMARY = 0,
+
+    // In seeker mode, the bt handles reads to the database (solver to
+    // compute correlation, history retrieval). There can be multiple
+    // seeker instances on a database.
+    SEEKER,
+
+    // Combination of the two previous modes (primary & seeker), used
+    // for single node setups.
+    STANDALONE
+  };
+
+  InstanceType instance_type_ = PRIMARY;
 };
 
 } // namespace bt
