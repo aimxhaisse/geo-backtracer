@@ -36,7 +36,7 @@ public:
     STANDALONE
   };
 
-  InstanceType instance_type_ = PRIMARY;
+  InstanceType instance_type_ = STANDALONE;
 };
 
 } // namespace bt

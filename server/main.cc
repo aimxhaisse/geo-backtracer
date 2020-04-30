@@ -11,7 +11,20 @@ DEFINE_string(config, "etc/config.yml", "path to the configuration file");
 
 namespace {
 
-void MakeOptions(const Config &config, Options *options) {
+Status MakeOptions(const Config &config, Options *options) {
+  // Instance type
+  const std::string instance_type = config.Get<std::string>("instance_type");
+  if (instance_type == "primary") {
+    options->instance_type_ = Options::InstanceType::PRIMARY;
+  } else if (instance_type == "seeker") {
+    options->instance_type_ = Options::InstanceType::SEEKER;
+  } else if (instance_type == "standalone") {
+    options->instance_type_ = Options::InstanceType::STANDALONE;
+  } else {
+    RETURN_ERROR(INVALID_CONFIG,
+                 "instance_type must be one of primary, seeker, standalone");
+  }
+
   // Database settings
   options->db_path_ = config.Get<std::string>("db.path");
 
@@ -20,6 +33,8 @@ void MakeOptions(const Config &config, Options *options) {
       config.Get<int>("gc.retention_period_days");
   options->gc_delay_between_rounds_sec_ =
       config.Get<int>("gc.delay_between_rounds_sec");
+
+  return StatusCode::OK;
 }
 
 } // anonymous namespace
@@ -36,17 +51,24 @@ int main(int ac, char **av) {
     return -1;
   }
 
+  Status status;
   Options options;
-  MakeOptions(*config_status.ValueOrDie(), &options);
+  status = MakeOptions(*config_status.ValueOrDie(), &options);
+  if (status != StatusCode::OK) {
+    LOG(ERROR) << "unable to initialize options, status=" << status;
+    return -1;
+  }
 
   Server server;
-  Status status = server.Init(options);
+  status = server.Init(options);
   if (status != StatusCode::OK) {
     LOG(ERROR) << "unable to initialize backtracer, status=" << status;
+    return -1;
   }
   status = server.Run();
   if (status != StatusCode::OK) {
     LOG(ERROR) << "unable to run backtracer service, status=" << status;
+    return -1;
   }
 
   return 0;

@@ -2,6 +2,7 @@
 
 # The backtracer can be of the following types:
 #
+#
 # - "primary": Main handler of the database, performs all write
 #   operations (pushing points, clearing user history, garbage
 #   collection). There can be a single primary instance per
@@ -10,6 +11,8 @@
 # - "seeker": Read-only handler of the database, given a user
 #   identifier, retrieves correlations in the database. There can
 #   be multiple seeker instances per database.
+#
+# - "standalone": Combines the two other types in the same process.
 instance_type: "primary"
 
 db:
