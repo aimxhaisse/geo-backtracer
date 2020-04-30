@@ -7,7 +7,7 @@
 
 using namespace bt;
 
-DEFINE_string(config, "etc/config.yml", "path to the configuration file");
+DEFINE_string(config, "etc/standalone.yml", "path to the configuration file");
 
 namespace {
 
