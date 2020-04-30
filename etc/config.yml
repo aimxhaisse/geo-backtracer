@@ -13,7 +13,7 @@
 #   be multiple seeker instances per database.
 #
 # - "standalone": Combines the two other types in the same process.
-instance_type: "primary"
+instance_type: "standalone"
 
 db:
   # Path to the database, if empty, a temporary database is created
