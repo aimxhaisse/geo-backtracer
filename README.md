@@ -113,11 +113,10 @@ such an approach:
 	  sleep_ms((kSendRateSeconds / 2) * 1000)
     }
 
-Ideally, a phone that is not moving should not be sending points, but
-could be sending instead: here was my position for the last 10 hours ;
-the API doesn't support this yet, but this is an improvement to be
-done. This will reduce drastically the overall size of the database,
-the above mentioned approach would need to be slightly adapted.
+A phone that is not moving should not be sending points, but could be
+sending instead: here was my position for the last 10 hours ; this can
+be done by setting a duration in the API. This significantly reduces
+the size of the database.
 
 ## Ramblings
 
