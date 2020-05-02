@@ -14,8 +14,9 @@ TEST_F(DbTest, TimestampOrdering) {
 
   // Push a bunch of points with a different timestamp.
   for (int i = 0; i < kNumberOfPoints; ++i) {
-    EXPECT_TRUE(PushPoint(kBaseTimestamp + i, kBaseUserId, kBaseGpsLongitude,
-                          kBaseGpsLatitude, kBaseGpsAltitude));
+    EXPECT_TRUE(PushPoint(kBaseTimestamp + i, kBaseDuration, kBaseUserId,
+                          kBaseGpsLongitude, kBaseGpsLatitude,
+                          kBaseGpsAltitude));
   }
 
   Db *db = server_->GetDb();

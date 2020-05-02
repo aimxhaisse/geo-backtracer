@@ -13,8 +13,8 @@ class GcTest : public ServerTestBase {};
 TEST_F(GcTest, SimpleGcRound) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
     proto::GetUserTimelineResponse response;
@@ -46,15 +46,15 @@ TEST_F(GcTest, ClearExpiredPoints) {
 
   // Push some points after the GC cutoff.
   for (int i = 0; i < kFreshCount; ++i) {
-    EXPECT_TRUE(PushPoint(now - cutoff + i + kTimePrecision * 3, kBaseUserId,
-                          kBaseGpsLongitude, kBaseGpsLatitude,
+    EXPECT_TRUE(PushPoint(now - cutoff + i + kTimePrecision * 3, kBaseDuration,
+                          kBaseUserId, kBaseGpsLongitude, kBaseGpsLatitude,
                           kBaseGpsAltitude));
   }
 
   // Push some points before the GC cutoff (to be deleted).
   for (int i = 0; i < kExpiredCount; ++i) {
-    EXPECT_TRUE(PushPoint(now - cutoff - i - kTimePrecision * 3, kBaseUserId,
-                          kBaseGpsLongitude, kBaseGpsLatitude,
+    EXPECT_TRUE(PushPoint(now - cutoff - i - kTimePrecision * 3, kBaseDuration,
+                          kBaseUserId, kBaseGpsLongitude, kBaseGpsLatitude,
                           kBaseGpsAltitude));
   }
 

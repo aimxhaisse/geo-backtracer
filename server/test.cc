@@ -13,9 +13,9 @@ void ServerTestBase::SetUp() {
 
 void ServerTestBase::TearDown() { server_.reset(); }
 
-bool ServerTestBase::PushPoint(uint64_t timestamp, uint64_t user_id,
-                               float longitude, float latitude,
-                               float altitude) {
+bool ServerTestBase::PushPoint(uint64_t timestamp, uint32_t duration,
+                               uint64_t user_id, float longitude,
+                               float latitude, float altitude) {
   grpc::ServerContext context;
   proto::PutLocationRequest request;
   proto::PutLocationResponse response;
@@ -23,6 +23,7 @@ bool ServerTestBase::PushPoint(uint64_t timestamp, uint64_t user_id,
   proto::Location *location = request.add_locations();
 
   location->set_timestamp(timestamp);
+  location->set_duration(duration);
   location->set_user_id(user_id);
   location->set_gps_longitude(longitude);
   location->set_gps_latitude(latitude);

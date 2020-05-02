@@ -9,8 +9,8 @@ class PusherTest : public ServerTestBase {};
 TEST_F(PusherTest, TimelineSinglePointOK) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   proto::GetUserTimelineResponse response;
   EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
@@ -21,8 +21,8 @@ TEST_F(PusherTest, TimelineSinglePointOK) {
 TEST_F(PusherTest, DeleteUserSimpleOK) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
     proto::GetUserTimelineResponse response;
@@ -42,8 +42,8 @@ TEST_F(PusherTest, DeleteUserSimpleOK) {
 TEST_F(PusherTest, DeleteUserSimpleKO) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
     proto::GetUserTimelineResponse response;
@@ -65,7 +65,7 @@ TEST_F(PusherTest, DeleteUserLargeOK) {
 
   for (int i = 0; i < 10000; ++i) {
     for (int j = 0; j < 42; ++j) {
-      EXPECT_TRUE(PushPoint(kBaseTimestamp + i, kBaseUserId + j,
+      EXPECT_TRUE(PushPoint(kBaseTimestamp + i, kBaseDuration, kBaseUserId + j,
                             kBaseGpsLongitude, kBaseGpsLatitude,
                             kBaseGpsAltitude));
     }

@@ -10,8 +10,8 @@ class SeekerTest : public ServerTestBase {};
 TEST_F(SeekerTest, TimelineSinglePointOK) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   proto::GetUserTimelineResponse response;
   EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
@@ -20,6 +20,7 @@ TEST_F(SeekerTest, TimelineSinglePointOK) {
   const proto::UserTimelinePoint &point = response.point(0);
 
   EXPECT_EQ(point.timestamp(), kBaseTimestamp);
+  EXPECT_EQ(point.duration(), kBaseDuration);
   EXPECT_EQ(point.gps_longitude(), kBaseGpsLongitude);
   EXPECT_EQ(point.gps_latitude(), kBaseGpsLatitude);
   EXPECT_EQ(point.gps_altitude(), kBaseGpsAltitude);
@@ -29,8 +30,8 @@ TEST_F(SeekerTest, TimelineSinglePointOK) {
 TEST_F(SeekerTest, TimelineSinglePointNoResult) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   proto::GetUserTimelineResponse response;
   EXPECT_TRUE(FetchTimeline(kBaseUserId + 1, &response));
@@ -47,16 +48,20 @@ TEST_F(SeekerTest, TimelineSingleUserMultipleTimestampZones) {
   // Push 5 points in 100 timestamp zones.
   for (int i = 0; i < kTimestampZones; ++i) {
     const uint64_t ts = kBaseTimestamp + kTimePrecision * i;
-    EXPECT_TRUE(PushPoint(ts, kBaseUserId, kBaseGpsLongitude, kBaseGpsLatitude,
+    EXPECT_TRUE(PushPoint(ts, kBaseDuration, kBaseUserId, kBaseGpsLongitude,
+                          kBaseGpsLatitude, kBaseGpsAltitude));
+    EXPECT_TRUE(PushPoint(ts + 67, kBaseDuration, kBaseUserId,
+                          kBaseGpsLongitude, kBaseGpsLatitude,
                           kBaseGpsAltitude));
-    EXPECT_TRUE(PushPoint(ts + 67, kBaseUserId, kBaseGpsLongitude,
-                          kBaseGpsLatitude, kBaseGpsAltitude));
-    EXPECT_TRUE(PushPoint(ts + 182, kBaseUserId, kBaseGpsLongitude,
-                          kBaseGpsLatitude, kBaseGpsAltitude));
-    EXPECT_TRUE(PushPoint(ts + 252, kBaseUserId, kBaseGpsLongitude,
-                          kBaseGpsLatitude, kBaseGpsAltitude));
-    EXPECT_TRUE(PushPoint(ts + 345, kBaseUserId, kBaseGpsLongitude,
-                          kBaseGpsLatitude, kBaseGpsAltitude));
+    EXPECT_TRUE(PushPoint(ts + 182, kBaseDuration, kBaseUserId,
+                          kBaseGpsLongitude, kBaseGpsLatitude,
+                          kBaseGpsAltitude));
+    EXPECT_TRUE(PushPoint(ts + 252, kBaseDuration, kBaseUserId,
+                          kBaseGpsLongitude, kBaseGpsLatitude,
+                          kBaseGpsAltitude));
+    EXPECT_TRUE(PushPoint(ts + 345, kBaseDuration, kBaseUserId,
+                          kBaseGpsLongitude, kBaseGpsLatitude,
+                          kBaseGpsAltitude));
   }
 
   proto::GetUserTimelineResponse response;
@@ -77,8 +82,9 @@ TEST_F(SeekerTest, TimelineMultipleUserSameTimestampZones) {
   for (int i = 0; i < kUserCount; ++i) {
     for (int j = 0; j <= i; ++j) {
       const uint64_t ts = kBaseTimestamp + j;
-      EXPECT_TRUE(PushPoint(ts, kBaseUserId + i, kBaseGpsLongitude,
-                            kBaseGpsLatitude, kBaseGpsAltitude));
+      EXPECT_TRUE(PushPoint(ts, kBaseDuration, kBaseUserId + i,
+                            kBaseGpsLongitude, kBaseGpsLatitude,
+                            kBaseGpsAltitude));
     }
   }
 
@@ -103,8 +109,9 @@ TEST_F(SeekerTest, TimelineMultipleUserMultipleTimestampZones) {
   for (int i = 0; i < kUserCount; ++i) {
     for (int j = 0; j <= i; ++j) {
       const uint64_t ts = kBaseTimestamp + kTimePrecision * i + j;
-      EXPECT_TRUE(PushPoint(ts, kBaseUserId + i, kBaseGpsLongitude,
-                            kBaseGpsLatitude, kBaseGpsAltitude));
+      EXPECT_TRUE(PushPoint(ts, kBaseDuration, kBaseUserId + i,
+                            kBaseGpsLongitude, kBaseGpsLatitude,
+                            kBaseGpsAltitude));
     }
   }
 
@@ -126,16 +133,16 @@ TEST_F(SeekerTest, TimelineBorderNoDoubleEntriesBug) {
   constexpr uint64_t border_ts = 1582410000;
 
   // Push 1 points before the border.
-  EXPECT_TRUE(PushPoint(border_ts - 1, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(border_ts - 1, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   // Push 1 point at the border.
-  EXPECT_TRUE(PushPoint(border_ts, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(border_ts, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   // Push 1 point after the border.
-  EXPECT_TRUE(PushPoint(border_ts + 1, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(border_ts + 1, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   // Now, expect to get three points for this user.
   proto::GetUserTimelineResponse response;
@@ -154,9 +161,10 @@ TEST_F(SeekerTest, NoNearbyFolks) {
   for (int i = 0; i < kUserCount; ++i) {
     for (int j = 0; j <= kNbPoints; ++j) {
       const uint64_t ts = kBaseTimestamp + kTimePrecision * i + j;
-      EXPECT_TRUE(PushPoint(
-          ts, kBaseUserId + i, kBaseGpsLongitude + i * 0.1 + j * 0.001,
-          kBaseGpsLatitude + i * 0.1 + j * 0.001, kBaseGpsAltitude));
+      EXPECT_TRUE(PushPoint(ts, kBaseDuration, kBaseUserId + i,
+                            kBaseGpsLongitude + i * 0.1 + j * 0.001,
+                            kBaseGpsLatitude + i * 0.1 + j * 0.001,
+                            kBaseGpsAltitude));
     }
   }
 
@@ -172,10 +180,11 @@ TEST_F(SeekerTest, NoNearbyFolkCloseLatitude) {
 
   // Pushes two points for two users with the same latitude but faw
   // away, expect no match.
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude + 0.1,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude + 0.1, kBaseGpsLatitude,
+                        kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId + 1,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
     proto::GetUserNearbyFolksResponse response;
@@ -194,10 +203,11 @@ TEST_F(SeekerTest, NoNearbyFolkCloseLongitude) {
 
   // Pushes two points for two users with the same longitude but faw
   // away, expect no match.
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude + 0.1, kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude + 0.1,
+                        kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId + 1,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
     proto::GetUserNearbyFolksResponse response;
@@ -216,10 +226,10 @@ TEST_F(SeekerTest, NoNearbyFolkSamePositionDifferentTime) {
 
   // Pushes two points for two users with at the same position but separated
   // in time by 5 minutes, expect no match.
-  EXPECT_TRUE(PushPoint(kBaseTimestamp + 300, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp + 300, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId + 1,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
     proto::GetUserNearbyFolksResponse response;
@@ -238,11 +248,11 @@ TEST_F(SeekerTest, NoNearbyFolkOk) {
 
   // Pushes two points for two users with at almost the same position
   // and time, expect a match.
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId,
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
                         kBaseGpsLongitude + 0.000001,
                         kBaseGpsLatitude - 0.000002, kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId + 1,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
     proto::GetUserNearbyFolksResponse response;
@@ -268,10 +278,11 @@ TEST_F(SeekerTest, NearbyFolkTimestampZone) {
 
   // Pushes two points for two users with at the same position but in
   // different timestamp zones.
-  EXPECT_TRUE(PushPoint(kBaseTs - 1, kBaseUserId, kBaseGpsLongitude + 0.000001,
+  EXPECT_TRUE(PushPoint(kBaseTs - 1, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude + 0.000001,
                         kBaseGpsLatitude - 0.000002, kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTs + 1, kBaseUserId + 1, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs + 1, kBaseDuration, kBaseUserId + 1,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   // Expect to find correlations
   {
@@ -298,10 +309,10 @@ TEST_F(SeekerTest, NearbyFolkGPSZoneLongitude) {
 
   // Pushes two points for two users with at the same time, nearly
   // same location, but in different GPS zones.
-  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId, 1.234000001, kBaseGpsLatitude,
-                        kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId + 1, 1.233999999, kBaseGpsLatitude,
-                        kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseDuration, kBaseUserId, 1.234000001,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseDuration, kBaseUserId + 1, 1.233999999,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
 
   // Expect to find correlations
   {
@@ -328,10 +339,10 @@ TEST_F(SeekerTest, NearbyFolkGPSZoneLatitude) {
 
   // Pushes two points for two users with at the same time, nearly
   // same location, but in different GPS zones.
-  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId, kBaseGpsLongitude, 13.4460000001,
-                        kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId + 1, kBaseGpsLongitude,
-                        13.4459999999, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseDuration, kBaseUserId, kBaseGpsLongitude,
+                        13.4460000001, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseDuration, kBaseUserId + 1,
+                        kBaseGpsLongitude, 13.4459999999, kBaseGpsAltitude));
 
   // Expect to find correlations
   {
@@ -358,10 +369,10 @@ TEST_F(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitude) {
 
   // Pushes two points for two users with at the same time, nearly
   // same location, but in different GPS zones.
-  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId, 0.001000001, 3.2460000001,
-                        kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTs, kBaseUserId + 1, 0.000999999, 3.2459999999,
-                        kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseDuration, kBaseUserId, 0.001000001,
+                        3.2460000001, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs, kBaseDuration, kBaseUserId + 1, 0.000999999,
+                        3.2459999999, kBaseGpsAltitude));
 
   // Expect to find correlations
   {
@@ -388,10 +399,10 @@ TEST_F(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitudeAndTimestamp) {
 
   // Pushes two points for two users with at the same time, nearly
   // same location, but in different GPS zones.
-  EXPECT_TRUE(PushPoint(kBaseTs + 1, kBaseUserId, 10.001000001, 77.2460000001,
-                        kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTs - 1, kBaseUserId + 1, 10.000999999,
-                        77.2459999999, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs + 1., kBaseDuration, kBaseUserId, 10.001000001,
+                        77.2460000001, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTs - 1, kBaseDuration, kBaseUserId + 1,
+                        10.000999999, 77.2459999999, kBaseGpsAltitude));
 
   // Expect to find correlations
   {
@@ -416,10 +427,11 @@ TEST_F(SeekerTest, NoNearbyFolkCloseAltitude) {
 
   // Pushes two points for two users with the same latitude/longitude
   // but a different altitude, expect no match.
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude + 10.0));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId + 1,
+                        kBaseGpsLongitude, kBaseGpsLatitude,
+                        kBaseGpsAltitude + 10.0));
 
   {
     proto::GetUserNearbyFolksResponse response;
@@ -438,10 +450,11 @@ TEST_F(SeekerTest, NearbyFolkCloseAltitude) {
 
   // Pushes two points for two users with the same latitude/longitude
   // but a different altitude, expect no match.
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude));
-  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseUserId + 1, kBaseGpsLongitude,
-                        kBaseGpsLatitude, kBaseGpsAltitude + 1.0));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId + 1,
+                        kBaseGpsLongitude, kBaseGpsLatitude,
+                        kBaseGpsAltitude + 1.0));
 
   {
     proto::GetUserNearbyFolksResponse response;

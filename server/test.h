@@ -10,6 +10,7 @@
 namespace bt {
 
 constexpr uint64_t kBaseTimestamp = 1582410316;
+constexpr uint32_t kBaseDuration = 0;
 constexpr uint64_t kBaseUserId = 678220045;
 constexpr float kBaseGpsLongitude = 53.2876332;
 constexpr float kBaseGpsLatitude = -6.3135357;
@@ -22,8 +23,8 @@ public:
   void TearDown();
 
   // Pushes a point for a single user in the database, returns true on success.
-  bool PushPoint(uint64_t timestamp, uint64_t user_id, float longitude,
-                 float latitude, float altitude);
+  bool PushPoint(uint64_t timestamp, uint32_t duration, uint64_t user_id,
+                 float longitude, float latitude, float altitude);
 
   // Retrieves timeline for a given user.
   bool FetchTimeline(uint64_t user_id,
