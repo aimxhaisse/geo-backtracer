@@ -304,6 +304,28 @@ TEST_F(SeekerTest, NoNearbyFolkSamePositionDifferentTime) {
   }
 }
 
+TEST_F(SeekerTest, NearbyFolkSamePositionDifferentTimeWithLongDuration) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  // Pushes two points for two users with at the same position but separated
+  // in time by 5 minutes with a long duration, expect match.
+  EXPECT_TRUE(PushPoint(kBaseTimestamp + 300, 500, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, 500, kBaseUserId + 1, kBaseGpsLongitude,
+                        kBaseGpsLatitude, kBaseGpsAltitude));
+
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
+    EXPECT_EQ(1, response.folk_size());
+  }
+  {
+    proto::GetUserNearbyFolksResponse response;
+    EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
+    EXPECT_EQ(1, response.folk_size());
+  }
+}
+
 TEST_F(SeekerTest, NoNearbyFolkOk) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);
 
