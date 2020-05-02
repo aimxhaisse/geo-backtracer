@@ -225,7 +225,9 @@ bool Seeker::IsNearbyFolk(const proto::DbKey &user_key,
 
   const bool is_nearby_ts =
       (user_begin_ts >= nearby_begin_ts && user_begin_ts <= nearby_end_ts) ||
-      (user_end_ts >= nearby_begin_ts && user_end_ts <= nearby_end_ts);
+      (user_end_ts >= nearby_begin_ts && user_end_ts <= nearby_end_ts) ||
+      (nearby_begin_ts >= user_begin_ts && nearby_begin_ts <= user_end_ts) ||
+      (nearby_end_ts >= user_begin_ts && nearby_end_ts <= user_end_ts);
 
   const bool is_nearby_long =
       fabs(user_value.gps_longitude() - folk_value.gps_longitude()) <
