@@ -147,6 +147,7 @@ Status Client::Wanderings() {
     for (int j = 0; j < 60 * 10; ++j) {
       proto::Location *loc = request.add_locations();
       loc->set_timestamp(start_at + j * 60);
+      loc->set_duration(0);
       loc->set_user_id(user_id);
 
       // From time to time, move a bit.
@@ -203,6 +204,7 @@ Status Client::BatchPush() {
     for (int i = 0; i < 10000; ++i) {
       proto::Location *loc = request.add_locations();
       loc->set_timestamp(static_cast<uint64_t>(std::time(nullptr)));
+      loc->set_duration(0);
 
       loc->set_user_id(std::rand() % 10000000);
       // 3 digits gives a precision of 10km.
