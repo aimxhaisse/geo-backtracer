@@ -43,9 +43,10 @@ message GetUserTimelineRequest {
 
 message UserTimelinePoint {
   int64 timestamp = 1;
-  float gps_latitude = 2;
-  float gps_longitude = 3;
-  float gps_altitude = 4;
+  uint32 duration = 2;
+  float gps_latitude = 3;
+  float gps_longitude = 4;
+  float gps_altitude = 5;
 };
 
 message GetUserTimelineResponse {

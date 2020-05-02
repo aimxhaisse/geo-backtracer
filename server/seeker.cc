@@ -108,6 +108,7 @@ Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey> &keys,
 
       proto::UserTimelinePoint *point = timeline->add_point();
       point->set_timestamp(key.timestamp());
+      point->set_duration(value.duration());
       point->set_gps_latitude(value.gps_latitude());
       point->set_gps_longitude(value.gps_longitude());
       point->set_gps_altitude(value.gps_altitude());

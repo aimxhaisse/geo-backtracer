@@ -78,6 +78,7 @@ Status Client::UserTimeline() {
   for (int i = 0; i < response.point().size(); ++i) {
     const proto::UserTimelinePoint &point = response.point(i);
     LOG(INFO) << "timestamp=" << point.timestamp()
+              << ", duration=" << point.duration()
               << ", gps_latitude=" << point.gps_latitude()
               << ", gps_longitude=" << point.gps_longitude()
               << ", gps_altitude=" << point.gps_altitude();
