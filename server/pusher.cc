@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <atomic>
 #include <glog/logging.h>
 #include <rocksdb/write_batch.h>
@@ -15,35 +16,43 @@ Status Pusher::Init(Db *db) {
 
 namespace {
 
-Status MakeTimelineKeyFromLocation(const proto::Location &location,
-                                   proto::DbKey *key) {
-  key->set_timestamp(location.timestamp());
-  key->set_user_id(location.user_id());
-  key->set_gps_longitude_zone(GPSLocationToGPSZone(location.gps_longitude()));
-  key->set_gps_latitude_zone(GPSLocationToGPSZone(location.gps_latitude()));
+Status MakeTimelineKey(int64_t user_id, int64_t ts, uint32_t duration,
+                       float gps_longitude, float gps_latitude,
+                       float gps_altitude, proto::DbKey *key) {
+  key->set_timestamp(ts);
+  key->set_user_id(user_id);
+  key->set_gps_longitude_zone(GPSLocationToGPSZone(gps_longitude));
+  key->set_gps_latitude_zone(GPSLocationToGPSZone(gps_latitude));
+
   return StatusCode::OK;
 }
 
-Status MakeTimelineValueFromLocation(const proto::Location &location,
-                                     proto::DbValue *value) {
-  value->set_gps_latitude(location.gps_latitude());
-  value->set_gps_longitude(location.gps_longitude());
-  value->set_gps_altitude(location.gps_altitude());
+Status MakeTimelineValue(int64_t user_id, int64_t ts, uint32_t duration,
+                         float gps_longitude, float gps_latitude,
+                         float gps_altitude, proto::DbValue *value) {
+  value->set_gps_latitude(gps_latitude);
+  value->set_gps_longitude(gps_longitude);
+  value->set_gps_altitude(gps_altitude);
+
   return StatusCode::OK;
 }
 
 } // anonymous namespace
 
-Status Pusher::PutTimelineLocation(const proto::Location &location) {
+Status Pusher::PutTimelineLocation(int64_t user_id, int64_t ts,
+                                   uint32_t duration, float gps_longitude,
+                                   float gps_latitude, float gps_altitude) {
   proto::DbKey key;
-  Status status = MakeTimelineKeyFromLocation(location, &key);
+  Status status = MakeTimelineKey(user_id, ts, duration, gps_longitude,
+                                  gps_latitude, gps_altitude, &key);
   if (status != StatusCode::OK) {
     RETURN_ERROR(INTERNAL_ERROR,
                  "unable to build key from location, status=" << status);
   }
 
   proto::DbValue value;
-  status = MakeTimelineValueFromLocation(location, &value);
+  status = MakeTimelineValue(user_id, ts, duration, gps_longitude, gps_latitude,
+                             gps_altitude, &value);
   if (status != StatusCode::OK) {
     RETURN_ERROR(INTERNAL_ERROR,
                  "unable to build value from location, status=" << status);
@@ -71,12 +80,14 @@ Status Pusher::PutTimelineLocation(const proto::Location &location) {
   return StatusCode::OK;
 }
 
-Status Pusher::PutReverseLocation(const proto::Location &location) {
+Status Pusher::PutReverseLocation(int64_t user_id, int64_t ts,
+                                  uint32_t duration, float gps_longitude,
+                                  float gps_latitude, float gps_altitude) {
   proto::DbReverseKey key;
-  key.set_user_id(location.user_id());
-  key.set_timestamp_zone(location.timestamp() / kTimePrecision);
-  key.set_gps_longitude_zone(GPSLocationToGPSZone(location.gps_longitude()));
-  key.set_gps_latitude_zone(GPSLocationToGPSZone(location.gps_latitude()));
+  key.set_user_id(user_id);
+  key.set_timestamp_zone(TsToZone(ts));
+  key.set_gps_longitude_zone(GPSLocationToGPSZone(gps_longitude));
+  key.set_gps_latitude_zone(GPSLocationToGPSZone(gps_latitude));
 
   std::string raw_key;
   if (!key.SerializeToString(&raw_key)) {
@@ -108,15 +119,33 @@ grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
   int errors = 0;
   for (int i = 0; i < request->locations_size(); ++i) {
     const proto::Location &location = request->locations(i);
-    Status status = PutTimelineLocation(location);
-    if (status == StatusCode::OK) {
-      status = PutReverseLocation(location);
+
+    // Each location can have a duration that spans multiple blocks:
+    // in that case, create artificial points at the beginning of each
+    // block for the block duration.
+    int64_t ts = location.timestamp();
+    const int64_t ts_end = location.timestamp() + location.duration();
+    do {
+      const int64_t next_ts = std::min(ts_end, TsNextZone(ts) * kTimePrecision);
+      const int64_t duration = next_ts - ts;
+
+      Status status = PutTimelineLocation(
+          location.user_id(), ts, duration, location.gps_longitude(),
+          location.gps_latitude(), location.gps_altitude());
+      if (status == StatusCode::OK) {
+        status = PutReverseLocation(
+            location.user_id(), ts, duration, location.gps_longitude(),
+            location.gps_latitude(), location.gps_altitude());
+      }
+
       if (status == StatusCode::OK) {
         ++success;
-        continue;
+      } else {
+        ++errors;
       }
-    }
-    ++errors;
+
+      ts = next_ts;
+    } while (ts < ts_end);
   }
 
   counter_ok_ += success;
@@ -129,7 +158,7 @@ grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
   return grpc::Status::OK;
 }
 
-Status Pusher::DeleteUserFromBlock(uint64_t user_id,
+Status Pusher::DeleteUserFromBlock(int64_t user_id,
                                    const proto::DbKey &start_key,
                                    int64_t *timeline_count) {
   std::string start_key_raw;
@@ -183,7 +212,7 @@ Status Pusher::DeleteUserFromBlock(uint64_t user_id,
 grpc::Status Pusher::DeleteUser(grpc::ServerContext *context,
                                 const proto::DeleteUserRequest *request,
                                 proto::DeleteUserResponse *response) {
-  uint64_t user_id = request->user_id();
+  int64_t user_id = request->user_id();
   int64_t reverse_count = 0;
   int64_t timeline_count = 0;
 

@@ -26,9 +26,15 @@ public:
                           proto::DeleteUserResponse *response) override;
 
 private:
-  Status PutTimelineLocation(const proto::Location &location);
-  Status PutReverseLocation(const proto::Location &location);
-  Status DeleteUserFromBlock(uint64_t user_id, const proto::DbKey &begin,
+  Status PutTimelineLocation(int64_t user_id, int64_t ts, uint32_t duration,
+                             float gps_longitude, float gps_latitude,
+                             float gps_altitude);
+
+  Status PutReverseLocation(int64_t user_id, int64_t ts, uint32_t duration,
+                            float gps_longitude, float gps_latitude,
+                            float gps_altitude);
+
+  Status DeleteUserFromBlock(int64_t user_id, const proto::DbKey &begin,
                              int64_t *count);
 
   Db *db_ = nullptr;

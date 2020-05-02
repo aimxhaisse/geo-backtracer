@@ -86,9 +86,10 @@ message DbKey {
 }
 
 message DbValue {
-  float gps_latitude = 1;
-  float gps_longitude = 2;
-  float gps_altitude = 3;
+  uint32 duration = 1;
+  float gps_latitude = 2;
+  float gps_longitude = 3;
+  float gps_altitude = 4;
 }
 
 // This is for the reverse table, the goal is to quickly lookup the
