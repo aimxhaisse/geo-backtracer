@@ -26,6 +26,67 @@ TEST_F(SeekerTest, TimelineSinglePointOK) {
   EXPECT_EQ(point.gps_altitude(), kBaseGpsAltitude);
 }
 
+// Tests that insert of a single point that spawns multiple blocks results in
+// multiple points.
+TEST_F(SeekerTest, TimelineSinglePointLargeDurationOK) {
+  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+
+  EXPECT_TRUE(PushPoint(kBaseTimestamp, kTimePrecision * 3, kBaseUserId,
+                        kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
+
+  proto::GetUserTimelineResponse response;
+  EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
+
+  EXPECT_EQ(response.point_size(), 4);
+
+  DumpTimeline();
+
+  {
+    const proto::UserTimelinePoint &point = response.point(0);
+    EXPECT_EQ(point.timestamp(), kBaseTimestamp);
+    EXPECT_EQ(point.duration(),
+              (TsNextZone(kBaseTimestamp) * kTimePrecision) - kBaseTimestamp);
+    EXPECT_EQ(point.gps_longitude(), kBaseGpsLongitude);
+    EXPECT_EQ(point.gps_latitude(), kBaseGpsLatitude);
+    EXPECT_EQ(point.gps_altitude(), kBaseGpsAltitude);
+  }
+
+  {
+    const proto::UserTimelinePoint &point = response.point(1);
+    EXPECT_EQ(point.timestamp(), TsNextZone(kBaseTimestamp) * kTimePrecision);
+    EXPECT_EQ(point.duration(), kTimePrecision);
+    EXPECT_EQ(point.gps_longitude(), kBaseGpsLongitude);
+    EXPECT_EQ(point.gps_latitude(), kBaseGpsLatitude);
+    EXPECT_EQ(point.gps_altitude(), kBaseGpsAltitude);
+  }
+
+  {
+    const proto::UserTimelinePoint &point = response.point(2);
+    EXPECT_EQ(point.timestamp(),
+              TsNextZone(TsNextZone(kBaseTimestamp) * kTimePrecision) *
+                  kTimePrecision);
+    EXPECT_EQ(point.duration(), kTimePrecision);
+    EXPECT_EQ(point.gps_longitude(), kBaseGpsLongitude);
+    EXPECT_EQ(point.gps_latitude(), kBaseGpsLatitude);
+    EXPECT_EQ(point.gps_altitude(), kBaseGpsAltitude);
+  }
+
+  {
+    const proto::UserTimelinePoint &point = response.point(3);
+    EXPECT_EQ(
+        point.timestamp(),
+        TsNextZone(TsNextZone(TsNextZone(kBaseTimestamp) * kTimePrecision) *
+                   kTimePrecision) *
+            kTimePrecision);
+    EXPECT_EQ(point.duration(),
+              kTimePrecision - ((TsNextZone(kBaseTimestamp) * kTimePrecision) -
+                                kBaseTimestamp));
+    EXPECT_EQ(point.gps_longitude(), kBaseGpsLongitude);
+    EXPECT_EQ(point.gps_latitude(), kBaseGpsLatitude);
+    EXPECT_EQ(point.gps_altitude(), kBaseGpsAltitude);
+  }
+}
+
 // Tests that retrieving a different user id yields 0 result.
 TEST_F(SeekerTest, TimelineSinglePointNoResult) {
   EXPECT_EQ(server_->Init(options_), StatusCode::OK);

@@ -30,6 +30,7 @@ Status MakeTimelineKey(int64_t user_id, int64_t ts, uint32_t duration,
 Status MakeTimelineValue(int64_t user_id, int64_t ts, uint32_t duration,
                          float gps_longitude, float gps_latitude,
                          float gps_altitude, proto::DbValue *value) {
+  value->set_duration(duration);
   value->set_gps_latitude(gps_latitude);
   value->set_gps_longitude(gps_longitude);
   value->set_gps_altitude(gps_altitude);
