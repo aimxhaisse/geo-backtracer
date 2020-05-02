@@ -211,20 +211,35 @@ Status Seeker::BuildLogicalBlock(
   return StatusCode::OK;
 }
 
-bool Seeker::IsNearbyFolk(const proto::DbValue &user_value,
+bool Seeker::IsNearbyFolk(const proto::DbKey &user_key,
+                          const proto::DbValue &user_value,
+                          const proto::DbKey &folk_key,
                           const proto::DbValue &folk_value) {
-  // This is a small approximation, needs real maths here.
+  const uint64_t user_begin_ts = user_key.timestamp();
+  const uint64_t user_end_ts = user_begin_ts + user_value.duration();
+
+  const uint64_t nearby_begin_ts =
+      folk_key.timestamp() - kTimeNearbyApproximation;
+  const uint64_t nearby_end_ts =
+      folk_key.timestamp() + folk_value.duration() + kTimeNearbyApproximation;
+
+  const bool is_nearby_ts =
+      (user_begin_ts >= nearby_begin_ts && user_begin_ts <= nearby_end_ts) ||
+      (user_end_ts >= nearby_begin_ts && user_end_ts <= nearby_end_ts);
+
   const bool is_nearby_long =
       fabs(user_value.gps_longitude() - folk_value.gps_longitude()) <
       kGPSZoneNearbyApproximation;
+
   const bool is_nearby_lat =
       fabs(user_value.gps_latitude() - folk_value.gps_latitude()) <
       kGPSZoneNearbyApproximation;
+
   const bool is_nearby_alt =
       fabs(user_value.gps_altitude() - folk_value.gps_altitude()) <
       kGPSNearbyAltitude;
 
-  return is_nearby_long && is_nearby_lat && is_nearby_alt;
+  return is_nearby_ts && is_nearby_long && is_nearby_lat && is_nearby_alt;
 }
 
 namespace {
@@ -335,11 +350,9 @@ Seeker::GetUserNearbyFolks(grpc::ServerContext *context,
     // Naive implementation, this is to be optimized with bitmaps etc.
     for (const auto &user_entry : user_entries) {
       for (const auto &folk_entry : folk_entries) {
-        if (abs(user_entry.first.timestamp() - folk_entry.first.timestamp()) <=
-            kTimeNearbyApproximation) {
-          if (IsNearbyFolk(user_entry.second, folk_entry.second)) {
-            scores[folk_entry.first.user_id()]++;
-          }
+        if (IsNearbyFolk(user_entry.first, user_entry.second, folk_entry.first,
+                         folk_entry.second)) {
+          scores[folk_entry.first.user_id()]++;
         }
       }
     }

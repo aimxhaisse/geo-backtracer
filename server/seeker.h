@@ -38,7 +38,9 @@ private:
       std::vector<std::pair<proto::DbKey, proto::DbValue>> *user_entries,
       std::vector<std::pair<proto::DbKey, proto::DbValue>> *folk_entries);
 
-  bool IsNearbyFolk(const proto::DbValue &user_value,
+  bool IsNearbyFolk(const proto::DbKey &user_key,
+                    const proto::DbValue &user_value,
+                    const proto::DbKey &folk_key,
                     const proto::DbValue &folk_value);
 
   Db *db_ = nullptr;
