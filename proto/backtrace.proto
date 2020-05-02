@@ -11,10 +11,11 @@ service Pusher {
 
 message Location {
   uint64 timestamp = 1;
-  uint64 user_id = 2;
-  float gps_latitude = 3;
-  float gps_longitude = 4;
-  float gps_altitude = 5;
+  uint32 duration = 2;
+  uint64 user_id = 3;
+  float gps_latitude = 4;
+  float gps_longitude = 5;
+  float gps_altitude = 6;
 }
 
 message PutLocationRequest {
