@@ -24,6 +24,11 @@ public:
                      const proto::GetUserNearbyFolksRequest *request,
                      proto::GetUserNearbyFolksResponse *response) override;
 
+  static bool IsNearbyFolk(const proto::DbKey &user_key,
+                           const proto::DbValue &user_value,
+                           const proto::DbKey &folk_key,
+                           const proto::DbValue &folk_value);
+
 private:
   Status BuildTimelineKeysForUser(uint64_t user_id,
                                   std::list<proto::DbKey> *keys);
@@ -37,11 +42,6 @@ private:
       const proto::DbKey &timelime_key, uint64_t user_id,
       std::vector<std::pair<proto::DbKey, proto::DbValue>> *user_entries,
       std::vector<std::pair<proto::DbKey, proto::DbValue>> *folk_entries);
-
-  bool IsNearbyFolk(const proto::DbKey &user_key,
-                    const proto::DbValue &user_value,
-                    const proto::DbKey &folk_key,
-                    const proto::DbValue &folk_value);
 
   Db *db_ = nullptr;
 };
