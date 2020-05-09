@@ -33,7 +33,11 @@ public:
 
     // Combination of the two previous modes (primary & seeker), used
     // for single node setups.
-    STANDALONE
+    STANDALONE,
+
+    // Job to shard incoming points to available shards in the
+    // cluster.
+    MIXER
   };
 
   InstanceType instance_type_ = STANDALONE;

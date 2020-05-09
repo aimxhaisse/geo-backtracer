@@ -20,9 +20,12 @@ Status MakeOptions(const Config &config, Options *options) {
     options->instance_type_ = Options::InstanceType::SEEKER;
   } else if (instance_type == "standalone") {
     options->instance_type_ = Options::InstanceType::STANDALONE;
+  } else if (instance_type == "mixer") {
+    options->instance_type_ = Options::InstanceType::MIXER;
   } else {
-    RETURN_ERROR(INVALID_CONFIG,
-                 "instance_type must be one of primary, seeker, standalone");
+    RETURN_ERROR(
+        INVALID_CONFIG,
+        "instance_type must be one of primary, seeker, mixer, standalone");
   }
 
   // Database settings
