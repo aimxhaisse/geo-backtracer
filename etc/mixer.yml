@@ -1,0 +1,8 @@
+# Configuration file for the Geo Backtracer.
+#
+# This is the configuration file of a mixer instance for the Geo
+# Backtracer. There can be any number of mixers in a cluster, they all
+# have the same configuration file which contains the mapping of the
+# cluster (where to find workers, how to shard the load).
+
+instance_type: "mixer"
