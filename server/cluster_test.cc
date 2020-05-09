@@ -7,38 +7,15 @@
 namespace bt {
 
 void ClusterTestBase::SetUp() {
-  options_pusher_ = Options();
-  options_seeker_ = Options();
-  options_mixer_ = Options();
-
-  options_pusher_.instance_type_ = Options::InstanceType::PUSHER;
-  options_seeker_.instance_type_ = Options::InstanceType::SEEKER;
-  options_mixer_.instance_type_ = Options::InstanceType::MIXER;
-
-  instance_pusher_ = std::make_unique<Server>();
-  instance_seeker_ = std::make_unique<Server>();
-  instance_mixer_ = std::make_unique<Server>();
+  options_worker_ = Options();
+  options_worker_.instance_type_ = Options::InstanceType::WORKER;
+  worker_ = std::make_unique<Worker>();
 }
 
-void ClusterTestBase::TearDown() {
-  instance_pusher_.reset();
-  instance_seeker_.reset();
-  instance_mixer_.reset();
-}
+void ClusterTestBase::TearDown() { worker_.reset(); }
 
-Status ClusterTestBase::InitInstances() {
-  RETURN_IF_ERROR(instance_pusher_->Init(options_pusher_));
-
-  // If the path to the database wasn't specified at cluster
-  // configuration in the unit test, assume we want to use the same
-  // database as the one created in the pusher.
-  if (options_seeker_.db_path_.empty()) {
-    options_seeker_.db_path_ = instance_pusher_->GetDb()->Path();
-  }
-
-  RETURN_IF_ERROR(instance_seeker_->Init(options_seeker_));
-
-  RETURN_IF_ERROR(instance_mixer_->Init(options_mixer_));
+Status ClusterTestBase::Init() {
+  RETURN_IF_ERROR(worker_->Init(options_worker_));
 
   return StatusCode::OK;
 }
@@ -90,7 +67,7 @@ bool ClusterTestBase::GetNearbyFolks(
 }
 
 void ClusterTestBase::DumpTimeline() {
-  Db *db = ReadOnlyDb();
+  Db *db = worker_->GetDb();
 
   std::unique_ptr<rocksdb::Iterator> it(
       db->Rocks()->NewIterator(rocksdb::ReadOptions(), db->TimelineHandle()));

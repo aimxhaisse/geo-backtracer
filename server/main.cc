@@ -3,7 +3,7 @@
 
 #include "common/config.h"
 #include "server/options.h"
-#include "server/server.h"
+#include "server/worker.h"
 
 using namespace bt;
 
@@ -14,15 +14,12 @@ namespace {
 Status MakeOptions(const Config &config, Options *options) {
   // Instance type
   const std::string instance_type = config.Get<std::string>("instance_type");
-  if (instance_type == "pusher") {
-    options->instance_type_ = Options::InstanceType::PUSHER;
-  } else if (instance_type == "seeker") {
-    options->instance_type_ = Options::InstanceType::SEEKER;
+  if (instance_type == "worker") {
+    options->instance_type_ = Options::InstanceType::WORKER;
   } else if (instance_type == "mixer") {
     options->instance_type_ = Options::InstanceType::MIXER;
   } else {
-    RETURN_ERROR(INVALID_CONFIG,
-                 "instance_type must be one of pusher, seeker, mixer");
+    RETURN_ERROR(INVALID_CONFIG, "instance_type must be one of worker, mixer");
   }
 
   // Database settings
@@ -59,13 +56,13 @@ int main(int ac, char **av) {
     return -1;
   }
 
-  Server server;
-  status = server.Init(options);
+  Worker worker;
+  status = worker.Init(options);
   if (status != StatusCode::OK) {
     LOG(ERROR) << "unable to initialize backtracer, status=" << status;
     return -1;
   }
-  status = server.Run();
+  status = worker.Run();
   if (status != StatusCode::OK) {
     LOG(ERROR) << "unable to run backtracer service, status=" << status;
     return -1;

@@ -8,7 +8,6 @@
 #include "common/status.h"
 #include "proto/backtrace.grpc.pb.h"
 #include "server/gc.h"
-#include "server/mixer.h"
 #include "server/pusher.h"
 #include "server/seeker.h"
 
@@ -42,32 +41,21 @@ class Options;
 //   exit via condition variables.
 
 // Main class.
-class Server {
+class Worker {
 public:
   Status Init(const Options &options);
   Status Run();
 
+  // Only available for worker instances.
   Seeker *GetSeeker() { return seeker_.get(); }
   Pusher *GetPusher() { return pusher_.get(); }
-  Mixer *GetMixer() { return mixer_.get(); }
   Gc *GetGc() { return gc_.get(); }
   Db *GetDb() { return db_.get(); }
 
 private:
-  Status InitPusher(const Options &options);
-  Status InitSeeker(const Options &options);
-  Status InitMixer(const Options &options);
-
-  Status RunPusher();
-  Status RunSeeker();
-  Status RunMixer();
-
-  Options::InstanceType type_ = Options::InstanceType::UNKNOWN;
-
   std::unique_ptr<Db> db_;
   std::unique_ptr<Pusher> pusher_;
   std::unique_ptr<Seeker> seeker_;
-  std::unique_ptr<Mixer> mixer_;
   std::unique_ptr<Gc> gc_;
   std::unique_ptr<grpc::Server> grpc_;
 };

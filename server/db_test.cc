@@ -8,7 +8,7 @@ class DbTest : public ClusterTestBase {};
 
 // Tests to ensure timestamp ordering of keys is what we expect.
 TEST_F(DbTest, TimestampOrdering) {
-  EXPECT_EQ(InitInstances(), StatusCode::OK);
+  EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kNumberOfPoints = 10000;
 
@@ -19,7 +19,7 @@ TEST_F(DbTest, TimestampOrdering) {
                           kBaseGpsAltitude));
   }
 
-  Db *db = ReadOnlyDb();
+  Db *db = worker_->GetDb();
 
   std::unique_ptr<rocksdb::Iterator> it(
       db->Rocks()->NewIterator(rocksdb::ReadOptions(), db->TimelineHandle()));

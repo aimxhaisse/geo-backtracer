@@ -11,7 +11,7 @@ class GcTest : public ClusterTestBase {};
 
 // Tests that simple GC round works.
 TEST_F(GcTest, SimpleGcRound) {
-  EXPECT_EQ(InitInstances(), StatusCode::OK);
+  EXPECT_EQ(Init(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
@@ -36,7 +36,7 @@ TEST_F(GcTest, SimpleGcRound) {
 }
 
 TEST_F(GcTest, ClearExpiredPoints) {
-  EXPECT_EQ(InitInstances(), StatusCode::OK);
+  EXPECT_EQ(Init(), StatusCode::OK);
 
   std::time_t now = std::time(nullptr);
   std::time_t cutoff = 14 * 24 * 60 * 60;
