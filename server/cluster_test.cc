@@ -7,15 +7,14 @@
 namespace bt {
 
 void ClusterTestBase::SetUp() {
-  options_worker_ = Options();
-  options_worker_.instance_type_ = Options::InstanceType::WORKER;
+  worker_config_ = WorkerConfig();
   worker_ = std::make_unique<Worker>();
 }
 
 void ClusterTestBase::TearDown() { worker_.reset(); }
 
 Status ClusterTestBase::Init() {
-  RETURN_IF_ERROR(worker_->Init(options_worker_));
+  RETURN_IF_ERROR(worker_->Init(worker_config_));
 
   return StatusCode::OK;
 }

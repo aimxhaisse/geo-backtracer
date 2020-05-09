@@ -5,7 +5,7 @@
 
 #include "common/status.h"
 #include "server/db.h"
-#include "server/options.h"
+#include "server/worker_config.h"
 
 namespace bt {
 
@@ -14,7 +14,7 @@ namespace bt {
 // thread.
 class Gc {
 public:
-  Status Init(Db *db, const Options &options);
+  Status Init(Db *db, const WorkerConfig &config);
 
   Status Wait();
   Status Shutdown();

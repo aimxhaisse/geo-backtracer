@@ -2,7 +2,7 @@
 
 namespace bt {
 
-Status Mixer::Init(const Options &options) { return StatusCode::OK; }
+Status Mixer::Init() { return StatusCode::OK; }
 
 Status Run() { return StatusCode::OK; }
 

@@ -14,7 +14,7 @@
 namespace bt {
 
 class Db;
-class Options;
+class WorkerConfig;
 
 // Some design notes on the threading model used here:
 //
@@ -43,7 +43,7 @@ class Options;
 // Main class.
 class Worker {
 public:
-  Status Init(const Options &options);
+  Status Init(const WorkerConfig &config);
   Status Run();
 
   // Only available for worker instances.

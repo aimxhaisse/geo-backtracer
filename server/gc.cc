@@ -11,13 +11,13 @@ using namespace std::chrono_literals;
 
 namespace bt {
 
-Status Gc::Init(Db *db, const Options &options) {
-  retention_period_days_ = options.gc_retention_period_days_;
+Status Gc::Init(Db *db, const WorkerConfig &config) {
+  retention_period_days_ = config.gc_retention_period_days_;
   if (!(retention_period_days_ > 0)) {
     RETURN_ERROR(INVALID_CONFIG, "gc.retention_period_days should be > 0");
   }
 
-  delay_between_rounds_sec_ = options.gc_delay_between_rounds_sec_;
+  delay_between_rounds_sec_ = config.gc_delay_between_rounds_sec_;
   if (!(delay_between_rounds_sec_ > 0)) {
     RETURN_ERROR(INVALID_CONFIG, "gc.delay_between_rounds_sec should be > 0");
   }

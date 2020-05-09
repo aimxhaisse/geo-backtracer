@@ -6,7 +6,7 @@
 
 namespace bt {
 
-class Options;
+class WorkerConfig;
 
 // This is likely the most important part of this project, refer to
 // the .cc file for a long explanation.
@@ -32,7 +32,7 @@ public:
 
 class Db {
 public:
-  Status Init(const Options &options);
+  Status Init(const WorkerConfig &config);
   ~Db();
 
   rocksdb::DB *Rocks();
@@ -46,7 +46,7 @@ public:
 
 private:
   // If no path is configured, path is set from an ephemere temporary directory.
-  Status InitPath(const Options &options);
+  Status InitPath(const WorkerConfig &config);
 
   // Column families management.
   bool CheckColumnFamilies(const rocksdb::Options &rocksdb_options);

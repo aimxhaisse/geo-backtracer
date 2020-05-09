@@ -2,8 +2,8 @@
 #include <glog/logging.h>
 
 #include "common/config.h"
-#include "server/options.h"
 #include "server/worker.h"
+#include "server/worker_config.h"
 
 using namespace bt;
 
@@ -15,24 +15,21 @@ namespace {
 constexpr auto kTypeWorker = "worker";
 constexpr auto kTypeMixer = "mixer";
 
-Status MakeOptions(const Config &config, Options *options) {
+Status MakeWorkerConfig(const Config &config, WorkerConfig *worker_config) {
   // Instance type
   const std::string instance_type = config.Get<std::string>("instance_type");
-  if (instance_type == "worker") {
-    options->instance_type_ = Options::InstanceType::WORKER;
-  } else if (instance_type == "mixer") {
-    options->instance_type_ = Options::InstanceType::MIXER;
-  } else {
-    RETURN_ERROR(INVALID_CONFIG, "instance_type must be one of worker, mixer");
+  if (instance_type != "worker") {
+    RETURN_ERROR(INVALID_CONFIG,
+                 "expected a worker config but got something else");
   }
 
   // Database settings
-  options->db_path_ = config.Get<std::string>("db.path");
+  worker_config->db_path_ = config.Get<std::string>("db.path");
 
   // GC settings
-  options->gc_retention_period_days_ =
+  worker_config->gc_retention_period_days_ =
       config.Get<int>("gc.retention_period_days");
-  options->gc_delay_between_rounds_sec_ =
+  worker_config->gc_delay_between_rounds_sec_ =
       config.Get<int>("gc.delay_between_rounds_sec");
 
   return StatusCode::OK;
@@ -54,15 +51,15 @@ int main(int ac, char **av) {
 
   if (FLAGS_type == kTypeWorker) {
     Status status;
-    Options options;
-    status = MakeOptions(*config_status.ValueOrDie(), &options);
+    WorkerConfig worker_config;
+    status = MakeWorkerConfig(*config_status.ValueOrDie(), &worker_config);
     if (status != StatusCode::OK) {
-      LOG(ERROR) << "unable to initialize options, status=" << status;
+      LOG(ERROR) << "unable to initialize config, status=" << status;
       return -1;
     }
 
     Worker worker;
-    status = worker.Init(options);
+    status = worker.Init(worker_config);
     if (status != StatusCode::OK) {
       LOG(ERROR) << "unable to initialize backtracer, status=" << status;
       return -1;

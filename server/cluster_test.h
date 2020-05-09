@@ -3,9 +3,9 @@
 #include <gtest/gtest.h>
 
 #include "server/db.h"
-#include "server/options.h"
 #include "server/proto.h"
 #include "server/worker.h"
+#include "server/worker_config.h"
 
 namespace bt {
 
@@ -47,7 +47,7 @@ public:
   // Delete a user from the database.
   bool DeleteUser(uint64_t user_id);
 
-  Options options_worker_;
+  WorkerConfig worker_config_;
   std::unique_ptr<Worker> worker_;
 };
 

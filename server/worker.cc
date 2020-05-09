@@ -3,8 +3,8 @@
 
 #include "common/signal.h"
 #include "common/utils.h"
-#include "server/options.h"
 #include "server/worker.h"
+#include "server/worker_config.h"
 
 namespace bt {
 
@@ -14,9 +14,9 @@ constexpr char kWorkerAddress[] = "127.0.0.1:6000";
 
 } // anonymous namespace
 
-Status Worker::Init(const Options &options) {
+Status Worker::Init(const WorkerConfig &config) {
   db_ = std::make_unique<Db>();
-  RETURN_IF_ERROR(db_->Init(options));
+  RETURN_IF_ERROR(db_->Init(config));
   LOG(INFO) << "initialized db";
 
   pusher_ = std::make_unique<Pusher>();
@@ -28,7 +28,7 @@ Status Worker::Init(const Options &options) {
   LOG(INFO) << "initialized seeker";
 
   gc_ = std::make_unique<Gc>();
-  RETURN_IF_ERROR(gc_->Init(db_.get(), options));
+  RETURN_IF_ERROR(gc_->Init(db_.get(), config));
   LOG(INFO) << "initialized gc";
 
   grpc::ServerBuilder builder;

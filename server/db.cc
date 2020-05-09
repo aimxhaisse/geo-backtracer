@@ -4,7 +4,7 @@
 #include "common/utils.h"
 #include "proto/backtrace.pb.h"
 #include "server/db.h"
-#include "server/options.h"
+#include "server/worker_config.h"
 #include "server/zones.h"
 
 namespace bt {
@@ -224,8 +224,8 @@ const char *ReverseComparator::Name() const {
   return "reverse-comparator-0.1";
 }
 
-Status Db::Init(const Options &options) {
-  RETURN_IF_ERROR(InitPath(options));
+Status Db::Init(const WorkerConfig &config) {
+  RETURN_IF_ERROR(InitPath(config));
 
   rocksdb::Options rocksdb_options;
   rocksdb_options.create_if_missing = true;
@@ -267,9 +267,9 @@ Status Db::Init(const Options &options) {
   return StatusCode::OK;
 }
 
-Status Db::InitPath(const Options &options) {
-  if (!options.db_path_.empty()) {
-    path_ = options.db_path_;
+Status Db::InitPath(const WorkerConfig &config) {
+  if (!config.db_path_.empty()) {
+    path_ = config.db_path_;
     is_temp_ = false;
   } else {
     ASSIGN_OR_RETURN(path_, utils::MakeTemporaryDirectory());
