@@ -7,9 +7,13 @@
 
 using namespace bt;
 
-DEFINE_string(config, "etc/standalone.yml", "path to the configuration file");
+DEFINE_string(config, "etc/worker.yml", "path to the config file");
+DEFINE_string(type, "worker", "type of the instance ('worker' or 'mixer')");
 
 namespace {
+
+constexpr auto kTypeWorker = "worker";
+constexpr auto kTypeMixer = "mixer";
 
 Status MakeOptions(const Config &config, Options *options) {
   // Instance type
@@ -48,23 +52,31 @@ int main(int ac, char **av) {
     return -1;
   }
 
-  Status status;
-  Options options;
-  status = MakeOptions(*config_status.ValueOrDie(), &options);
-  if (status != StatusCode::OK) {
-    LOG(ERROR) << "unable to initialize options, status=" << status;
-    return -1;
-  }
+  if (FLAGS_type == kTypeWorker) {
+    Status status;
+    Options options;
+    status = MakeOptions(*config_status.ValueOrDie(), &options);
+    if (status != StatusCode::OK) {
+      LOG(ERROR) << "unable to initialize options, status=" << status;
+      return -1;
+    }
 
-  Worker worker;
-  status = worker.Init(options);
-  if (status != StatusCode::OK) {
-    LOG(ERROR) << "unable to initialize backtracer, status=" << status;
+    Worker worker;
+    status = worker.Init(options);
+    if (status != StatusCode::OK) {
+      LOG(ERROR) << "unable to initialize backtracer, status=" << status;
+      return -1;
+    }
+    status = worker.Run();
+    if (status != StatusCode::OK) {
+      LOG(ERROR) << "unable to run backtracer service, status=" << status;
+      return -1;
+    }
+  } else if (FLAGS_type == kTypeMixer) {
+    LOG(ERROR) << "not yet implemented";
     return -1;
-  }
-  status = worker.Run();
-  if (status != StatusCode::OK) {
-    LOG(ERROR) << "unable to run backtracer service, status=" << status;
+  } else {
+    LOG(ERROR) << "invalid flag, --type must be 'worker' or 'mixer'";
     return -1;
   }
 
