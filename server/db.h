@@ -42,6 +42,8 @@ public:
   rocksdb::ColumnFamilyHandle *TimelineHandle();
   rocksdb::ColumnFamilyHandle *ReverseHandle();
 
+  const std::string &Path() { return path_; }
+
 private:
   // If no path is configured, path is set from an ephemere temporary directory.
   Status InitPath(const Options &options);

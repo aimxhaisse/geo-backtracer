@@ -1,45 +1,28 @@
-#include "server/test.h"
+#include "server/cluster_test.h"
 
 namespace bt {
 namespace {
 
-class ServerTest : public ServerTestBase {};
+class ClusterTest : public ClusterTestBase {};
 
-// Tests that database init works with valid options.
-TEST_F(ServerTest, InitOk) {
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
-}
+TEST_F(ClusterTest, InitOk) {
+  EXPECT_EQ(InitInstances(), StatusCode::OK);
 
-TEST_F(ServerTest, Standalone) {
-  options_.instance_type_ = Options::InstanceType::STANDALONE;
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+  EXPECT_NE(nullptr, instance_seeker_->GetSeeker());
+  EXPECT_NE(nullptr, instance_seeker_->GetDb());
+  EXPECT_EQ(nullptr, instance_seeker_->GetPusher());
+  EXPECT_EQ(nullptr, instance_seeker_->GetGc());
 
-  EXPECT_NE(nullptr, server_->GetSeeker());
-  EXPECT_NE(nullptr, server_->GetPusher());
-  EXPECT_NE(nullptr, server_->GetGc());
-  EXPECT_NE(nullptr, server_->GetDb());
-}
+  EXPECT_NE(nullptr, instance_pusher_->GetDb());
+  EXPECT_NE(nullptr, instance_pusher_->GetPusher());
+  EXPECT_NE(nullptr, instance_pusher_->GetGc());
+  EXPECT_EQ(nullptr, instance_pusher_->GetSeeker());
 
-TEST_F(ServerTest, Seeker) {
-  options_.instance_type_ = Options::InstanceType::SEEKER;
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
-
-  EXPECT_NE(nullptr, server_->GetSeeker());
-  EXPECT_NE(nullptr, server_->GetDb());
-
-  EXPECT_EQ(nullptr, server_->GetPusher());
-  EXPECT_EQ(nullptr, server_->GetGc());
-}
-
-TEST_F(ServerTest, Primary) {
-  options_.instance_type_ = Options::InstanceType::PRIMARY;
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
-
-  EXPECT_NE(nullptr, server_->GetDb());
-  EXPECT_NE(nullptr, server_->GetPusher());
-  EXPECT_NE(nullptr, server_->GetGc());
-
-  EXPECT_EQ(nullptr, server_->GetSeeker());
+  EXPECT_EQ(nullptr, instance_mixer_->GetDb());
+  EXPECT_EQ(nullptr, instance_mixer_->GetPusher());
+  EXPECT_EQ(nullptr, instance_mixer_->GetGc());
+  EXPECT_EQ(nullptr, instance_mixer_->GetSeeker());
+  EXPECT_NE(nullptr, instance_mixer_->GetMixer());
 }
 
 } // namespace

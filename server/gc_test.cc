@@ -1,17 +1,17 @@
 #include <ctime>
 #include <glog/logging.h>
 
-#include "server/test.h"
+#include "server/cluster_test.h"
 #include "server/zones.h"
 
 namespace bt {
 namespace {
 
-class GcTest : public ServerTestBase {};
+class GcTest : public ClusterTestBase {};
 
 // Tests that simple GC round works.
 TEST_F(GcTest, SimpleGcRound) {
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+  EXPECT_EQ(InitInstances(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
@@ -24,7 +24,7 @@ TEST_F(GcTest, SimpleGcRound) {
 
   DumpTimeline();
 
-  EXPECT_EQ(server_->GetGc()->Cleanup(), StatusCode::OK);
+  EXPECT_EQ(Gc()->Cleanup(), StatusCode::OK);
 
   DumpTimeline();
 
@@ -36,7 +36,7 @@ TEST_F(GcTest, SimpleGcRound) {
 }
 
 TEST_F(GcTest, ClearExpiredPoints) {
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+  EXPECT_EQ(InitInstances(), StatusCode::OK);
 
   std::time_t now = std::time(nullptr);
   std::time_t cutoff = 14 * 24 * 60 * 60;
@@ -67,7 +67,7 @@ TEST_F(GcTest, ClearExpiredPoints) {
 
   DumpTimeline();
 
-  EXPECT_EQ(server_->GetGc()->Cleanup(), StatusCode::OK);
+  EXPECT_EQ(Gc()->Cleanup(), StatusCode::OK);
 
   DumpTimeline();
 

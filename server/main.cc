@@ -14,18 +14,15 @@ namespace {
 Status MakeOptions(const Config &config, Options *options) {
   // Instance type
   const std::string instance_type = config.Get<std::string>("instance_type");
-  if (instance_type == "primary") {
-    options->instance_type_ = Options::InstanceType::PRIMARY;
+  if (instance_type == "pusher") {
+    options->instance_type_ = Options::InstanceType::PUSHER;
   } else if (instance_type == "seeker") {
     options->instance_type_ = Options::InstanceType::SEEKER;
-  } else if (instance_type == "standalone") {
-    options->instance_type_ = Options::InstanceType::STANDALONE;
   } else if (instance_type == "mixer") {
     options->instance_type_ = Options::InstanceType::MIXER;
   } else {
-    RETURN_ERROR(
-        INVALID_CONFIG,
-        "instance_type must be one of primary, seeker, mixer, standalone");
+    RETURN_ERROR(INVALID_CONFIG,
+                 "instance_type must be one of pusher, seeker, mixer");
   }
 
   // Database settings

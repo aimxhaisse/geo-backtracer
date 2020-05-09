@@ -15,66 +15,132 @@ constexpr char kServerAddress[] = "127.0.0.1:6000";
 } // anonymous namespace
 
 Status Server::Init(const Options &options) {
-  db_ = std::make_unique<Db>();
-  RETURN_IF_ERROR(db_->Init(options));
-  LOG(INFO) << "initialized db";
+  type_ = options.instance_type_;
 
-  if (options.instance_type_ == Options::InstanceType::STANDALONE ||
-      options.instance_type_ == Options::InstanceType::PRIMARY) {
-    pusher_ = std::make_unique<Pusher>();
-    RETURN_IF_ERROR(pusher_->Init(db_.get()));
-    LOG(INFO) << "initialized pusher";
+  switch (type_) {
+  case Options::InstanceType::PUSHER:
+    RETURN_IF_ERROR(InitPusher(options));
+    break;
 
-    gc_ = std::make_unique<Gc>();
-    RETURN_IF_ERROR(gc_->Init(db_.get(), options));
-    LOG(INFO) << "initialized garbage collector";
+  case Options::InstanceType::SEEKER:
+    RETURN_IF_ERROR(InitSeeker(options));
+    break;
+
+  case Options::InstanceType::MIXER:
+    RETURN_IF_ERROR(InitMixer(options));
+    break;
+
+  default:
+    RETURN_ERROR(INVALID_CONFIG, "invalid instance type");
+    break;
   }
-
-  if (options.instance_type_ == Options::InstanceType::STANDALONE ||
-      options.instance_type_ == Options::InstanceType::SEEKER) {
-    seeker_ = std::make_unique<Seeker>();
-    RETURN_IF_ERROR(seeker_->Init(db_.get()));
-    LOG(INFO) << "initialized seeker";
-  }
-
-  RETURN_IF_ERROR(InitServer());
-  LOG(INFO) << "initialized server, listening on " << kServerAddress;
 
   return StatusCode::OK;
 }
 
-Status Server::InitServer() {
+Status Server::InitPusher(const Options &options) {
+  db_ = std::make_unique<Db>();
+  RETURN_IF_ERROR(db_->Init(options));
+  LOG(INFO) << "initialized db";
+
+  pusher_ = std::make_unique<Pusher>();
+  RETURN_IF_ERROR(pusher_->Init(db_.get()));
+  LOG(INFO) << "initialized pusher";
+
+  gc_ = std::make_unique<Gc>();
+  RETURN_IF_ERROR(gc_->Init(db_.get(), options));
+  LOG(INFO) << "initialized gc";
+
   grpc::ServerBuilder builder;
   builder.AddListeningPort(kServerAddress, grpc::InsecureServerCredentials());
+  builder.RegisterService(pusher_.get());
+  grpc_ = builder.BuildAndStart();
+  LOG(INFO) << "initialized grpc";
 
-  if (pusher_) {
-    builder.RegisterService(pusher_.get());
-  }
+  return StatusCode::OK;
+}
 
-  if (seeker_) {
-    builder.RegisterService(seeker_.get());
-  }
+Status Server::InitSeeker(const Options &options) {
+  db_ = std::make_unique<Db>();
+  RETURN_IF_ERROR(db_->Init(options));
+  LOG(INFO) << "initialized db";
 
-  server_ = builder.BuildAndStart();
+  seeker_ = std::make_unique<Seeker>();
+  RETURN_IF_ERROR(seeker_->Init(db_.get()));
+  LOG(INFO) << "initialized seeker";
+
+  grpc::ServerBuilder builder;
+  builder.AddListeningPort(kServerAddress, grpc::InsecureServerCredentials());
+  builder.RegisterService(pusher_.get());
+  grpc_ = builder.BuildAndStart();
+  LOG(INFO) << "initialized grpc";
+
+  return StatusCode::OK;
+}
+
+Status Server::InitMixer(const Options &options) {
+  LOG(INFO) << "initialized mixer";
 
   return StatusCode::OK;
 }
 
 Status Server::Run() {
-  std::vector<std::thread> threads;
+  switch (type_) {
+  case Options::InstanceType::PUSHER:
+    RETURN_IF_ERROR(RunPusher());
+    break;
 
-  threads.push_back(
-      std::thread([](grpc::Server *server) { server->Wait(); }, server_.get()));
-  threads.push_back(std::thread([](Gc *gc) { gc->Wait(); }, gc_.get()));
+  case Options::InstanceType::SEEKER:
+    RETURN_IF_ERROR(RunSeeker());
+    break;
+
+  case Options::InstanceType::MIXER:
+    RETURN_IF_ERROR(RunMixer());
+    break;
+
+  default:
+    RETURN_ERROR(INVALID_CONFIG, "invalid instance type");
+    break;
+  }
+
+  return StatusCode::OK;
+}
+
+Status Server::RunPusher() {
+  std::thread grpc_thread([](grpc::Server *s) { s->Wait(); }, grpc_.get());
+  std::thread gc_thread(std::thread([](Gc *gc) { gc->Wait(); }, gc_.get()));
 
   utils::WaitForExitSignal();
 
-  server_->Shutdown();
+  grpc_->Shutdown();
   gc_->Shutdown();
 
-  for (auto &task : threads) {
-    task.join();
-  }
+  grpc_thread.join();
+  gc_thread.join();
+
+  return StatusCode::OK;
+}
+
+Status Server::RunSeeker() {
+  std::thread grpc_thread([](grpc::Server *s) { s->Wait(); }, grpc_.get());
+
+  utils::WaitForExitSignal();
+
+  grpc_->Shutdown();
+
+  grpc_thread.join();
+
+  return StatusCode::OK;
+}
+
+Status Server::RunMixer() {
+  std::thread grpc_thread([](grpc::Server *s) { s->Wait(); }, grpc_.get());
+
+  utils::WaitForExitSignal();
+
+  grpc_->Shutdown();
+
+  grpc_thread.join();
 
   return StatusCode::OK;
 }

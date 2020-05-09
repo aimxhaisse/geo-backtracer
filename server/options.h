@@ -21,26 +21,27 @@ public:
 
   // Type of a backtracer instance.
   enum InstanceType {
-    // In primary mode, the bt handles all writes to the database
+    // Used at early start before the configuration is loaded, at
+    // which point the bt becomes one of the types below.
+    UNKNOWN = 0,
+
+    // In pusher mode, the bt handles all writes to the shared
     // (garbage collection, inserting points, deleting user
-    // data). There can only be one primary instacne per database.
-    PRIMARY = 0,
+    // data). There can only be one pusher instance per shard.
+    PUSHER,
 
     // In seeker mode, the bt handles reads to the database (solver to
     // compute correlation, history retrieval). There can be multiple
-    // seeker instances on a database.
+    // seeker instances on a shard.
     SEEKER,
 
-    // Combination of the two previous modes (primary & seeker), used
-    // for single node setups.
-    STANDALONE,
-
-    // Job to shard incoming points to available shards in the
-    // cluster.
+    // In mixer mode, the bt communicates with pusher and seeker
+    // shards, sharding writes per geographical area and aggregating
+    // back results.
     MIXER
   };
 
-  InstanceType instance_type_ = STANDALONE;
+  InstanceType instance_type_ = UNKNOWN;
 };
 
 } // namespace bt

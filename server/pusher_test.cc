@@ -1,13 +1,13 @@
-#include "server/test.h"
+#include "server/cluster_test.h"
 
 namespace bt {
 namespace {
 
-class PusherTest : public ServerTestBase {};
+class PusherTest : public ClusterTestBase {};
 
 // Tests that single insert works.
 TEST_F(PusherTest, TimelineSinglePointOK) {
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+  EXPECT_EQ(InitInstances(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
@@ -19,7 +19,7 @@ TEST_F(PusherTest, TimelineSinglePointOK) {
 }
 
 TEST_F(PusherTest, DeleteUserSimpleOK) {
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+  EXPECT_EQ(InitInstances(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
@@ -40,7 +40,7 @@ TEST_F(PusherTest, DeleteUserSimpleOK) {
 }
 
 TEST_F(PusherTest, DeleteUserSimpleKO) {
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+  EXPECT_EQ(InitInstances(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
@@ -61,7 +61,7 @@ TEST_F(PusherTest, DeleteUserSimpleKO) {
 }
 
 TEST_F(PusherTest, DeleteUserLargeOK) {
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+  EXPECT_EQ(InitInstances(), StatusCode::OK);
 
   for (int i = 0; i < 10000; ++i) {
     for (int j = 0; j < 42; ++j) {

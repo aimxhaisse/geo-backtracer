@@ -1,14 +1,14 @@
 #include "proto/backtrace.pb.h"
-#include "server/test.h"
+#include "server/cluster_test.h"
 
 namespace bt {
 namespace {
 
-class DbTest : public ServerTestBase {};
+class DbTest : public ClusterTestBase {};
 
 // Tests to ensure timestamp ordering of keys is what we expect.
 TEST_F(DbTest, TimestampOrdering) {
-  EXPECT_EQ(server_->Init(options_), StatusCode::OK);
+  EXPECT_EQ(InitInstances(), StatusCode::OK);
 
   constexpr int kNumberOfPoints = 10000;
 
@@ -19,7 +19,7 @@ TEST_F(DbTest, TimestampOrdering) {
                           kBaseGpsAltitude));
   }
 
-  Db *db = server_->GetDb();
+  Db *db = ReadOnlyDb();
 
   std::unique_ptr<rocksdb::Iterator> it(
       db->Rocks()->NewIterator(rocksdb::ReadOptions(), db->TimelineHandle()));
