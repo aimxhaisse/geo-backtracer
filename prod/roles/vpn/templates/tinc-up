@@ -1,0 +1,5 @@
+#!/bin/sh
+
+ip link set {{ vpn_interface }} up
+ip addr add {{ vpn_ip }}/32 dev {{ vpn_interface }}
+ip route add {{ network_addr}}/{{ network_mask }} dev {{ vpn_interface }}

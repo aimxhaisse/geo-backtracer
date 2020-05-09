@@ -1,0 +1,18 @@
+---
+
+# Tasks to setup Unix users.
+
+- name: create unix users
+  user: name="{{ item }}" append=yes state=present createhome=yes shell=/bin/bash groups=sudo
+  loop: "{{ users }}"
+
+- name: configure sudo
+  lineinfile:
+    dest: /etc/sudoers
+    line: '{{ item }} ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+  loop: "{{ users }}"
+
+- name: set up ssh authorized keys
+  authorized_key: user="{{ user }}" key="{{ lookup('file', 'files/user-' + item + '.pub') }}"
+  loop: "{{ users }}"

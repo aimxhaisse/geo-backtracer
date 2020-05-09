@@ -1,0 +1,7 @@
+---
+
+- name: set up base system configuration
+  import_playbook: base.yml
+
+- name: set up intra-cluster cluster networking
+  import_playbook: network.yml

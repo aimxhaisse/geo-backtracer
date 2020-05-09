@@ -1,0 +1,5 @@
+#!/bin/sh
+
+ip route del {{ network_addr}}/{{ network_mask }} dev {{ vpn_interface }}
+ip addr del {{ vpn_ip }}/32 dev {{ vpn_interface }}
+ip link set {{ vpn_interface }} down

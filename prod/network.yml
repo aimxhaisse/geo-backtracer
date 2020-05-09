@@ -1,0 +1,6 @@
+---
+
+- name: Setup intra-cluster network
+  hosts: all
+  roles:
+    - vpn

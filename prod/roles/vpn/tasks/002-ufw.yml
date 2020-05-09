@@ -1,0 +1,61 @@
+---
+
+# Tasks to setup firewall, only allow a few explicitly listed services.
+
+- name: disable everything else on public interface
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: enable logging on ufw
+  ufw:
+    logging: 'on'
+
+- name: explicitly reject blocked traffic
+  ufw:
+    rule: reject
+    port: auth
+    log: yes
+
+- name: allow ssh
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: allow http
+  ufw:
+    rule: allow
+    port: http
+    proto: tcp
+
+- name: allow https
+  ufw:
+    rule: allow
+    port: https
+    proto: tcp
+
+- name: rate limit ssh
+  ufw:
+    rule: limit
+    port: ssh
+    proto: tcp
+
+- name: allow tinc
+  ufw:
+    rule: allow
+    port: '655'
+    proto: tcp
+
+- name: allow all access from private networks
+  ufw:
+    rule: allow
+    src: '{{ item }}'
+  loop:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+
+- name: disable everything else on public interface
+  ufw:
+    state: enabled
+    policy: deny

@@ -1,0 +1,112 @@
+---
+
+# Tasks to setup an intra-cluster network.
+
+- name: set up tinc packages
+  apt:
+    name:
+      - tinc
+    state: present
+
+- name: enable tinc
+  systemd:
+    name: tinc@{{ netname }}
+    enabled: yes
+    state: started
+
+- name: create tinc network name directory
+  file:
+    path: /etc/tinc/{{ netname }}/hosts
+    recurse: True
+    state: directory
+
+- name: add network to autostart list
+  template:
+    src: nets.boot
+    dest: /etc/tinc/nets.boot
+  notify:
+    - restart tinc
+
+- name: add tinc config
+  template:
+    src: tinc.conf
+    dest: /etc/tinc/{{ netname }}/tinc.conf
+  notify:
+    - reload tinc
+
+- name: add tinc up file
+  template:
+    src: tinc-up
+    dest: /etc/tinc/{{ netname }}/tinc-up
+    mode: 0755
+  notify:
+    - restart tinc
+
+- name: add tinc down file
+  template:
+    src: tinc-down
+    dest: /etc/tinc/{{ netname }}/tinc-down
+    mode: 0755
+  notify:
+    - restart tinc
+
+- name: ensure tinc hosts file binds to physical ip address
+  lineinfile:
+    dest: /etc/tinc/{{ netname }}/hosts/{{ inventory_hostname }}
+    line: "Address = {{ physical_ip }}"
+    create: yes
+  notify:
+    - restart tinc
+
+- name: ensure subnet ip address is properly set in tinc host file
+  lineinfile:
+    dest: /etc/tinc/{{ netname }}/hosts/{{ inventory_hostname }}
+    line: "Subnet = {{ vpn_ip }}/32"
+    create: yes
+  notify:
+    - restart tinc
+
+- name: check whether host file has public key
+  command: awk '/^-----END RSA PUBLIC KEY-----$/' /etc/tinc/{{ netname }}/hosts/{{ inventory_hostname }}
+  changed_when: "public_key.stdout != '-----END RSA PUBLIC KEY-----'"
+  register: public_key
+
+- name: delete private key to regenerate key-pair if needed
+  file:
+    path: /etc/tinc/{{ netname }}/rsa_key.priv
+    state: absent
+  when: public_key.changed
+
+- name: create tinc private key
+  shell: tincd -n {{ netname }} -K4096
+  args:
+    creates: /etc/tinc/{{ netname }}/rsa_key.priv
+  notify:
+    - restart tinc
+
+- name: fetch tinc hosts file after key creation
+  fetch:
+    src: /etc/tinc/{{ netname }}/hosts/{{ inventory_hostname }}
+    dest: .cache/fetch/{{ inventory_hostname }}
+    flat: yes
+  notify:
+    - reload tinc
+
+- name: sync the fetched tinc hosts files on each host
+  synchronize:
+    src: .cache/fetch/
+    dest: /etc/tinc/{{ netname }}/hosts/
+  notify:
+    - reload tinc
+
+- name: run handlers
+  meta: flush_handlers
+
+- name: add nodes to /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '.*{{ item }}$'
+    line: "{{ hostvars[item].vpn_ip }} {{item}}"
+    state: present
+  when: hostvars[item].vpn_ip is defined
+  with_items: "{{ play_hosts }}"

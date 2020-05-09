@@ -1,0 +1,15 @@
+---
+
+### Common packages to install.
+
+- name: set up classic packages
+  apt:
+    name:
+      - htop
+      - ufw
+      - nmap
+      - tree
+      - emacs-nox
+      - tmux
+      - apt-transport-https
+    state: present
