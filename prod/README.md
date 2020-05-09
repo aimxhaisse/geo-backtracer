@@ -3,6 +3,13 @@
 This directory contains an Ansible configuration to setup a cluster to
 host the Geo-backtracer. It is a work in progress.
 
+## Features
+
+* automatic set up of users,
+* common set of tools & packages on all nodes,
+* encrypted traffic between nodes in the cluster via Tinc,
+* firewall configuration to deny everything not-needed by default.
+
 ## Usage
 
 This is a quick guide, which is going to be more complete once the
