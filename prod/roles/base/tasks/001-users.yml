@@ -14,5 +14,5 @@
   loop: "{{ users }}"
 
 - name: set up ssh authorized keys
-  authorized_key: user="{{ user }}" key="{{ lookup('file', 'files/user-' + item + '.pub') }}"
+  authorized_key: user="{{ item }}" key="{{ lookup('file', 'files/user-' + item + '.pub') }}"
   loop: "{{ users }}"
