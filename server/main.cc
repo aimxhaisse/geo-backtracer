@@ -11,6 +11,36 @@ using namespace bt;
 DEFINE_string(config, "etc/worker.yml", "path to the config file");
 DEFINE_string(type, "worker", "type of the instance ('worker' or 'mixer')");
 
+namespace {
+
+// Main loop of a worker, init a config and wait for the main thread
+// to finish.
+Status WorkerLoop(const Config &config) {
+  Status status;
+  WorkerConfig worker_config;
+  status = WorkerConfig::MakeWorkerConfig(config, &worker_config);
+  if (status != StatusCode::OK) {
+    LOG(ERROR) << "unable to initialize config, status=" << status;
+    return status;
+  }
+
+  Worker worker;
+  status = worker.Init(worker_config);
+  if (status != StatusCode::OK) {
+    LOG(ERROR) << "unable to initialize backtracer, status=" << status;
+    return status;
+  }
+  status = worker.Run();
+  if (status != StatusCode::OK) {
+    LOG(ERROR) << "unable to run backtracer service, status=" << status;
+    return status;
+  }
+
+  return StatusCode::OK;
+}
+
+} // namespace
+
 int main(int ac, char **av) {
   FLAGS_logtostderr = 1;
   ::google::InitGoogleLogging(av[0]);
@@ -24,24 +54,9 @@ int main(int ac, char **av) {
   }
 
   if (FLAGS_type == kWorkerConfigType) {
-    Status status;
-    WorkerConfig worker_config;
-    status = WorkerConfig::MakeWorkerConfig(*config_status.ValueOrDie(),
-                                            &worker_config);
+    Status status = WorkerLoop(*config_status.ValueOrDie());
     if (status != StatusCode::OK) {
-      LOG(ERROR) << "unable to initialize config, status=" << status;
-      return -1;
-    }
-
-    Worker worker;
-    status = worker.Init(worker_config);
-    if (status != StatusCode::OK) {
-      LOG(ERROR) << "unable to initialize backtracer, status=" << status;
-      return -1;
-    }
-    status = worker.Run();
-    if (status != StatusCode::OK) {
-      LOG(ERROR) << "unable to run backtracer service, status=" << status;
+      LOG(ERROR) << "worker loop exited with error, status=" << status;
       return -1;
     }
   } else if (FLAGS_type == kMixerConfigType) {
