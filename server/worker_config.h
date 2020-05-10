@@ -2,11 +2,19 @@
 
 #include <string>
 
+#include "common/config.h"
+#include "common/status.h"
+
 namespace bt {
+
+constexpr auto kWorkerConfigType = "worker";
 
 // Config for workers.
 class WorkerConfig {
 public:
+  static Status MakeWorkerConfig(const Config &config,
+                                 WorkerConfig *worker_config);
+
   // Path to an existing database, if no path is set, an ephemeral
   // database is created from a temporary directory, and cleaned up at
   // exit.
