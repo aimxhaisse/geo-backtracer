@@ -6,3 +6,29 @@
 # cluster (where to find workers, how to shard the load).
 
 instance_type: "mixer"
+
+geo:
+  # This will define the sharding strategy: all points inside the
+  # rectangle below will be divided in (number of shards - 1),
+  # everything outside will default to a fallback shard.
+  - area: "France"
+    top_left: [-5.00, 51.00]
+    bottom_right: [7.50, 44.00]
+
+# To increase data integrity, having workers on multiple machines in
+# the same shard is a good idea: if a machine dies, the Geo Backtracer
+# will continue to work without data loss or performance issues. It
+# takes all machines in a shard to die to start having problems.
+topology:
+  - name: "8a00862"
+    workers:
+      - "10.0.0.1:7000"
+      - "10.0.0.2:7000"
+  - name: "eb3e451"
+    workers:
+      - "10.0.0.2:7001"
+      - "10.0.0.3:7001"
+  - name: "735ec68"
+    workers:
+      - "10.0.0.1:7002"
+      - "10.0.0.3:7002"
