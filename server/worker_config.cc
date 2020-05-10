@@ -11,14 +11,14 @@ Status WorkerConfig::MakeWorkerConfig(const Config &config,
                  "expected a worker config but got something else");
   }
 
-  // Database settings
-  worker_config->db_path_ = config.Get<std::string>("db.path");
+  // Database settings.
+  worker_config->db_path_ = config.Get<std::string>("db.path", kDefaultDbPath);
 
-  // GC settings
-  worker_config->gc_retention_period_days_ =
-      config.Get<int>("gc.retention_period_days");
-  worker_config->gc_delay_between_rounds_sec_ =
-      config.Get<int>("gc.delay_between_rounds_sec");
+  // GC settings.
+  worker_config->gc_retention_period_days_ = config.Get<int>(
+      "gc.retention_period_days", kDefaultGcRetentionPeriodInDays);
+  worker_config->gc_delay_between_rounds_sec_ = config.Get<int>(
+      "gc.delay_between_rounds_sec", kDefaultGcDelayBetweenRoundsInSeconds);
 
   return StatusCode::OK;
 }
