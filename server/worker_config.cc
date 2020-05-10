@@ -14,6 +14,12 @@ Status WorkerConfig::MakeWorkerConfig(const Config &config,
   // Database settings.
   worker_config->db_path_ = config.Get<std::string>("db.path", kDefaultDbPath);
 
+  // Network settings.
+  worker_config->network_host_ =
+      config.Get<std::string>("network.host", kDefaultNetworkInterface);
+  worker_config->network_port_ =
+      config.Get<int>("network.port", kDefaultNetworkListenPort);
+
   // GC settings.
   worker_config->gc_retention_period_days_ = config.Get<int>(
       "gc.retention_period_days", kDefaultGcRetentionPeriodInDays);

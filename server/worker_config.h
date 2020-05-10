@@ -13,6 +13,8 @@ constexpr auto kWorkerConfigType = "worker";
 constexpr auto kDefaultDbPath = "";
 constexpr auto kDefaultGcRetentionPeriodInDays = 14;
 constexpr auto kDefaultGcDelayBetweenRoundsInSeconds = 3600;
+constexpr auto kDefaultNetworkInterface = "0.0.0.0";
+constexpr auto kDefaultNetworkListenPort = 7000;
 
 // Config for workers. This could have been made nicer by having the
 // module specific logic be handled by the corresponding modules (i.e:
@@ -29,6 +31,15 @@ public:
   // database is created from a temporary directory, and cleaned up at
   // exit.
   std::string db_path_ = kDefaultDbPath;
+
+  // IPv4 address to listen on.
+  std::string network_host_ = kDefaultNetworkInterface;
+
+  // TPC port to listen on. Worker instances and mixers have different
+  // ones so they can coexist on the same machine. As there can be
+  // multiple mixer instances on the same machine, they can use a
+  // range.
+  int network_port_ = kDefaultNetworkListenPort;
 
   // Retention period in days before points are deleted from the
   // database.
