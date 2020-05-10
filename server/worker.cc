@@ -1,4 +1,5 @@
 #include <glog/logging.h>
+#include <sstream>
 #include <thread>
 
 #include "common/signal.h"
@@ -10,7 +11,13 @@ namespace bt {
 
 namespace {
 
-constexpr char kWorkerAddress[] = "127.0.0.1:6000";
+std::string MakeWorkerAddress(const WorkerConfig &config) {
+  std::ostringstream os;
+
+  os << config.network_host_ << ":" << config.network_port_;
+
+  return os.str();
+}
 
 } // anonymous namespace
 
@@ -32,7 +39,8 @@ Status Worker::Init(const WorkerConfig &config) {
   LOG(INFO) << "initialized gc";
 
   grpc::ServerBuilder builder;
-  builder.AddListeningPort(kWorkerAddress, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(MakeWorkerAddress(config),
+                           grpc::InsecureServerCredentials());
   builder.RegisterService(pusher_.get());
   builder.RegisterService(seeker_.get());
   grpc_ = builder.BuildAndStart();
