@@ -93,7 +93,7 @@ re: clean all
 %.pb.cc: %.proto
 	$(PBUF) --cpp_out=. $<
 
-%.pb.o : %.pb.cc
+%.pb.o : %.pb.cc $(ALL_DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(SERVER): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_SERVER) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON)
