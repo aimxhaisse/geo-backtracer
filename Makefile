@@ -6,9 +6,9 @@ DEPS 		:= deps
 DEPS_ROCKSDB_DIR:= $(DEPS)/rocksdb
 DEPS_ROCKSDB 	:= $(DEPS)/rocksdb/librocksdb.a
 DEPS_GTEST_DIR  := $(DEPS)/gtest
-DEPS_GTEST 	:= $(DEPS)/gtest/lib/libgtest.a
+DEPS_GTEST 	:= $(DEPS)/gtest/build/lib/libgtest.a
 DEPS_CXXFLAGS	:= -I$(DEPS)/rocksdb/include -I$(DEPS)/gtest/include
-DEPS_LDFLAGS	:= -L$(DEPS)/rocksdb -L$(DEPS)/gtest/lib
+DEPS_LDFLAGS	:= -L$(DEPS)/rocksdb -L$(DEPS)/gtest/build/lib
 ALL_DEPS 	:= $(DEPS_ROCKSDB) $(DEPS_GTEST)
 
 CXXFLAGS = -O3 -Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -std=c++17 $(shell freetype-config --cflags 2>/dev/null) -I. -I/usr/local/include/google/protobuf $(DEPS_CXXFLAGS)
@@ -84,7 +84,7 @@ bin:
 
 re: clean all
 
-%.o: %.cc
+%.o: %.cc $(ALL_DEPS)
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
 %.grpc.pb.cc: %.proto
@@ -93,7 +93,7 @@ re: clean all
 %.pb.cc: %.proto
 	$(PBUF) --cpp_out=. $<
 
-%.pb.o : %.pb.cc $(ALL_DEPS)
+%.pb.o : %.pb.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(SERVER): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_SERVER) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON)
@@ -108,14 +108,14 @@ $(TEST): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_GRPC) $(OBJS_TEST) $(OBJS_PB)
 $(DEPS):
 	mkdir -p $@
 
-$(DEPS_ROCKSDB_DIR)/: $(DEPS)
+$(DEPS_ROCKSDB_DIR): $(DEPS)
 	git clone https://github.com/facebook/rocksdb.git $@
 	cd $(DEPS_ROCKSDB_DIR) && git checkout origin/$(ROCKSDB_VERSION) -b $(ROCKSDB_VERSION)
 
 $(DEPS_ROCKSDB): $(DEPS_ROCKSDB_DIR)
 	cd $(DEPS_ROCKSDB_DIR) && make static_lib
 
-$(DEPS_GTEST_DIR)/: $(DEPS)
+$(DEPS_GTEST_DIR): $(DEPS)
 	git clone https://github.com/google/googletest.git $@
 	cd $(DEPS_GTEST_DIR) && git checkout origin/$(GTEST_VERSION) -b $(GTEST_VERSION)
 
