@@ -43,6 +43,8 @@ DEPS_ROCKSB 	:= $(DEPS)/rocksdb/librocksdb.a
 DEPS_GTEST 	:= $(DEPS)/gtest/libgtest.a
 ALL_DEPS 	:= $(DEPS_ROCKSB) $(DEPS_GTEST)
 
+ROCKSDB_VERSION	:= 6.9.fb
+
 .PHONY: all clean re test fmt help run inject server client
 
 help:
@@ -103,7 +105,7 @@ $(DEPS):
 
 $(DEPS_ROCKSDB): $(DEPS)
 	git clone https://github.com/facebook/rocksdb.git $(DEPS)/rocksdb
-	cd $(DEPS)/rocksdb && checkout 6.9.fb -b 6.9.fb && make static_lib
+	cd $(DEPS)/rocksdb && checkout $(ROCKSDB_VERSION) -b $(ROCKSDB_VERSION) && make static_lib
 
 server: $(SERVER)
 	$(SERVER)
