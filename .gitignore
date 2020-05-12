@@ -6,3 +6,4 @@ bin/
 data/
 *.DS_Store
 prod/.cache
+deps/

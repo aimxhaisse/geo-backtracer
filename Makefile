@@ -38,6 +38,11 @@ GENS_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.cc)
 OBJS_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.o)
 HEAD_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.h) $(SRCS_GRPC:.proto=.grpc.pb.d)
 
+DEPS 		:= deps/
+DEPS_ROCKSB 	:= $(DEPS)/rocksdb/librocksdb.a
+DEPS_GTEST 	:= $(DEPS)/gtest/libgtest.a
+ALL_DEPS 	:= $(DEPS_ROCKSB) $(DEPS_GTEST)
+
 .PHONY: all clean re test fmt help run inject server client
 
 help:
@@ -92,6 +97,13 @@ $(CLIENT): bin $(OBJS_COMMON) $(GENS_PB) $(OBJS_CLIENT) $(OBJS_PB)
 
 $(TEST): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_GRPC) $(OBJS_TEST) $(OBJS_PB)
 	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
+
+$(DEPS):
+	mkdir -p $@
+
+$(DEPS_ROCKSDB): $(DEPS)
+	git clone https://github.com/facebook/rocksdb.git $(DEPS)/rocksdb
+	cd $(DEPS)/rocksdb && checkout 6.9.fb -b 6.9.fb && make static_lib
 
 server: $(SERVER)
 	$(SERVER)

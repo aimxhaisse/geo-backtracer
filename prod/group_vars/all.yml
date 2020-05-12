@@ -13,3 +13,7 @@ vpn_interface: tun0
 physical_ip: "{{ ansible_enp1s0.ipv4.address }}"
 network_mask: 24
 network_addr: 10.0.0.0
+
+# Geo BT
+
+geo_user: "geo-bt"
