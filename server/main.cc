@@ -13,8 +13,6 @@ DEFINE_string(type, "worker", "type of the instance ('worker' or 'mixer')");
 
 namespace {
 
-// Main loop of a worker, init a config and wait for the main thread
-// to finish.
 Status WorkerLoop(const Config &config) {
   Status status;
   WorkerConfig worker_config;
@@ -39,6 +37,17 @@ Status WorkerLoop(const Config &config) {
   return StatusCode::OK;
 }
 
+Status MixerLoop(const Config &config) {
+  Status status;
+  MixerConfig mixer_config;
+  status = MixerConfig::MakeMixerConfig(config, &mixer_config);
+  if (status != StatusCode::OK) {
+    LOG(ERROR) << "unable to initialize config, status=" << status;
+    return status;
+  }
+  return StatusCode::OK;
+}
+
 } // namespace
 
 int main(int ac, char **av) {
@@ -60,7 +69,11 @@ int main(int ac, char **av) {
       return -1;
     }
   } else if (FLAGS_type == kMixerConfigType) {
-    LOG(ERROR) << "not yet implemented";
+    Status status = MixerLoop(*config_status.ValueOrDie());
+    if (status != StatusCode::OK) {
+      LOG(ERROR) << "mixer loop exited with error, status=" << status;
+      return -1;
+    }
     return -1;
   } else {
     LOG(ERROR) << "invalid flag, --type must be 'worker' or 'mixer'";
