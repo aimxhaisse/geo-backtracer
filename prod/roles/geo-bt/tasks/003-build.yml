@@ -2,4 +2,23 @@
 
 # Build Geo-Backtracer.
 
+- name: "fetch geo-bt code"
+  become_user: "{{ geo_user }}"
+  become: yes
+  git:
+    repo: "https://github.com/aimxhaisse/geo-backtracer.git"
+    dest: "bt"
 
+- name: "build geo-bt"
+  become_user: "{{ geo_user }}"
+  become: yes
+  make:
+    chdir: "bt"
+    target: all
+
+- name: "run geo-bt tests"
+  become_user: "{{ geo_user }}"
+  become: yes
+  make:
+    chdir: "bt"
+    target: test
