@@ -1,0 +1,5 @@
+---
+
+- include_tasks: 001-user.yml
+- include_tasks: 002-packages.yml
+- include_tasks: 003-build.yml
