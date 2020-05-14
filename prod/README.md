@@ -18,7 +18,7 @@ cluster is stable and performing as intended.
 ### Requirements
 
 * SSH access to a bunch of bare-metal machines,
-* a vanilla Ubuntu 18.04 installation,
+* a vanilla Ubuntu 20.04 installation,
 * your unix user part of sudoers.
 
 ### Configuration

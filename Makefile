@@ -4,19 +4,13 @@
 
 DEPS 		:= deps
 
-DEPS_ROCKSDB_DIR:= $(DEPS)/rocksdb
-DEPS_ROCKSDB 	:= $(DEPS)/rocksdb/librocksdb.a
-
 DEPS_GTEST_DIR  := $(DEPS)/gtest
 DEPS_GTEST 	:= $(DEPS)/gtest/build/lib/libgtest.a
 
-DEPS_GRPC_DIR	:= $(DEPS)/grpc
-DEPS_GRPC	:= $(DEPS)/grpc/build/lib
+DEPS_CXXFLAGS	:= -I$(DEPS)/gtest/gtest/googletest/include
+DEPS_LDFLAGS	:= -L$(DEPS)/gtest/build/lib
 
-DEPS_CXXFLAGS	:= -I$(DEPS)/rocksdb/include -I$(DEPS)/gtest/include -I$(DEPS)/grpc/include
-DEPS_LDFLAGS	:= -L$(DEPS)/rocksdb -L$(DEPS)/gtest/build/lib -L$(DEPS)/grpc/build/lib
-
-ALL_DEPS 	:= $(DEPS_ROCKSDB) $(DEPS_GTEST) $(DEPS_GRPC)
+ALL_DEPS 	:= $(DEPS_GTEST)
 
 CXXFLAGS = -O3 -Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -std=c++17 $(shell freetype-config --cflags 2>/dev/null) -I. -I/usr/local/include/google/protobuf $(DEPS_CXXFLAGS)
 LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf -lyaml-cpp -lpthread -lboost_system -lz -ldl -lzstd -lsnappy -lbz2 -llz4 $(DEPS_LDFLAGS)
@@ -54,9 +48,7 @@ GENS_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.cc)
 OBJS_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.o)
 HEAD_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.h) $(SRCS_GRPC:.proto=.grpc.pb.d)
 
-ROCKSDB_VERSION	:= 6.9.fb
 GTEST_VERSION 	:= v1.10.x
-GRPC_VERSION	:= v1.28.x
 
 .PHONY: all clean re test fmt help run inject server client
 
@@ -116,16 +108,6 @@ $(TEST): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_GRPC) $(OBJS_TEST) $(OBJS_PB)
 $(DEPS):
 	mkdir -p $@
 
-# Rocksdb
-$(DEPS_ROCKSDB_DIR): $(DEPS)
-	git clone https://github.com/facebook/rocksdb.git $@
-	touch $(DEPS)/*
-	cd $(DEPS_ROCKSDB_DIR) && git checkout origin/$(ROCKSDB_VERSION) -b $(ROCKSDB_VERSION)
-
-$(DEPS_ROCKSDB): $(DEPS_ROCKSDB_DIR)
-	cd $(DEPS_ROCKSDB_DIR) && make static_lib
-
-# Gtest
 $(DEPS_GTEST_DIR): $(DEPS)
 	git clone https://github.com/google/googletest.git $@
 	touch $(DEPS)/*
@@ -133,16 +115,7 @@ $(DEPS_GTEST_DIR): $(DEPS)
 
 $(DEPS_GTEST): $(DEPS_GTEST_DIR)
 	cd $(DEPS_GTEST_DIR) && mkdir -p build && cd build && cmake .. && make
-
-# GRPC
-$(DEPS_GRPC_DIR): $(DEPS)
-	git clone https://github.com/grpc/grpc.git $@
-	touch $(DEPS)/*
-	cd $(DEPS_GRPC_DIR) && git checkout origin/$(GRPC_VERSION) -b $(GRPC_VERSION)
-
-$(DEPS_GRPC): $(DEPS_GRPC_DIR)
-	cd $(DEPS_GRPC_DIR) && mkdir -p build && cd build && cmake .. && make
-
+	touch $@
 
 server: $(SERVER)
 	$(SERVER)

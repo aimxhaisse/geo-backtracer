@@ -7,17 +7,15 @@
     name:
       - clang
       - cmake
-      - libgoogletest-dev
-      - libzstd-dev
-      - libsnappy-dev
-      - libbz2-dev
-      - liblz4-dev
       - libboost-filesystem-dev
-      - libgrpc++-dev
-      - libyaml-cpp-dev
-      - libprotobuf-dev
+      - libbz2-dev
       - libgoogle-glog-dev
+      - libgrpc++-dev
+      - liblz4-dev
+      - libprotobuf-dev
+      - libsnappy-dev
+      - libyaml-cpp-dev
+      - libzstd-dev
       - protobuf-compiler-grpc
-      - protoc-gen-grpc
       - protobuf-compiler
     state: present

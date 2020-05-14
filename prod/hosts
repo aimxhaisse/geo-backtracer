@@ -4,12 +4,6 @@ gamgee ansible_host=gamgee.sbrk.org ansible_user=mxs vpn_ip=10.0.0.1
 bombadil ansible_host=bombadil.sbrk.org ansible_user=mxs vpn_ip=10.0.0.2
 treebeard ansible_host=treebeard.sbrk.org ansible_user=mxs vpn_ip=10.0.0.3
 
-[shards]
-
-8a00862 port=7000 hosts=gamgee,bombadil
-eb3e451 port=7001 hosts=bombadil,treebard
-735ec68 port=7002 hosts=gamgee,treebeard
-
 [all:vars]
 
 ansible_python_interpreter=/usr/bin/python3

@@ -5,3 +5,6 @@
 
 - name: set up intra-cluster cluster networking
   import_playbook: network.yml
+
+- name: set up geo backtracer
+  import_playbook: geo.yml

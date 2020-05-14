@@ -1,0 +1,6 @@
+---
+
+- name: Setup geo backtracer
+  hosts: all
+  roles:
+    - geo-bt
