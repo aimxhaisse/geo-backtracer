@@ -3,6 +3,7 @@
 #include <map>
 
 #include "common/status.h"
+#include "server/mixer_config.h"
 #include "server/proto.h"
 
 namespace bt {
@@ -11,8 +12,8 @@ namespace bt {
 // into rectangles handled by a specific shard. Coordinates here are
 // for the top-left point.
 struct Partition {
-  int64_t ts_begin_ = 0;
-  int64_t ts_end_ = 0;
+  uint64_t ts_begin_ = 0;
+  uint64_t ts_end_ = 0;
   float gps_longitude_ = 0.0;
   float gps_latitude_ = 0.0;
   float gps_width = 0.0;
@@ -29,7 +30,7 @@ class ShardHandler {};
 
 class Mixer {
 public:
-  Status Init();
+  Status Init(const MixerConfig &config);
   Status Run();
 
 private:
