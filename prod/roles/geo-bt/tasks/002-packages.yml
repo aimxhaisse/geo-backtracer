@@ -16,6 +16,7 @@
       - libsnappy-dev
       - libyaml-cpp-dev
       - libzstd-dev
+      - librocksdb-dev
       - protobuf-compiler-grpc
       - protobuf-compiler
     state: present
