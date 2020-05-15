@@ -8,3 +8,4 @@ data/
 prod/.cache
 deps/
 build/
+log/
