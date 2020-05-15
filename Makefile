@@ -17,6 +17,7 @@ LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf -lyaml
 
 SERVER := bin/bt_server
 CLIENT := bin/bt_client
+DAEMON := bin/daemonizer
 TEST   := bin/bt_test
 CXX    := clang++
 FMT    := clang-format
@@ -68,7 +69,7 @@ help:
 	@echo "make client	# inject fixtures into local instance"
 	@echo ""
 
-all: $(SERVER) $(CLIENT) $(TEST)
+all: $(SERVER) $(CLIENT) $(TEST) $(DAEMON)
 
 fmt:
 	$(FMT) -i -style Chromium $(SRCS_SERVER) $(SRCS_CLIENT) $(SRCS_COMMON)
@@ -106,6 +107,9 @@ $(CLIENT): bin $(OBJS_COMMON) $(GENS_PB) $(OBJS_CLIENT) $(OBJS_PB)
 
 $(TEST): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_GRPC) $(OBJS_TEST) $(OBJS_PB)
 	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
+
+$(DAEMON):
+	clang -O3 daemonizer/daemonizer.c -W -Wall -pedantic -ansi -o $@
 
 $(DEPS):
 	mkdir -p $@
