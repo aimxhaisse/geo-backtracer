@@ -50,6 +50,8 @@ HEAD_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.h) $(SRCS_GRPC:.proto=.grpc.pb.d)
 
 GTEST_VERSION 	:= v1.10.x
 
+INSTALL_DIR	?= ./
+
 .PHONY: all clean re test fmt help run inject server client
 
 help:
@@ -116,6 +118,9 @@ $(DEPS_GTEST_DIR): $(DEPS)
 $(DEPS_GTEST): $(DEPS_GTEST_DIR)
 	cd $(DEPS_GTEST_DIR) && mkdir -p build && cd build && cmake .. && make
 	touch $@
+
+install: $(SERVER)
+	cp $(SERVER) $(INSTALL_DIR)/bin/bt
 
 server: $(SERVER)
 	$(SERVER)
