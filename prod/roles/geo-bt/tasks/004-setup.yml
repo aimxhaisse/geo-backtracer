@@ -1,0 +1,16 @@
+---
+
+# Setup the Geo-Backtracer.
+
+- name: "create directory structure"
+  become_user: "{{ geo_user }}"
+  become: yes
+  file:
+    path: "/home/{{ geo_user }}/bt/{{ item[0].name }}/{{ item[1] }}"
+    recurse: yes
+    state: directory
+    mode: 0755
+  with_nested:
+    - "{{ shards }}"
+    - ['log', 'etc', 'bin', 'data']
+  when: inventory_hostname in item[0].workers

@@ -17,3 +17,16 @@ network_addr: 10.0.0.0
 # Geo BT
 
 geo_user: "geo-bt"
+
+# Shards
+
+shards:
+  - name: "8a00862"
+    port: 7000
+    workers: ["gamgee", "bombadil"]
+  - name: "eb3e451"
+    port: 7001
+    workers: ["gamgee", "treebeard"]
+  - name: "735ec68"
+    port: 7002
+    workers: ["treebeard", "bombadil"]
