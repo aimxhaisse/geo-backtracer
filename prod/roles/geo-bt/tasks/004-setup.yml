@@ -7,7 +7,6 @@
   become: yes
   file:
     path: "/home/{{ geo_user }}/bt/{{ item[0].name }}/{{ item[1] }}"
-    recurse: yes
     state: directory
     mode: 0755
   with_nested:
@@ -23,12 +22,10 @@
   when: inventory_hostname in item.workers
 
 - name: "install geo-bt"
-  become_user: "{{ geo_user }}"
-  become: yes
   make:
     chdir: "/home/{{ geo_user }}/src"
     target: install
     params:
-      INSTALL_DIR: "/home/{{ geo_user }}/bt/{{ item.name }}/{{ shard.name }}"
+      INSTALL_DIR: "/home/{{ geo_user }}/bt/{{ item.name }}"
   loop: "{{ shards }}"
   when: inventory_hostname in item.workers
