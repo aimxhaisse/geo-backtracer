@@ -7,7 +7,7 @@ DEPS 		:= deps
 DEPS_GTEST_DIR  := $(DEPS)/gtest
 DEPS_GTEST 	:= $(DEPS)/gtest/build/lib/libgtest.a
 
-DEPS_CXXFLAGS	:= -I$(DEPS)/gtest/gtest/googletest/include
+DEPS_CXXFLAGS	:= -I$(DEPS)/gtest/googletest/include
 DEPS_LDFLAGS	:= -L$(DEPS)/gtest/build/lib
 
 ALL_DEPS 	:= $(DEPS_GTEST)
