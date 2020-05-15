@@ -1,0 +1,38 @@
+---
+
+# This file is generated, do not edit.
+
+# Configuration file for a worker.
+#
+# This is the configuration file of a worker instance for the Geo
+# Backtracer. Each worker owns it own database (a shard) and is the
+# sole reader and writer to it. Each worker exposes a gRPC API used by
+# other Geo Backtracer components (push points in a shard, get
+# correlations for a user, delete all data of a user).
+
+instance_type: "worker"
+
+db:
+  # Path to the database, if empty, a temporary database is created
+  # and deleted at exit (used for testing).
+  path: data/
+
+network:
+  # Host to listen to; in a cluster setup, it typically is the private
+  # network interface.
+  host: "{{ vpn_ip }}"
+
+  # Port to listen to; in a cluster setup, each worker on a machine
+  # needs to use a unique port number.
+  port: "{{ item.port }}"
+
+gc:
+  # Retention period in days, points older than this number of days
+  # are automatically deleted from the database. Changing this value
+  # has immediate effect on all existing points.
+  retention_period_days: 15
+
+  # Delay in seconds between two GC pass; time between passes can be
+  # longer than this, as this delay is between the end of a pass and
+  # the beginning of another.
+  delay_between_rounds_sec: 3600
