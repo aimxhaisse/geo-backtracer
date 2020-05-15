@@ -15,10 +15,10 @@ ALL_DEPS 	:= $(DEPS_GTEST)
 CXXFLAGS = -O3 -Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -std=c++17 $(shell freetype-config --cflags 2>/dev/null) -I. -I/usr/local/include/google/protobuf $(DEPS_CXXFLAGS)
 LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf -lyaml-cpp -lpthread -lboost_system -lz -ldl -lzstd -lsnappy -lbz2 -llz4 $(DEPS_LDFLAGS)
 
-SERVER := bin/bt_server
-CLIENT := bin/bt_client
-DAEMON := bin/daemonizer
-TEST   := bin/bt_test
+SERVER := build/bt_server
+CLIENT := build/bt_client
+DAEMON := build/daemonizer
+TEST   := build/bt_test
 CXX    := clang++
 FMT    := clang-format
 PBUF   := protoc
@@ -85,6 +85,9 @@ clean:
 bin:
 	mkdir -p bin
 
+build:
+	mkdir -p build
+
 re: clean all
 
 %.o: %.cc $(ALL_DEPS)
@@ -99,16 +102,16 @@ re: clean all
 %.pb.o : %.pb.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(SERVER): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_SERVER) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON)
+$(SERVER): build $(GENS_PB) $(GENS_GRPC) $(OBJS_SERVER) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON)
 	$(CXX) $(OBJS_SERVER) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON) $(LDLIBS) -o $@
 
-$(CLIENT): bin $(OBJS_COMMON) $(GENS_PB) $(OBJS_CLIENT) $(OBJS_PB)
+$(CLIENT): build $(OBJS_COMMON) $(GENS_PB) $(OBJS_CLIENT) $(OBJS_PB)
 	$(CXX) $(OBJS_CLIENT) $(OBJS_PB) $(OBJS_GRPC) $(OBJS_COMMON) $(LDLIBS) -o $@
 
-$(TEST): bin $(GENS_PB) $(GENS_GRPC) $(OBJS_GRPC) $(OBJS_TEST) $(OBJS_PB)
+$(TEST): build $(GENS_PB) $(GENS_GRPC) $(OBJS_GRPC) $(OBJS_TEST) $(OBJS_PB)
 	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
 
-$(DAEMON):
+$(DAEMON): build
 	clang -O3 daemonizer/daemonizer.c -W -Wall -pedantic -ansi -o $@
 
 $(DEPS):
@@ -123,8 +126,9 @@ $(DEPS_GTEST): $(DEPS_GTEST_DIR)
 	cd $(DEPS_GTEST_DIR) && mkdir -p build && cd build && cmake .. && make
 	touch $@
 
-install: $(SERVER)
+install: $(BIN) $(DAEMON) $(SERVER)
 	cp $(SERVER) $(INSTALL_DIR)/bin/bt
+	cp $(DAEMON) $(INSTALL_DIR)/bin/daemonizer
 
 server: $(SERVER)
 	$(SERVER)
