@@ -103,8 +103,13 @@ case $2 in
 	;;
 
     "status")
-        pid=$(ps -ef $(cat $PID 2>/dev/null) 2>/dev/null)
-        if [ "$pid" != "" ]
+	pid=""
+	if [ -f $PID ]
+	then
+            pid=$(ps -ef $(cat $PID 2>/dev/null) 2>/dev/null)
+	fi
+
+	if [ "$pid" != "" ]
         then
             ok "$PROJECT is running, with PID $(cat $PID)"
         else
