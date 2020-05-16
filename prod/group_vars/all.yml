@@ -18,15 +18,32 @@ network_addr: 10.0.0.0
 
 geo_user: "geo-bt"
 
+# Geo Layout
+
+geo:
+  # This will define the sharding strategy: all points inside the
+  # rectangle below will be divided in (number of shards - 1),
+  # everything outside will default to a fallback shard.
+  - area: "fr"
+    top_left: [-5.00, 51.00]
+    bottom_right: [7.50, 44.00]
+
+  # For any point not in the previously defined areas, a dedicated
+  # area is set as a default.
+  - area: "default"
+
 # Shards
 
 shards:
   - name: "8a00862"
     port: 7000
+    area: "default"
     workers: ["gamgee", "bombadil"]
   - name: "eb3e451"
     port: 7001
+    area: "fr"
     workers: ["gamgee", "treebeard"]
   - name: "735ec68"
     port: 7002
+    area: "fr"
     workers: ["treebeard", "bombadil"]

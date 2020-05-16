@@ -13,4 +13,5 @@
       - emacs-nox
       - tmux
       - apt-transport-https
+      - python3-jinja2
     state: present
