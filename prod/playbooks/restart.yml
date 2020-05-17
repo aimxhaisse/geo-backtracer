@@ -1,0 +1,18 @@
+---
+
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: restart worker jobs
+      args:
+        chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
+      command: ./all.bash worker restart
+      loop: "{{ shards }}"
+      when: inventory_hostname in item.workers
+
+    - name: restart mixer jobs
+      args:
+        chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
+      command: ./all.bash mixer restart
+      loop: "{{ shards }}"
+      when: inventory_hostname in item.workers
