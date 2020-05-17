@@ -6,18 +6,13 @@
 cd $(dirname $0)
 
 function ok {			# <msg>
-    echo -e "\033[0;32;49m$@\\033[0m"
+    echo -e "ok: $@"
     return 0
 }
 
 function ko {			# <msg>
-    echo -e "\033[0;31;49mError: $@\\033[0m"
+    echo -e "ko: $@"
     return 1
-}
-
-function title {		# <msg>
-    echo -e "\033[0;32;40m$@\\033[0m"
-    return 0
 }
 
 function warn-upon-failure {	# <return_value> <msg>

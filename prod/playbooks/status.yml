@@ -1,0 +1,28 @@
+---
+
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: get status of worker jobs
+      args:
+        chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
+      command: ./all.bash worker status
+      register: worker_status
+      loop: "{{ shards }}"
+      when: inventory_hostname in item.workers
+
+    - name: show status of worker jobs
+      debug:
+        msg: "{{ worker_status.results|map(attribute='stdout_lines')|list }}"
+
+    - name: get status of mixer jobs
+      args:
+        chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
+      command: ./all.bash mixer status
+      register: mixer_status
+      loop: "{{ shards }}"
+      when: inventory_hostname in item.workers
+
+    - name: show status of mixer jobs
+      debug:
+        msg: "{{ mixer_status.results|map(attribute='stdout_lines')|list }}"
