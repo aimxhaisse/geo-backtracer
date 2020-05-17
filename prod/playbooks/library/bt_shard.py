@@ -15,8 +15,8 @@ TEMPLATE = """
 instance_type: "mixer"
 
 network:
-  host: "{{ vpn_ip }}"
-  port: 8000
+  host: "{{ mixer_ip }}"
+  port: {{ mixer_port }}
 
 shards:
 {%- for shard in shards %}
@@ -106,6 +106,8 @@ def run_module():
         "shards": {"required": True, "type": "list"},
         "geo": {"required": True, "type": "list"},
         "dest": {"required": True, "type": "str"},
+        "mixer_ip": {"required": True, "type": "str"},
+        "mixer_port": {"required": True, "type": "int"},
     }
 
     module = AnsibleModule(argument_spec=fields)
@@ -127,7 +129,10 @@ def run_module():
     dated_partitions[ts] = partitions
 
     content = Template(TEMPLATE).render(
-        shards=shards, partitions=dated_partitions)
+        shards=shards,
+        partitions=dated_partitions,
+        mixer_port=module.params['mixer_port'],
+        mixer_ip=module.params['mixer_ip'])
 
     with open(module.params['dest'], "w+") as f:
         f.write(content)
