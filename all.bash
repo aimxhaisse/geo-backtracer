@@ -64,7 +64,6 @@ case $1 in
 	;;
 esac
 
-SHARDING="etc/sharding.yml"
 LOGS="log"
 VAR="var"
 
@@ -85,7 +84,7 @@ case $2 in
 	mkdir -p $VAR
 	mkdir -p $LOGS
 	touch $LOG
-	bin/daemonizer  -u $(whoami) -o $LOG -e $LOG -p $PID -- $BIN --type $MODE --config $CONFIG --sharding $SHARDING
+	bin/daemonizer -u $(whoami) -o $LOG -e $LOG -p $PID -- $BIN --type $MODE --config $CONFIG
 	warn-upon-failure $? "Can't start the daemon, check your config" || exit 1
 	ok "daemon started"
 	exit 0
