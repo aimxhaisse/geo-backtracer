@@ -12,9 +12,11 @@ namespace bt {
 // Streams requests to all machines of a specific shard.
 class ShardHandler {
 public:
-  ShardHandler();
+  explicit ShardHandler(const ShardConfig &config);
+  Status Init();
 
 private:
+  std::vector<std::unique_ptr<proto::Seeker::Stub>> stubs_;
   ShardConfig config_;
 };
 
@@ -28,7 +30,11 @@ public:
                           proto::DeleteUserResponse *response) override;
 
 private:
+  Status InitHandlers(const MixerConfig &config);
+  Status InitService(const MixerConfig &config);
+
   std::vector<std::shared_ptr<ShardHandler>> handlers_;
+  std::unique_ptr<grpc::Server> grpc_;
 };
 
 } // namespace bt
