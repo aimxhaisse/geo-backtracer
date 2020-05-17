@@ -1,10 +1,10 @@
 ---
 
 - name: set up base system configuration
-  import_playbook: base.yml
+  import_playbook: _base.yml
 
 - name: set up intra-cluster cluster networking
-  import_playbook: network.yml
+  import_playbook: _network.yml
 
 - name: set up geo backtracer
-  import_playbook: geo.yml
+  import_playbook: _geo.yml
