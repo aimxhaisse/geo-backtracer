@@ -13,14 +13,14 @@ TEMPLATE = """
 # space.
 
 shards:
-{% for shard in shards %}
+{% for shard in shards -%}
   - name: "{{ shard['name'] }}"
     port: {{ shard['port'] }}
     workers: {{ shard['workers'] }}
-{% endfor %}
+{%- endfor %}
 
 partitions:
-{%- for at, partitions in partitions.items() %}
+{% for at, partitions in partitions.items() %}
   - at: {{ at }}
     shards:
     {%- for partition in partitions %}

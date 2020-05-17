@@ -11,7 +11,7 @@ geo:
   # This will define the sharding strategy: all points inside the
   # rectangle below will be divided in (number of shards - 1),
   # everything outside will default to a fallback shard.
-  - area: "France"
+  - area: "fr"
     top_left: [-5.00, 51.00]
     bottom_right: [7.50, 44.00]
 
@@ -19,16 +19,19 @@ geo:
 # the same shard is a good idea: if a machine dies, the Geo Backtracer
 # will continue to work without data loss or performance issues. It
 # takes all machines in a shard to die to start having problems.
-topology:
+shards:
   - name: "8a00862"
+    area: "default"
     workers:
       - "10.0.0.1:7000"
       - "10.0.0.2:7000"
   - name: "eb3e451"
+    area: "fr"
     workers:
       - "10.0.0.2:7001"
       - "10.0.0.3:7001"
   - name: "735ec68"
+    area: "fr"
     workers:
       - "10.0.0.1:7002"
       - "10.0.0.3:7002"

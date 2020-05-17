@@ -7,7 +7,7 @@
 sharding:
   - at: 1589141376
     geo:
-      - area: "France"
+      - area: "fr"
         top_left: [-5.00, 51.00]
         bottom_right: [7.50, 44.00]
     shards:
