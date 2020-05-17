@@ -5,7 +5,7 @@
 bin/
 data/
 *.DS_Store
-prod/.cache
+prod/playbooks/.cache
 deps/
 build/
 log/

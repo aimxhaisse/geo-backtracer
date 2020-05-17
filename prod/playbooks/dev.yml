@@ -1,11 +1,12 @@
 ---
 
-- hosts: gamgee
+- name: dev playbook
+  hosts: gamgee
   tasks:
-    - name: "generate mixer config file"
-      bt_shard:
-        geo: "{{ geo }}"
-        shards: "{{ shards }}"
-        dest: "/home/{{ geo_user }}/bt/{{ item.name }}/etc/mixer.yml"
-      loop: "{{ shards }}"
-      when: inventory_hostname in item.workers
+  - name: "generate mixer config file"
+    bt_shard:
+      geo: "{{ geo }}"
+      shards: "{{ shards }}"
+      dest: "/home/{{ geo_user }}/bt/{{ item.name }}/etc/mixer.yml"
+    loop: "{{ shards }}"
+    when: inventory_hostname in item.workers
