@@ -15,8 +15,11 @@ public:
   explicit ShardHandler(const ShardConfig &config);
   Status Init();
 
+  grpc::Status DeleteUser(const proto::DeleteUserRequest *request,
+                          proto::DeleteUserResponse *response);
+
 private:
-  std::vector<std::unique_ptr<proto::Seeker::Stub>> stubs_;
+  std::vector<std::unique_ptr<proto::Pusher::Stub>> stubs_;
   ShardConfig config_;
 };
 

@@ -10,11 +10,24 @@ ShardHandler::ShardHandler(const ShardConfig &config) : config_(config) {}
 
 Status ShardHandler::Init() {
   for (const auto &worker : config_.workers_) {
-    stubs_.push_back(proto::Seeker::NewStub(
+    stubs_.push_back(proto::Pusher::NewStub(
         grpc::CreateChannel(worker, grpc::InsecureChannelCredentials())));
   }
 
   return StatusCode::OK;
+}
+
+grpc::Status ShardHandler::DeleteUser(const proto::DeleteUserRequest *request,
+                                      proto::DeleteUserResponse *response) {
+  for (auto &stub : stubs_) {
+    grpc::ClientContext context;
+    grpc::Status status = stub->DeleteUser(&context, *request, response);
+    if (!status.ok()) {
+      return status;
+    }
+  }
+
+  return grpc::Status::OK;
 }
 
 Status Mixer::Init(const MixerConfig &config) {
@@ -49,6 +62,23 @@ Status Mixer::InitService(const MixerConfig &config) {
   LOG(INFO) << "initialized grpc";
 
   return StatusCode::OK;
+}
+
+grpc::Status Mixer::DeleteUser(grpc::ServerContext *context,
+                               const proto::DeleteUserRequest *request,
+                               proto::DeleteUserResponse *response) {
+  for (auto &handler : handlers_) {
+    grpc::Status status = handler->DeleteUser(request, response);
+    if (!status.ok()) {
+      LOG(WARNING) << "unable to delete user in a shard, status="
+                   << status.error_message();
+      return status;
+    }
+  }
+
+  LOG(INFO) << "user deleted in all shards";
+
+  return grpc::Status::OK;
 }
 
 Status Run() {
