@@ -13,21 +13,21 @@ TEMPLATE = """
 # space.
 
 shards:
-{% for shard in shards -%}
+{%- for shard in shards %}
   - name: "{{ shard['name'] }}"
     port: {{ shard['port'] }}
     workers: {{ shard['workers'] }}
 {%- endfor %}
 
 partitions:
-{% for at, partitions in partitions.items() %}
+{%- for at, partitions in partitions.items() %}
   - at: {{ at }}
     shards:
     {%- for partition in partitions %}
     - shard: "{{ partition['shard'] }}"
-      {% if partition['area'] == "default" -%}
+      {% if partition['area']['area'] == "default" -%}
       area: "default"
-      {% else -%}
+      {%- else -%}
       area: "{{ partition['area']['area'] }}"
       top_left: {{ partition['top_left'] }}
       bottom_right: {{ partition['bottom_right'] }}
@@ -47,7 +47,8 @@ def make_partition(area, shard, idx, shard_count):
         return Partition(
             area=area, shard=shard['name'], top_left=None, bottom_right=None)
 
-    increments = (area['top_left'][1] - area['bottom_right'][1]) / shard_count
+    increments = (
+        area['bottom_right'][1] - area['top_left'][1]) / float(shard_count)
 
     # Here we shard the area in horizontal stripes, this is a
     # arbitrary way of sharding. It doesn't need to be aligned on a
@@ -58,7 +59,7 @@ def make_partition(area, shard, idx, shard_count):
     ]
     bottom_right = [
         area['bottom_right'][0],
-        area['bottom_right'][1] + (idx + 1) * increments
+        area['top_left'][1] + (idx + 1) * increments
     ]
 
     return Partition(
