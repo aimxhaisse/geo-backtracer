@@ -16,11 +16,11 @@ db:
 network:
   # Host to listen to; in a cluster setup, it typically is the private
   # network interface.
-  host: "0.0.0.0"
+  host: "10.0.0.1"
 
   # Port to listen to; in a cluster setup, each worker on a machine
   # needs to use a unique port number.
-  port: 7000
+  port: "7000"
 
 gc:
   # Retention period in days, points older than this number of days

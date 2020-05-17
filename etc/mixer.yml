@@ -1,37 +1,32 @@
-# Configuration file for the Geo Backtracer.
+# Configuration file for a mixer.
 #
-# This is the configuration file of a mixer instance for the Geo
-# Backtracer. There can be any number of mixers in a cluster, they all
-# have the same configuration file which contains the mapping of the
-# cluster (where to find workers, how to shard the load).
+# Do not update this section: it is updated by Ansible to populate the
+# sharding mapping, which can evolve each time a new shard is added to
+# the cluster. This make it possible to start with a small cluster and
+# little by little, add machines as the backtracer takes more and
+# space.
 
-instance_type: "mixer"
-
-geo:
-  # This will define the sharding strategy: all points inside the
-  # rectangle below will be divided in (number of shards - 1),
-  # everything outside will default to a fallback shard.
-  - area: "fr"
-    top_left: [-5.00, 51.00]
-    bottom_right: [7.50, 44.00]
-
-# To increase data integrity, having workers on multiple machines in
-# the same shard is a good idea: if a machine dies, the Geo Backtracer
-# will continue to work without data loss or performance issues. It
-# takes all machines in a shard to die to start having problems.
 shards:
   - name: "8a00862"
-    area: "default"
-    workers:
-      - "10.0.0.1:7000"
-      - "10.0.0.2:7000"
+    port: 7000
+    workers: ['gamgee', 'bombadil']
   - name: "eb3e451"
-    area: "fr"
-    workers:
-      - "10.0.0.2:7001"
-      - "10.0.0.3:7001"
+    port: 7001
+    workers: ['gamgee', 'treebeard']
   - name: "735ec68"
-    area: "fr"
-    workers:
-      - "10.0.0.1:7002"
-      - "10.0.0.3:7002"
+    port: 7002
+    workers: ['treebeard', 'bombadil']
+
+partitions:
+  - at: 0
+    shards:
+    - shard: "8a00862"
+      area: "default"
+    - shard: "eb3e451"
+      area: "fr"
+      top_left: [-5.0, 51.0]
+      bottom_right: [7.5, 47.5]
+    - shard: "735ec68"
+      area: "fr"
+      top_left: [-5.0, 47.5]
+      bottom_right: [7.5, 44.0]
