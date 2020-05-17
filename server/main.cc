@@ -8,9 +8,9 @@
 
 using namespace bt;
 
-DEFINE_string(config, "etc/worker.yml", "path to the config file");
-DEFINE_string(sharding, "etc/sharding.yml", "path to the sharding file");
-DEFINE_string(type, "worker", "type of the instance ('worker' or 'mixer')");
+DEFINE_string(config, "",
+              "path to the config file ('worker.yml', 'mixer.yml')");
+DEFINE_string(type, "", "type of the instance ('worker' or 'mixer')");
 
 namespace {
 
@@ -38,10 +38,10 @@ Status WorkerLoop(const Config &config) {
   return StatusCode::OK;
 }
 
-Status MixerLoop(const Config &config, const Config &sharding) {
+Status MixerLoop(const Config &config) {
   Status status;
   MixerConfig mixer_config;
-  status = MixerConfig::MakeMixerConfig(config, sharding, &mixer_config);
+  status = MixerConfig::MakeMixerConfig(config, &mixer_config);
   if (status != StatusCode::OK) {
     LOG(ERROR) << "unable to initialize config, status=" << status;
     return status;
@@ -64,14 +64,6 @@ int main(int ac, char **av) {
     return -1;
   }
 
-  StatusOr<std::unique_ptr<Config>> sharding_status =
-      Config::LoadFromPath(FLAGS_sharding);
-  if (!sharding_status.Ok()) {
-    LOG(ERROR) << "unable to init sharding config, status="
-               << sharding_status.GetStatus();
-    return -1;
-  }
-
   if (FLAGS_type == kWorkerConfigType) {
     Status status = WorkerLoop(*config_status.ValueOrDie());
     if (status != StatusCode::OK) {
@@ -79,8 +71,7 @@ int main(int ac, char **av) {
       return -1;
     }
   } else if (FLAGS_type == kMixerConfigType) {
-    Status status =
-        MixerLoop(*config_status.ValueOrDie(), *sharding_status.ValueOrDie());
+    Status status = MixerLoop(*config_status.ValueOrDie());
     if (status != StatusCode::OK) {
       LOG(ERROR) << "mixer loop exited with error, status=" << status;
       return -1;

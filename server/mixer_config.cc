@@ -4,38 +4,31 @@
 
 namespace bt {
 
-namespace {
+const std::vector<ShardConfig> &MixerConfig::ShardConfigs() const {
+  return shard_configs_;
+}
 
-// Builds a topology from the shard template in the main configuration
-// file.
-Status MakeTopologyFromShard(const Config &config, Topology *topology) {
+Status MixerConfig::MakeMixerConfig(const Config &config,
+                                    MixerConfig *mixer_config) {
   for (auto &entry : config.GetConfigs("shards")) {
     ShardConfig shard;
 
     shard.name_ = entry->Get<std::string>("name");
     shard.workers_ = entry->Get<std::vector<std::string>>("workers");
+    shard.port_ = entry->Get<int>("port");
+
     if (shard.name_.empty()) {
       RETURN_ERROR(INVALID_CONFIG, "shard entry must have a name");
     }
     if (shard.workers_.empty()) {
       RETURN_ERROR(INVALID_CONFIG, "shard entry must have a list of workers");
     }
+    if (shard.port_ <= 0) {
+      RETURN_ERROR(INVALID_CONFIG, "shard entry must have a port");
+    }
 
-    mixer_config->topology_.push_back(shard);
+    mixer_config->shard_configs_.push_back(shard);
   }
-
-  return StatusCode::OK;
-}
-
-} // namespace
-
-Status MixerConfig::MakeMixerConfig(const Config &config,
-                                    const Config &sharding,
-                                    MixerConfig *mixer_config) {
-  RETURN_IF_ERROR(MakeTopologyFromShards(config, &topology_);
-
-  LOG(INFO) << "loaded mixer config with " << mixer_config->topology_.size()
-            << " shards";
 
   return StatusCode::OK;
 }
