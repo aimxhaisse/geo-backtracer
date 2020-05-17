@@ -20,7 +20,7 @@ network:
 
   # Port to listen to; in a cluster setup, each worker on a machine
   # needs to use a unique port number.
-  port: "7000"
+  port: 7000
 
 gc:
   # Retention period in days, points older than this number of days

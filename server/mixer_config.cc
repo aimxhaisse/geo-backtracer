@@ -1,4 +1,5 @@
 #include <glog/logging.h>
+#include <sstream>
 
 #include "server/mixer_config.h"
 
@@ -6,6 +7,14 @@ namespace bt {
 
 const std::vector<ShardConfig> &MixerConfig::ShardConfigs() const {
   return shard_configs_;
+}
+
+std::string MixerConfig::NetworkAddress() const {
+  std::stringstream ss;
+
+  ss << host_ << ":" << port_;
+
+  return ss.str();
 }
 
 Status MixerConfig::MakeMixerConfig(const Config &config,
@@ -28,6 +37,16 @@ Status MixerConfig::MakeMixerConfig(const Config &config,
     }
 
     mixer_config->shard_configs_.push_back(shard);
+  }
+
+  mixer_config->port_ = config.Get<int>("network.port");
+  mixer_config->host_ = config.Get<std::string>("network.host");
+
+  if (mixer_config->port_ <= 0) {
+    RETURN_ERROR(INVALID_CONFIG, "mixer must have a valid network port");
+  }
+  if (mixer_config->host_.empty()) {
+    RETURN_ERROR(INVALID_CONFIG, "mixer must have a valid network host");
   }
 
   return StatusCode::OK;

@@ -6,6 +6,13 @@
 # little by little, add machines as the backtracer takes more and
 # space.
 
+instance_type: "mixer"
+
+network:
+  host: 127.0.0.1
+  port: 8000
+
+
 shards:
   - name: "8a00862"
     port: 7000

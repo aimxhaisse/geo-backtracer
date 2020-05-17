@@ -6,11 +6,17 @@ from jinja2 import Template
 
 
 TEMPLATE = """
-# Do not update this section: it is updated by Ansible to populate the
+# Do not update this file: it is updated by Ansible to populate the
 # sharding mapping, which can evolve each time a new shard is added to
 # the cluster. This make it possible to start with a small cluster and
 # little by little, add machines as the backtracer takes more and
 # space.
+
+instance_type: "mixer"
+
+network:
+  host: "{{ vpn_ip }}"
+  port: 8000
 
 shards:
 {%- for shard in shards %}

@@ -25,8 +25,11 @@ public:
                                 MixerConfig *mixer_config);
 
   const std::vector<ShardConfig> &ShardConfigs() const;
+  std::string NetworkAddress() const;
 
 private:
+  int port_ = 0;
+  std::string host_;
   std::vector<ShardConfig> shard_configs_;
 };
 
