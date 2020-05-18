@@ -81,8 +81,10 @@ grpc::Status Mixer::DeleteUser(grpc::ServerContext *context,
   return grpc::Status::OK;
 }
 
-Status Run() {
+Status Mixer::Run() {
   utils::WaitForExitSignal();
+
+  grpc_->Shutdown();
 
   return StatusCode::OK;
 }

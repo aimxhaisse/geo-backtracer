@@ -2,6 +2,7 @@
 #include <glog/logging.h>
 
 #include "common/config.h"
+#include "server/mixer.h"
 #include "server/mixer_config.h"
 #include "server/worker.h"
 #include "server/worker_config.h"
@@ -44,6 +45,19 @@ Status MixerLoop(const Config &config) {
   status = MixerConfig::MakeMixerConfig(config, &mixer_config);
   if (status != StatusCode::OK) {
     LOG(ERROR) << "unable to initialize config, status=" << status;
+    return status;
+  }
+
+  Mixer mixer;
+  status = mixer.Init(mixer_config);
+  if (status != StatusCode::OK) {
+    LOG(ERROR) << "unable to initialize mixer, status=" << status;
+    return status;
+  }
+
+  status = mixer.Run();
+  if (status != StatusCode::OK) {
+    LOG(ERROR) << "unable to run backtracer mixer, status=" << status;
     return status;
   }
 
