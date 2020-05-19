@@ -112,7 +112,7 @@ $(TEST): build $(GENS_PB) $(GENS_GRPC) $(OBJS_GRPC) $(OBJS_TEST) $(OBJS_PB)
 	$(CXX) $(OBJS_TEST) $(OBJS_PB) $(OBJS_GRPC) $(LDLIBS) -lgtest -o $@
 
 $(DAEMON): build
-	clang -O3 daemonizer/daemonizer.c -W -Wall -pedantic -ansi -o $@
+	clang -O3 daemonizer/daemonizer.c -o $@
 
 $(DEPS):
 	mkdir -p $@
@@ -127,9 +127,10 @@ $(DEPS_GTEST): $(DEPS_GTEST_DIR)
 	touch $@
 
 install: $(BIN) $(DAEMON) $(SERVER)
+	rsync all.bash $(INSTALL_DIR)
+	(cd $(INSTALL_DIR) ; ./all.bash stop)
 	cp $(SERVER) $(INSTALL_DIR)/bin/bt
 	cp $(DAEMON) $(INSTALL_DIR)/bin/daemonizer
-	rsync all.bash $(INSTALL_DIR)
 
 server: $(SERVER)
 	$(SERVER)
