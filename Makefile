@@ -128,7 +128,7 @@ $(DEPS_GTEST): $(DEPS_GTEST_DIR)
 
 install: $(BIN) $(DAEMON) $(SERVER)
 	rsync all.bash $(INSTALL_DIR)
-	(cd $(INSTALL_DIR) ; ./all.bash stop)
+	(cd $(INSTALL_DIR) ; ./all.bash mixer stop ; ./all.bash worker stop)
 	cp $(SERVER) $(INSTALL_DIR)/bin/bt
 	cp $(DAEMON) $(INSTALL_DIR)/bin/daemonizer
 
