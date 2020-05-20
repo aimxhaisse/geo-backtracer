@@ -27,12 +27,24 @@ private:
 
 class PartitionComparator;
 
+// Partitioning key.
 class Partition {
 public:
   Partition(uint64_t ts, float gps_longitude_begin, float gps_latitude_begin,
             float gps_longitude_end, float gps_latitude_end);
 
-  friend class PartitionComparator;
+  class Comparator {
+  public:
+    bool operator()(const Partition &lhs, const Partition &rhs) const {
+      return (lhs.ts_begin_ < rhs.ts_begin_) &&
+             (lhs.gps_longitude_begin_ < rhs.gps_longitude_begin_) &&
+             (lhs.gps_latitude_begin_ < rhs.gps_latitude_begin_) &&
+             (lhs.gps_longitude_end_ < rhs.gps_longitude_end_) &&
+             (lhs.gps_latitude_end_ < rhs.gps_latitude_end_);
+    }
+  };
+
+  friend class Comparator;
 
 private:
   uint64_t ts_begin_ = 0;
@@ -42,17 +54,7 @@ private:
   float gps_latitude_end_ = 0.0;
 };
 
-class PartitionComparator {
-public:
-  bool operator()(const Partition &lhs, const Partition &rhs) const {
-    return (lhs.ts_begin_ < rhs.ts_begin_) &&
-           (lhs.gps_longitude_begin_ < rhs.gps_longitude_begin_) &&
-           (lhs.gps_latitude_begin_ < rhs.gps_latitude_begin_) &&
-           (lhs.gps_longitude_end_ < rhs.gps_longitude_end_) &&
-           (lhs.gps_latitude_end_ < rhs.gps_latitude_end_);
-  }
-};
-
+// Main class of the mixer.
 class Mixer : public proto::Pusher::Service {
 public:
   Status Init(const MixerConfig &config);
@@ -67,7 +69,7 @@ private:
   Status InitService(const MixerConfig &config);
 
   std::vector<std::shared_ptr<ShardHandler>> handlers_;
-  std::map<Partition, std::shared_ptr<ShardHandler>, PartitionComparator>
+  std::map<Partition, std::shared_ptr<ShardHandler>, Partition::Comparator>
       partitions_;
   std::unique_ptr<grpc::Server> grpc_;
 };
