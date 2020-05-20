@@ -18,6 +18,17 @@ struct ShardConfig {
   std::vector<std::string> workers_;
 };
 
+// Config of a partition.
+struct PartitionConfig {
+  std::string shard_;
+  std::string area_;
+  uint64_t ts_ = 0;
+  float gps_longitude_begin_ = 0.0;
+  float gps_latitude_begin_ = 0.0;
+  float gps_longitude_end_ = 0.0;
+  float gps_latitude_end_ = 0.0;
+};
+
 // Config for mixers.
 class MixerConfig {
 public:
@@ -28,8 +39,13 @@ public:
   std::string NetworkAddress() const;
 
 private:
+  Status MakePartitionConfigs(const Config &config);
+  Status MakeShardConfigs(const Config &config);
+  Status MakeNetworkConfig(const Config &config);
+
   int port_ = 0;
   std::string host_;
+  std::vector<PartitionConfig> partition_configs_;
   std::vector<ShardConfig> shard_configs_;
 };
 

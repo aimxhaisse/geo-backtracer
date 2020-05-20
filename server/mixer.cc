@@ -30,6 +30,14 @@ grpc::Status ShardHandler::DeleteUser(const proto::DeleteUserRequest *request,
   return grpc::Status::OK;
 }
 
+Partition::Partition(uint64_t ts, float gps_longitude_begin,
+                     float gps_latitude_begin, float gps_longitude_end,
+                     float gps_latitude_end)
+    : ts_begin_(ts), gps_longitude_begin_(gps_longitude_begin),
+      gps_latitude_begin_(gps_latitude_begin),
+      gps_longitude_end_(gps_longitude_end),
+      gps_latitude_end_(gps_latitude_end) {}
+
 Status Mixer::Init(const MixerConfig &config) {
   RETURN_IF_ERROR(InitHandlers(config));
   RETURN_IF_ERROR(InitService(config));

@@ -12,7 +12,6 @@ network:
   host: 127.0.0.1
   port: 8000
 
-
 shards:
   - name: "8a00862"
     port: 7000
