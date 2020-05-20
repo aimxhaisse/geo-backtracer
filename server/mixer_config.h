@@ -36,6 +36,7 @@ public:
                                 MixerConfig *mixer_config);
 
   const std::vector<ShardConfig> &ShardConfigs() const;
+  const std::vector<PartitionConfig> &PartitionConfigs() const;
   std::string NetworkAddress() const;
 
 private:

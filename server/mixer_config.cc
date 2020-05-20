@@ -15,6 +15,10 @@ const std::vector<ShardConfig> &MixerConfig::ShardConfigs() const {
   return shard_configs_;
 }
 
+const std::vector<PartitionConfig> &MixerConfig::PartitionConfigs() const {
+  return partition_configs_;
+}
+
 std::string MixerConfig::NetworkAddress() const {
   std::stringstream ss;
 
