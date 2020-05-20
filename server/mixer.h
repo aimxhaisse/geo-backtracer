@@ -15,6 +15,7 @@ class ShardHandler {
 public:
   explicit ShardHandler(const ShardConfig &config);
   Status Init();
+  const std::string &Name() const;
 
   grpc::Status DeleteUser(const proto::DeleteUserRequest *request,
                           proto::DeleteUserResponse *response);
@@ -24,10 +25,14 @@ private:
   ShardConfig config_;
 };
 
+class PartitionComparator;
+
 class Partition {
 public:
   Partition(uint64_t ts, float gps_longitude_begin, float gps_latitude_begin,
             float gps_longitude_end, float gps_latitude_end);
+
+  friend class PartitionComparator;
 
 private:
   uint64_t ts_begin_ = 0;
@@ -35,6 +40,17 @@ private:
   float gps_latitude_begin_ = 0.0;
   float gps_longitude_end_ = 0.0;
   float gps_latitude_end_ = 0.0;
+};
+
+class PartitionComparator {
+public:
+  bool operator()(const Partition &lhs, const Partition &rhs) const {
+    return (lhs.ts_begin_ < rhs.ts_begin_) &&
+           (lhs.gps_longitude_begin_ < rhs.gps_longitude_begin_) &&
+           (lhs.gps_latitude_begin_ < rhs.gps_latitude_begin_) &&
+           (lhs.gps_longitude_end_ < rhs.gps_longitude_end_) &&
+           (lhs.gps_latitude_end_ < rhs.gps_latitude_end_);
+  }
 };
 
 class Mixer : public proto::Pusher::Service {
@@ -51,7 +67,8 @@ private:
   Status InitService(const MixerConfig &config);
 
   std::vector<std::shared_ptr<ShardHandler>> handlers_;
-  std::map<Partition, ShardHandler> partitions_;
+  std::map<Partition, std::shared_ptr<ShardHandler>, PartitionComparator>
+      partitions_;
   std::unique_ptr<grpc::Server> grpc_;
 };
 

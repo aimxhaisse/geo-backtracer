@@ -17,6 +17,8 @@ Status ShardHandler::Init() {
   return StatusCode::OK;
 }
 
+const std::string &ShardHandler::Name() const { return config_.name_; }
+
 grpc::Status ShardHandler::DeleteUser(const proto::DeleteUserRequest *request,
                                       proto::DeleteUserResponse *response) {
   for (auto &stub : stubs_) {
@@ -55,6 +57,19 @@ Status Mixer::InitHandlers(const MixerConfig &config) {
     }
 
     handlers_.push_back(handler);
+  }
+
+  // Register handlers per partition.
+  for (auto &partition : config.PartitionConfigs()) {
+    for (auto &handler : handlers_) {
+      if (handler->Name() == partition.shard_) {
+        Partition p(partition.ts_, partition.gps_longitude_begin_,
+                    partition.gps_latitude_begin_, partition.gps_longitude_end_,
+                    partition.gps_latitude_end_);
+        partitions_[p] = handler;
+        break;
+      }
+    }
   }
 
   return StatusCode::OK;
