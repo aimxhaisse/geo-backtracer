@@ -10,6 +10,7 @@
 namespace bt {
 
 constexpr auto kMixerConfigType = "mixer";
+constexpr auto kDefaultArea = "default";
 
 // Config of a shard.
 struct ShardConfig {

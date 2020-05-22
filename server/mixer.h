@@ -14,44 +14,21 @@ namespace bt {
 class ShardHandler {
 public:
   explicit ShardHandler(const ShardConfig &config);
-  Status Init();
+  Status Init(const std::vector<PartitionConfig> &partitions);
   const std::string &Name() const;
 
+  // Immediately deletes all references to the given user.
   grpc::Status DeleteUser(const proto::DeleteUserRequest *request,
                           proto::DeleteUserResponse *response);
 
+  // Returns true if the location is accepted by this shard; the
+  // actual sending of the point can be delayed in favor of batching.
+  bool HandleLocation(const proto::Location &location);
+
 private:
-  std::vector<std::unique_ptr<proto::Pusher::Stub>> stubs_;
   ShardConfig config_;
-};
-
-class PartitionComparator;
-
-// Partitioning key.
-class Partition {
-public:
-  Partition(uint64_t ts, float gps_longitude_begin, float gps_latitude_begin,
-            float gps_longitude_end, float gps_latitude_end);
-
-  class Comparator {
-  public:
-    bool operator()(const Partition &lhs, const Partition &rhs) const {
-      return (lhs.ts_begin_ < rhs.ts_begin_) &&
-             (lhs.gps_longitude_begin_ < rhs.gps_longitude_begin_) &&
-             (lhs.gps_latitude_begin_ < rhs.gps_latitude_begin_) &&
-             (lhs.gps_longitude_end_ < rhs.gps_longitude_end_) &&
-             (lhs.gps_latitude_end_ < rhs.gps_latitude_end_);
-    }
-  };
-
-  friend class Comparator;
-
-private:
-  uint64_t ts_begin_ = 0;
-  float gps_longitude_begin_ = 0.0;
-  float gps_latitude_begin_ = 0.0;
-  float gps_longitude_end_ = 0.0;
-  float gps_latitude_end_ = 0.0;
+  std::vector<PartitionConfig> partitions_;
+  std::vector<std::unique_ptr<proto::Pusher::Stub>> stubs_;
 };
 
 // Main class of the mixer.
@@ -64,13 +41,16 @@ public:
                           const proto::DeleteUserRequest *request,
                           proto::DeleteUserResponse *response) override;
 
+  grpc::Status PutLocation(grpc::ServerContext *context,
+                           const proto::PutLocationRequest *request,
+                           proto::PutLocationResponse *response) override;
+
 private:
   Status InitHandlers(const MixerConfig &config);
   Status InitService(const MixerConfig &config);
 
   std::vector<std::shared_ptr<ShardHandler>> handlers_;
-  std::map<Partition, std::shared_ptr<ShardHandler>, Partition::Comparator>
-      partitions_;
+  std::shared_ptr<ShardHandler> default_handler_;
   std::unique_ptr<grpc::Server> grpc_;
 };
 

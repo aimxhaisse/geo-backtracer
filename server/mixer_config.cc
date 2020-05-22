@@ -3,12 +3,6 @@
 
 #include "server/mixer_config.h"
 
-namespace {
-
-constexpr auto kDefaultArea = "default";
-
-} // namespace
-
 namespace bt {
 
 const std::vector<ShardConfig> &MixerConfig::ShardConfigs() const {
