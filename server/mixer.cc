@@ -104,7 +104,8 @@ Status Mixer::InitService(const MixerConfig &config) {
 
   builder.AddListeningPort(config.NetworkAddress(),
                            grpc::InsecureServerCredentials());
-  builder.RegisterService(this);
+  builder.RegisterService(static_cast<proto::Pusher::Service *>(this));
+  builder.RegisterService(static_cast<proto::Seeker::Service *>(this));
   grpc_ = builder.BuildAndStart();
   LOG(INFO) << "initialized grpc";
 
