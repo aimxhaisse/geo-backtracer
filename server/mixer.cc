@@ -1,8 +1,10 @@
 #include <glog/logging.h>
+#include <google/protobuf/util/message_differencer.h>
 #include <grpc++/grpc++.h>
 
 #include "common/signal.h"
 #include "server/mixer.h"
+#include "server/proto.h"
 
 namespace bt {
 
@@ -16,7 +18,9 @@ Status ShardHandler::Init(const std::vector<PartitionConfig> &partitions) {
   }
 
   for (const auto &worker : config_.workers_) {
-    stubs_.push_back(proto::Pusher::NewStub(
+    pushers_.push_back(proto::Pusher::NewStub(
+        grpc::CreateChannel(worker, grpc::InsecureChannelCredentials())));
+    seekers_.push_back(proto::Seeker::NewStub(
         grpc::CreateChannel(worker, grpc::InsecureChannelCredentials())));
   }
 
@@ -27,7 +31,7 @@ const std::string &ShardHandler::Name() const { return config_.name_; }
 
 grpc::Status ShardHandler::DeleteUser(const proto::DeleteUserRequest *request,
                                       proto::DeleteUserResponse *response) {
-  for (auto &stub : stubs_) {
+  for (auto &stub : pushers_) {
     grpc::ClientContext context;
     grpc::Status status = stub->DeleteUser(&context, *request, response);
     if (!status.ok()) {
@@ -53,7 +57,7 @@ bool ShardHandler::HandleLocation(const proto::Location &location) {
 
     // TODO: handle timestamp and background thread batching requests.
 
-    for (auto &stub : stubs_) {
+    for (auto &stub : pushers_) {
       grpc::ClientContext context;
       proto::PutLocationRequest request;
       proto::PutLocationResponse response;
@@ -71,6 +75,39 @@ bool ShardHandler::HandleLocation(const proto::Location &location) {
   }
 
   return false;
+}
+
+grpc::Status
+ShardHandler::GetUserTimeline(const proto::GetUserTimelineRequest *request,
+                              proto::GetUserTimelineResponse *response) {
+  grpc::Status retval = grpc::Status::OK;
+  std::set<proto::UserTimelinePoint, CompareTimelinePoints> timeline;
+  bool success = false;
+
+  // Assume the two machines may have different data, for instance if
+  // one was down for too long, return a merged version of the
+  // timeline.
+  for (auto &stub : seekers_) {
+    grpc::ClientContext context;
+    proto::GetUserTimelineResponse response;
+    grpc::Status status = stub->GetUserTimeline(&context, *request, &response);
+
+    for (const auto &point : response.point()) {
+      timeline.insert(point);
+    }
+
+    if (status.ok()) {
+      success = true;
+    } else {
+      retval = status;
+    }
+  }
+
+  for (const auto &p : timeline) {
+    *response->add_point() = p;
+  }
+
+  return retval;
 }
 
 Status Mixer::Init(const MixerConfig &config) {
@@ -147,6 +184,13 @@ grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
     }
   }
 
+  return grpc::Status::OK;
+}
+
+grpc::Status
+Mixer::GetUserTimeline(grpc::ServerContext *context,
+                       const proto::GetUserTimelineRequest *request,
+                       proto::GetUserTimelineResponse *response) {
   return grpc::Status::OK;
 }
 

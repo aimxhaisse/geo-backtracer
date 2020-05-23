@@ -17,18 +17,28 @@ public:
   Status Init(const std::vector<PartitionConfig> &partitions);
   const std::string &Name() const;
 
+  // Pusher interface.
+
   // Immediately deletes all references to the given user.
   grpc::Status DeleteUser(const proto::DeleteUserRequest *request,
                           proto::DeleteUserResponse *response);
 
   // Returns true if the location is accepted by this shard; the
   // actual sending of the point can be delayed in favor of batching.
+  // We don't expose the GRPC interface here as this is handled in the
+  // background and we want to immediately return here, in a
+  // best-effort mode.
   bool HandleLocation(const proto::Location &location);
+
+  // Seeker interface.
+  grpc::Status GetUserTimeline(const proto::GetUserTimelineRequest *request,
+                               proto::GetUserTimelineResponse *response);
 
 private:
   ShardConfig config_;
   std::vector<PartitionConfig> partitions_;
-  std::vector<std::unique_ptr<proto::Pusher::Stub>> stubs_;
+  std::vector<std::unique_ptr<proto::Pusher::Stub>> pushers_;
+  std::vector<std::unique_ptr<proto::Seeker::Stub>> seekers_;
 };
 
 // Main class of the mixer.
@@ -37,6 +47,7 @@ public:
   Status Init(const MixerConfig &config);
   Status Run();
 
+  // Pusher interface.
   grpc::Status DeleteUser(grpc::ServerContext *context,
                           const proto::DeleteUserRequest *request,
                           proto::DeleteUserResponse *response) override;
@@ -44,6 +55,12 @@ public:
   grpc::Status PutLocation(grpc::ServerContext *context,
                            const proto::PutLocationRequest *request,
                            proto::PutLocationResponse *response) override;
+
+  // Seeker interface.
+  grpc::Status
+  GetUserTimeline(grpc::ServerContext *context,
+                  const proto::GetUserTimelineRequest *request,
+                  proto::GetUserTimelineResponse *response) override;
 
 private:
   Status InitHandlers(const MixerConfig &config);
