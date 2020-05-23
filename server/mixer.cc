@@ -107,6 +107,10 @@ ShardHandler::GetUserTimeline(const proto::GetUserTimelineRequest *request,
     *response->add_point() = p;
   }
 
+  if (success) {
+    return grpc::Status::OK;
+  }
+
   return retval;
 }
 
@@ -191,6 +195,29 @@ grpc::Status
 Mixer::GetUserTimeline(grpc::ServerContext *context,
                        const proto::GetUserTimelineRequest *request,
                        proto::GetUserTimelineResponse *response) {
+  std::set<proto::UserTimelinePoint, CompareTimelinePoints> timeline;
+
+  std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
+  handlers.push_back(default_handler_);
+
+  for (auto &handler : handlers) {
+    proto::GetUserTimelineResponse shard_response;
+    grpc::Status status = handler->GetUserTimeline(request, &shard_response);
+    if (!status.ok()) {
+      LOG_EVERY_N(WARNING, 10000)
+          << "unable to retrieve user timeline because a shard is down";
+      return status;
+    }
+
+    for (const auto &p : shard_response.point()) {
+      timeline.insert(p);
+    }
+  }
+
+  for (const auto &p : timeline) {
+    *response->add_point() = p;
+  }
+
   return grpc::Status::OK;
 }
 
