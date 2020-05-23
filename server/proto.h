@@ -13,4 +13,9 @@ void DumpDbTimelineValue(const proto::DbValue &value);
 void DumpProtoTimelineResponse(int64_t user_id,
                                const proto::GetUserTimelineResponse &timeline);
 
+struct CompareTimelinePoints {
+  bool operator()(const proto::UserTimelinePoint &lhs,
+                  const proto::UserTimelinePoint &rhs) const;
+};
+
 } // namespace bt

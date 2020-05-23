@@ -33,4 +33,23 @@ void DumpProtoTimelineResponse(int64_t user_id,
   }
 }
 
+bool CompareTimelinePoints ::
+operator()(const proto::UserTimelinePoint &lhs,
+           const proto::UserTimelinePoint &rhs) const {
+  if (lhs.timestamp() != rhs.timestamp()) {
+    return lhs.timestamp() < rhs.timestamp();
+  }
+  if (lhs.gps_latitude() != rhs.gps_latitude()) {
+    return lhs.gps_latitude() < rhs.gps_latitude();
+  }
+  if (lhs.gps_longitude() != rhs.gps_longitude()) {
+    return lhs.gps_longitude() < rhs.gps_longitude();
+  }
+  if (lhs.gps_altitude() != rhs.gps_altitude()) {
+    return lhs.gps_altitude() < rhs.gps_altitude();
+  }
+
+  return lhs.duration() < rhs.duration();
+}
+
 } // namespace bt
