@@ -42,7 +42,7 @@ private:
 };
 
 // Main class of the mixer.
-class Mixer : public proto::Pusher::Service, proto::Seeker::Service {
+class Mixer : public proto::MixerService::Service {
 public:
   Status Init(const MixerConfig &config);
   Status Run();

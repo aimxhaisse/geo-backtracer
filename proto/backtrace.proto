@@ -2,6 +2,28 @@ syntax = "proto3";
 
 package proto;
 
+// --- Mixer interface
+
+// Entrypoint of the cluster, any mixer can handle any request for the
+// cluster. This is the entrypoint used by APIs to send writes, get
+// timelines, find correlations or delete user data.
+service MixerService {
+  // For each point in the request, finds the appropriate shard and
+  // writes it to the underlying databases.
+  rpc PutLocation(PutLocationRequest) returns (PutLocationResponse) {}
+
+  // Deletes a user from all shards in the cluster.
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
+
+  // Queries all shards and merges the timeline for a given user,
+  // ordered by timestamp.
+  rpc GetUserTimeline(GetUserTimelineRequest) returns (GetUserTimelineResponse) {}
+
+  // Queries all shards to find out correlations (i.e: users that were
+  // close for a given period of time).
+  rpc GetUserNearbyFolks(GetUserNearbyFolksRequest) returns (GetUserNearbyFolksResponse) {};
+}
+
 // --- Interface to push location points.
 
 service Pusher {
