@@ -59,6 +59,9 @@ int64_t TsPreviousZone(int64_t timestamp);
 // longitude).
 float GPSLocationToGPSZone(float gps_location);
 
+// Converts a zone to the beginning of the zone in GPS location.
+float ZoneToGPSLocation(float gps_zone);
+
 // Get the next GPS zone for a given location.
 float GPSNextZone(float gps_location);
 

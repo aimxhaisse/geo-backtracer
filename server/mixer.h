@@ -37,6 +37,9 @@ public:
                           proto::DeleteUserResponse *response);
 
 private:
+  bool IsWithinShard(const PartitionConfig &partition, float gps_lat,
+                     float gps_long, int64_t ts) const;
+
   ShardConfig config_;
   std::vector<PartitionConfig> partitions_;
   std::vector<std::unique_ptr<proto::Pusher::Stub>> pushers_;

@@ -18,6 +18,8 @@ int64_t TsNextZone(int64_t timestamp) { return TsToZone(timestamp) + 1; }
 
 int64_t TsPreviousZone(int64_t timestamp) { return TsToZone(timestamp) - 1; }
 
+float ZoneToGPSLocation(float gps_zone) { return gps_zone * kGPSZonePrecision; }
+
 float GPSLocationToGPSZone(float gps_location) {
   return floor(gps_location * kGPSZonePrecision) / kGPSZonePrecision;
 }

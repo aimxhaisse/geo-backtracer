@@ -48,28 +48,68 @@ Status ShardHandler::InternalBuildBlockForUser(
     const proto::DbKey &key, int64_t user_id,
     std::set<proto::BlockEntry, CompareBlockEntry> *user_entries,
     std::set<proto::BlockEntry, CompareBlockEntry> *folk_entries, bool *found) {
-  proto::BuildBlockForUserRequest response;
-  proto::BuildBlockForUserRequest request;
-  request.set_user_id(user_id);
-  *(request.mutable_timeline_key()) = key;
+  for (const auto &partition : partitions_) {
+    if (!IsWithinShard(partition, ZoneToGPSLocation(key.gps_latitude_zone()),
+                       ZoneToGPSLocation(key.gps_longitude_zone()),
+                       key.timestamp())) {
+      continue;
+    }
+
+    *found = true;
+
+    proto::BuildBlockForUserRequest request;
+    request.set_user_id(user_id);
+    *(request.mutable_timeline_key()) = key;
+
+    bool ok = false;
+
+    for (auto &stub : seekers_) {
+      proto::BuildBlockForUserResponse response;
+      grpc::ClientContext context;
+      grpc::Status grpc_status =
+          stub->InternalBuildBlockForUser(&context, request, &response);
+      if (grpc_status.ok()) {
+        ok = true;
+      }
+
+      for (const auto &block : response.user_entries()) {
+        user_entries->insert(block);
+      }
+      for (const auto &block : response.folk_entries()) {
+        folk_entries->insert(block);
+      }
+    }
+
+    if (!ok) {
+      RETURN_ERROR(INTERNAL_ERROR, "can't retrieve internal block from shard");
+    }
+
+    return StatusCode::OK;
+  }
 
   return StatusCode::OK;
 }
 
+bool ShardHandler::IsWithinShard(const PartitionConfig &partition,
+                                 float gps_lat, float gps_long,
+                                 int64_t ts) const {
+  // TODO: handle timestamp.
+
+  return (config_.name_ == kDefaultArea) ||
+         ((gps_lat >= partition.gps_latitude_begin_ &&
+           gps_lat < partition.gps_latitude_end_) &&
+          (gps_long >= partition.gps_longitude_begin_ &&
+           gps_long < partition.gps_longitude_end_));
+}
+
 bool ShardHandler::HandleLocation(const proto::Location &location) {
   for (const auto &partition : partitions_) {
-    const bool is_within_shard =
-        (config_.name_ == kDefaultArea) ||
-        ((location.gps_latitude() >= partition.gps_latitude_begin_ &&
-          location.gps_latitude() < partition.gps_latitude_end_) &&
-         (location.gps_longitude() >= partition.gps_longitude_begin_ &&
-          location.gps_longitude() < partition.gps_longitude_end_));
-
-    if (!is_within_shard) {
+    if (!IsWithinShard(partition, location.gps_latitude(),
+                       location.gps_longitude(), location.timestamp())) {
       continue;
     }
 
-    // TODO: handle timestamp and background thread batching requests.
+    // TODO: handle background thread batching requests.
 
     for (auto &stub : pushers_) {
       grpc::ClientContext context;
