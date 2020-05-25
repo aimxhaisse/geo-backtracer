@@ -17,12 +17,6 @@ public:
   Status Init(const std::vector<PartitionConfig> &partitions);
   const std::string &Name() const;
 
-  // Pusher interface.
-
-  // Immediately deletes all references to the given user.
-  grpc::Status DeleteUser(const proto::DeleteUserRequest *request,
-                          proto::DeleteUserResponse *response);
-
   // Returns true if the location is accepted by this shard; the
   // actual sending of the point can be delayed in favor of batching.
   // We don't expose the GRPC interface here as this is handled in the
@@ -30,9 +24,17 @@ public:
   // best-effort mode.
   bool HandleLocation(const proto::Location &location);
 
-  // Seeker interface.
+  Status InternalBuildBlockForUser(
+      const proto::DbKey &key, int64_t user_id,
+      std::set<proto::BlockEntry, CompareBlockEntry> *user_entries,
+      std::set<proto::BlockEntry, CompareBlockEntry> *folk_entries,
+      bool *found);
+
   grpc::Status GetUserTimeline(const proto::GetUserTimelineRequest *request,
                                proto::GetUserTimelineResponse *response);
+
+  grpc::Status DeleteUser(const proto::DeleteUserRequest *request,
+                          proto::DeleteUserResponse *response);
 
 private:
   ShardConfig config_;
@@ -47,7 +49,6 @@ public:
   Status Init(const MixerConfig &config);
   Status Run();
 
-  // Pusher interface.
   grpc::Status DeleteUser(grpc::ServerContext *context,
                           const proto::DeleteUserRequest *request,
                           proto::DeleteUserResponse *response) override;
@@ -56,15 +57,23 @@ public:
                            const proto::PutLocationRequest *request,
                            proto::PutLocationResponse *response) override;
 
-  // Seeker interface.
   grpc::Status
   GetUserTimeline(grpc::ServerContext *context,
                   const proto::GetUserTimelineRequest *request,
                   proto::GetUserTimelineResponse *response) override;
 
+  grpc::Status
+  GetUserNearbyFolks(grpc::ServerContext *context,
+                     const proto::GetUserNearbyFolksRequest *request,
+                     proto::GetUserNearbyFolksResponse *response) override;
+
 private:
   Status InitHandlers(const MixerConfig &config);
   Status InitService(const MixerConfig &config);
+
+  Status BuildKeysToSearchAroundPoint(uint64_t user_id,
+                                      const proto::UserTimelinePoint &point,
+                                      std::list<proto::DbKey> *keys);
 
   std::vector<std::shared_ptr<ShardHandler>> handlers_;
   std::shared_ptr<ShardHandler> default_handler_;

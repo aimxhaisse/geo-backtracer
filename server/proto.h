@@ -18,4 +18,9 @@ struct CompareTimelinePoints {
                   const proto::UserTimelinePoint &rhs) const;
 };
 
+struct CompareBlockEntry {
+  bool operator()(const proto::BlockEntry &lhs,
+                  const proto::BlockEntry &rhs) const;
+};
+
 } // namespace bt
