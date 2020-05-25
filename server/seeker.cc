@@ -121,9 +121,9 @@ Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey> &keys,
 }
 
 grpc::Status
-Seeker::GetUserTimeline(grpc::ServerContext *context,
-                        const proto::GetUserTimelineRequest *request,
-                        proto::GetUserTimelineResponse *response) {
+Seeker::InternalGetUserTimeline(grpc::ServerContext *context,
+                                const proto::GetUserTimelineRequest *request,
+                                proto::GetUserTimelineResponse *response) {
   std::list<proto::DbKey> keys;
   Status status = BuildTimelineKeysForUser(request->user_id(), &keys);
   if (status != StatusCode::OK) {
@@ -246,8 +246,8 @@ bool Seeker::IsNearbyFolk(const proto::DbKey &user_key,
 
 grpc::Status Seeker::InternalBuildBlockForUser(
     grpc::ServerContext *context,
-    const proto::InternalBuildBlockForUserRequest *request,
-    proto::InternalBuildBlockForUserResponse *response) {
+    const proto::BuildBlockForUserRequest *request,
+    proto::BuildBlockForUserResponse *response) {
   proto::DbKey start_key = request->timeline_key();
   start_key.set_user_id(0);
 
@@ -380,16 +380,17 @@ Seeker::BuildKeysToSearchAroundPoint(uint64_t user_id,
   return StatusCode::OK;
 }
 
-grpc::Status
-Seeker::GetUserNearbyFolks(grpc::ServerContext *context,
-                           const proto::GetUserNearbyFolksRequest *request,
-                           proto::GetUserNearbyFolksResponse *response) {
+grpc::Status Seeker::InternalGetUserNearbyFolks(
+    grpc::ServerContext *context,
+    const proto::GetUserNearbyFolksRequest *request,
+    proto::GetUserNearbyFolksResponse *response) {
   // First step, get the user timeline, this is needed because we need
   // exact timestamps to build the logical blocks.
   proto::GetUserTimelineResponse tl_rsp;
   proto::GetUserTimelineRequest tl_request;
   tl_request.set_user_id(request->user_id());
-  grpc::Status grpc_status = GetUserTimeline(context, &tl_request, &tl_rsp);
+  grpc::Status grpc_status =
+      InternalGetUserTimeline(context, &tl_request, &tl_rsp);
   if (!grpc_status.ok()) {
     return grpc_status;
   }

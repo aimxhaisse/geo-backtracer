@@ -9,30 +9,30 @@ namespace bt {
 
 class Db;
 
-// Service to seek points from the database
+// Service to seek points from the database.
 class Seeker : public proto::Seeker::Service {
 public:
   Status Init(Db *db);
 
   grpc::Status
-  GetUserTimeline(grpc::ServerContext *context,
-                  const proto::GetUserTimelineRequest *request,
-                  proto::GetUserTimelineResponse *response) override;
+  InternalGetUserTimeline(grpc::ServerContext *context,
+                          const proto::GetUserTimelineRequest *request,
+                          proto::GetUserTimelineResponse *response) override;
 
-  grpc::Status
-  GetUserNearbyFolks(grpc::ServerContext *context,
-                     const proto::GetUserNearbyFolksRequest *request,
-                     proto::GetUserNearbyFolksResponse *response) override;
+  grpc::Status InternalGetUserNearbyFolks(
+      grpc::ServerContext *context,
+      const proto::GetUserNearbyFolksRequest *request,
+      proto::GetUserNearbyFolksResponse *response) override;
+
+  grpc::Status InternalBuildBlockForUser(
+      grpc::ServerContext *context,
+      const proto::BuildBlockForUserRequest *request,
+      proto::BuildBlockForUserResponse *response) override;
 
   static bool IsNearbyFolk(const proto::DbKey &user_key,
                            const proto::DbValue &user_value,
                            const proto::DbKey &folk_key,
                            const proto::DbValue &folk_value);
-
-  grpc::Status InternalBuildBlockForUser(
-      grpc::ServerContext *context,
-      const proto::InternalBuildBlockForUserRequest *request,
-      proto::InternalBuildBlockForUserResponse *response) override;
 
 private:
   Status BuildTimelineKeysForUser(uint64_t user_id,

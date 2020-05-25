@@ -92,7 +92,8 @@ ShardHandler::GetUserTimeline(const proto::GetUserTimelineRequest *request,
   for (auto &stub : seekers_) {
     grpc::ClientContext context;
     proto::GetUserTimelineResponse response;
-    grpc::Status status = stub->GetUserTimeline(&context, *request, &response);
+    grpc::Status status =
+        stub->InternalGetUserTimeline(&context, *request, &response);
 
     for (const auto &point : response.point()) {
       timeline.insert(point);

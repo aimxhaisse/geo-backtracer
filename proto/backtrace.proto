@@ -24,13 +24,14 @@ service MixerService {
   rpc GetUserNearbyFolks(GetUserNearbyFolksRequest) returns (GetUserNearbyFolksResponse) {};
 }
 
-// --- Interface to push location points.
+// --- Internal interface to push location points in a database.
 
 service Pusher {
   rpc InternalPutLocation(PutLocationRequest) returns (PutLocationResponse) {}
   rpc InternalDeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
 }
 
+// Location of a user for a duration at a given timestamp.
 message Location {
   uint64 timestamp = 1;
   uint32 duration = 2;
@@ -40,30 +41,39 @@ message Location {
   float gps_altitude = 6;
 }
 
+// Insert location points in the database.
 message PutLocationRequest {
   repeated Location locations = 1;
 }
 
+// Ack for the insert.
 message PutLocationResponse {}
 
+// Delete all user data from the database.
 message DeleteUserRequest {
   uint64 user_id = 1;
 }
 
+// Ack for the deletion.
 message DeleteUserResponse {}
 
-// --- Interface to lookup correlations.
+// --- Internal interface to retrieve points from the database.
 
 service Seeker {
-  rpc GetUserTimeline(GetUserTimelineRequest) returns (GetUserTimelineResponse) {}
-  rpc GetUserNearbyFolks(GetUserNearbyFolksRequest) returns (GetUserNearbyFolksResponse) {};
-  rpc InternalBuildBlockForUser(InternalBuildBlockForUserRequest) returns (InternalBuildBlockForUserResponse) {};
+  rpc InternalGetUserTimeline(GetUserTimelineRequest) returns (GetUserTimelineResponse) {}
+  rpc InternalGetUserNearbyFolks(GetUserNearbyFolksRequest) returns (GetUserNearbyFolksResponse) {};
+  rpc InternalBuildBlockForUser(BuildBlockForUserRequest) returns (BuildBlockForUserResponse) {};
 }
 
+// Ask for the timeline of a user.
 message GetUserTimelineRequest {
   uint64 user_id = 1;
 }
 
+// A timeline point for a user, it may be split in N minutes blocks
+// that differ from the original input (i.e: if the system got as an
+// input, the user was at X for 10h, we can return 10 points at X with
+// a duration of 1h).
 message UserTimelinePoint {
   int64 timestamp = 1;
   uint32 duration = 2;
@@ -72,24 +82,48 @@ message UserTimelinePoint {
   float gps_altitude = 5;
 };
 
+// Timeline of the user, ordered by timestamp.
 message GetUserTimelineResponse {
   repeated UserTimelinePoint point = 1;
 }
 
+// Ask for correlations for a given user.
 message GetUserNearbyFolksRequest {
   uint64 user_id = 1;
 }
 
+// A correlation with a score denoting how close the two users were
+// (takes into account distance and duration).
 message NearbyUserFolk {
   int64 user_id = 1;
   int64 score = 2;
 }
 
+// List of correlations found.
 message GetUserNearbyFolksResponse {
   repeated NearbyUserFolk folk = 1;
 }
 
-// --- Database internals.
+// Internal service to retrieve all block entries at a given key.
+message BuildBlockForUserRequest {
+  DbKey timeline_key = 1;
+  uint64 user_id = 2;
+}
+
+// Block entry from the database.
+message BlockEntry {
+  DbKey key = 1;
+  DbValue value = 2;
+}
+
+// Here we split results between the given user and other users around
+// to simplify processing.
+message BuildBlockForUserResponse {
+  repeated BlockEntry user_entries = 1;
+  repeated BlockEntry folk_entries = 2;
+}
+
+// --- Database internals data structures.
 //
 // Note: it doesn't seem that the types here have an impact on the
 // database size, for instance downscaling timestamp from int64 to
@@ -140,23 +174,4 @@ message DbReverseValue {
   AdjacentZone adj_timestamp = 1;
   AdjacentZone adj_gps_longitude = 2;
   AdjacentZone adj_gps_latitude = 3;
-}
-
-// Internal service to retrieve all block entries at a given key,
-// split results between the given user and other users around to
-// simplify processing.  This request is per-shard and needs to be
-// aggretated.
-message InternalBuildBlockForUserRequest {
-  DbKey timeline_key = 1;
-  uint64 user_id = 2;
-}
-
-message BlockEntry {
-  DbKey key = 1;
-  DbValue value = 2;
-}
-
-message InternalBuildBlockForUserResponse {
-  repeated BlockEntry user_entries = 1;
-  repeated BlockEntry folk_entries = 2;
 }

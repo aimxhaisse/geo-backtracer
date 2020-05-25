@@ -48,7 +48,8 @@ bool ClusterTestBase::FetchTimeline(uint64_t user_id,
 
   request.set_user_id(user_id);
 
-  grpc::Status status = Seeker()->GetUserTimeline(&context, &request, response);
+  grpc::Status status =
+      Seeker()->InternalGetUserTimeline(&context, &request, response);
 
   return status.ok();
 }
@@ -61,7 +62,7 @@ bool ClusterTestBase::GetNearbyFolks(
   request.set_user_id(user_id);
 
   grpc::Status status =
-      Seeker()->GetUserNearbyFolks(&context, &request, response);
+      Seeker()->InternalGetUserNearbyFolks(&context, &request, response);
 
   return status.ok();
 }
