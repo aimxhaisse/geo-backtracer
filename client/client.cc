@@ -174,7 +174,8 @@ Status Client::Wanderings() {
 
     grpc::ClientContext context;
     proto::PutLocationResponse response;
-    grpc::Status status = stub->PutLocation(&context, request, &response);
+    grpc::Status status =
+        stub->InternalPutLocation(&context, request, &response);
     if (!status.ok()) {
       RETURN_ERROR(INTERNAL_ERROR,
                    "unable to send location to backtracer, status="
@@ -221,7 +222,8 @@ Status Client::BatchPush() {
     std::unique_ptr<proto::Pusher::Stub> stub =
         proto::Pusher::NewStub(grpc::CreateChannel(
             kServerAddress, grpc::InsecureChannelCredentials()));
-    grpc::Status status = stub->PutLocation(&context, request, &response);
+    grpc::Status status =
+        stub->InternalPutLocation(&context, request, &response);
     if (!status.ok()) {
       RETURN_ERROR(INTERNAL_ERROR,
                    "unable to send location to backtracer, status="

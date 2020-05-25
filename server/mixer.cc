@@ -33,7 +33,8 @@ grpc::Status ShardHandler::DeleteUser(const proto::DeleteUserRequest *request,
                                       proto::DeleteUserResponse *response) {
   for (auto &stub : pushers_) {
     grpc::ClientContext context;
-    grpc::Status status = stub->DeleteUser(&context, *request, response);
+    grpc::Status status =
+        stub->InternalDeleteUser(&context, *request, response);
     if (!status.ok()) {
       return status;
     }
@@ -64,7 +65,8 @@ bool ShardHandler::HandleLocation(const proto::Location &location) {
 
       *request.add_locations() = location;
 
-      grpc::Status status = stub->PutLocation(&context, request, &response);
+      grpc::Status status =
+          stub->InternalPutLocation(&context, request, &response);
       if (!status.ok()) {
         LOG_EVERY_N(WARNING, 10000)
             << "can't send location point to shard " << config_.name_;

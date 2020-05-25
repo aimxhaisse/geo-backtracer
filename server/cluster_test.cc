@@ -35,7 +35,8 @@ bool ClusterTestBase::PushPoint(uint64_t timestamp, uint32_t duration,
   location->set_gps_latitude(latitude);
   location->set_gps_altitude(altitude);
 
-  grpc::Status status = Pusher()->PutLocation(&context, &request, &response);
+  grpc::Status status =
+      Pusher()->InternalPutLocation(&context, &request, &response);
 
   return status.ok();
 }
@@ -101,7 +102,8 @@ bool ClusterTestBase::DeleteUser(uint64_t user_id) {
   proto::DeleteUserRequest request;
   request.set_user_id(user_id);
 
-  grpc::Status status = Pusher()->DeleteUser(&context, &request, &response);
+  grpc::Status status =
+      Pusher()->InternalDeleteUser(&context, &request, &response);
 
   return status.ok();
 }

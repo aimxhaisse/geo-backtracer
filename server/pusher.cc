@@ -113,9 +113,10 @@ Status Pusher::PutReverseLocation(int64_t user_id, int64_t ts,
   return StatusCode::OK;
 }
 
-grpc::Status Pusher::PutLocation(grpc::ServerContext *context,
-                                 const proto::PutLocationRequest *request,
-                                 proto::PutLocationResponse *response) {
+grpc::Status
+Pusher::InternalPutLocation(grpc::ServerContext *context,
+                            const proto::PutLocationRequest *request,
+                            proto::PutLocationResponse *response) {
   int success = 0;
   int errors = 0;
   for (int i = 0; i < request->locations_size(); ++i) {
@@ -210,9 +211,9 @@ Status Pusher::DeleteUserFromBlock(int64_t user_id,
   return StatusCode::OK;
 }
 
-grpc::Status Pusher::DeleteUser(grpc::ServerContext *context,
-                                const proto::DeleteUserRequest *request,
-                                proto::DeleteUserResponse *response) {
+grpc::Status Pusher::InternalDeleteUser(grpc::ServerContext *context,
+                                        const proto::DeleteUserRequest *request,
+                                        proto::DeleteUserResponse *response) {
   int64_t user_id = request->user_id();
   int64_t reverse_count = 0;
   int64_t timeline_count = 0;

@@ -27,8 +27,8 @@ service MixerService {
 // --- Interface to push location points.
 
 service Pusher {
-  rpc PutLocation(PutLocationRequest) returns (PutLocationResponse) {}
-  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
+  rpc InternalPutLocation(PutLocationRequest) returns (PutLocationResponse) {}
+  rpc InternalDeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
 }
 
 message Location {

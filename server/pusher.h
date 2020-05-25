@@ -17,13 +17,14 @@ class Pusher : public proto::Pusher::Service {
 public:
   Status Init(Db *db);
 
-  grpc::Status PutLocation(grpc::ServerContext *context,
-                           const proto::PutLocationRequest *request,
-                           proto::PutLocationResponse *response) override;
+  grpc::Status
+  InternalPutLocation(grpc::ServerContext *context,
+                      const proto::PutLocationRequest *request,
+                      proto::PutLocationResponse *response) override;
 
-  grpc::Status DeleteUser(grpc::ServerContext *context,
-                          const proto::DeleteUserRequest *request,
-                          proto::DeleteUserResponse *response) override;
+  grpc::Status InternalDeleteUser(grpc::ServerContext *context,
+                                  const proto::DeleteUserRequest *request,
+                                  proto::DeleteUserResponse *response) override;
 
 private:
   Status PutTimelineLocation(int64_t user_id, int64_t ts, uint32_t duration,
