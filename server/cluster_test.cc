@@ -7,11 +7,7 @@
 
 namespace bt {
 
-void ClusterTestBase::SetUp() { SetUpClusterWithNShards(3); }
-
 namespace {
-
-std::string MakeHash(int i) { return std::to_string(std::hash<int>{}(i)); }
 
 StatusOr<WorkerConfig> GenerateWorkerConfig(int id, int max) {
   std::stringstream sstream;
@@ -25,6 +21,8 @@ StatusOr<WorkerConfig> GenerateWorkerConfig(int id, int max) {
   sstream << "gc:\n";
   sstream << "  retention_period_days: 15\n";
   sstream << "  delay_between_rounds_sec: 3600\n";
+
+  LOG(INFO) << "worker config for idx=" << id << "\n" << sstream.str();
 
   StatusOr<std::unique_ptr<Config>> config_or =
       Config::LoadFromString(sstream.str());
@@ -48,36 +46,44 @@ StatusOr<MixerConfig> GenerateMixerConfig(int id, int max) {
 
   sstream << "shards:\n";
   for (int i = 0; i < max; ++i) {
-    sstream << "  - name: 'shard-" << MakeHash(i) << "'\n";
-    sstream << "    port: '" << 7000 + id << "\n";
+    sstream << "  - name: 'shard-" << std::to_string(i) << "'\n";
+    sstream << "    port: " << 7000 + i << "\n";
     sstream << "    workers: ['127.0.0.1']\n";
   }
 
   sstream << "partitions:\n";
   sstream << "  - at: 0\n";
-  sstream << "    shards: \n";
+  sstream << "    shards:\n";
 
   for (int i = 0; i < max; ++i) {
-    sstream << "  - shard: 'shard-" << MakeHash(i) << "'\n";
+    sstream << "    - shard: 'shard-" << std::to_string(i) << "'\n";
     if (i == 0) {
-      sstream << "    area: 'default'\n";
+      sstream << "      area: 'default'\n";
     } else {
-      constexpr float kTopLong = 5.0;
-      constexpr float kTopLat = 51.0;
-      constexpr float kBotLong = 7.50;
-      constexpr float kBotLat = 44.0;
+      constexpr float kTopLat = -5.0;
+      constexpr float kTopLong = 51.0;
 
-      const float increments = (kBotLat - kTopLat) / max;
-      const float top_long = kTopLong;
-      const float top_lat = kTopLat + id * increments;
-      const float bot_long = kBotLong;
-      const float bot_lat = kBotLat + (id + 1) * increments;
+      constexpr float kBotLat = 7.50;
+      constexpr float kBotLong = 44.0;
 
-      sstream << "    area: 'fr'\n";
-      sstream << "    top_left: [" << top_long << ", " << top_lat << "]\n";
-      sstream << "    bottom_right: [" << bot_long << ", " << bot_lat << "]\n";
+      const float increments =
+          (kBotLong - kTopLong) / static_cast<float>(max - 1);
+
+      const float top_lat = kTopLat;
+      const float top_long = kTopLong + (static_cast<float>(i) * increments);
+
+      const float bot_lat = kBotLat;
+      const float bot_long =
+          kTopLong + (static_cast<float>(i) + 1.0) * increments;
+
+      sstream << "      area: 'fr'\n";
+      sstream << "      top_left: [" << top_lat << ", " << top_long << "]\n";
+      sstream << "      bottom_right: [" << bot_lat << ", " << bot_long
+              << "]\n";
     }
   }
+
+  LOG(INFO) << "mixer config for idx=" << id << "\n" << sstream.str();
 
   StatusOr<std::unique_ptr<Config>> config_or =
       Config::LoadFromString(sstream.str());
@@ -92,6 +98,10 @@ StatusOr<MixerConfig> GenerateMixerConfig(int id, int max) {
 }
 
 } // namespace
+
+void ClusterTestBase::SetUp() {
+  EXPECT_EQ(SetUpClusterWithNShards(3), StatusCode::OK);
+}
 
 Status ClusterTestBase::SetUpClusterWithNShards(int nb_shards) {
   for (int i = 0; i < nb_shards; ++i) {
@@ -112,18 +122,14 @@ Status ClusterTestBase::SetUpClusterWithNShards(int nb_shards) {
 }
 
 void ClusterTestBase::TearDown() {
-  for (auto &worker : workers_) {
-    worker.reset();
-  }
-  for (auto &mixer : mixers_) {
-    mixer.reset();
-  }
+  workers_.clear();
+  mixers_.clear();
 }
 
 Status ClusterTestBase::Init() {
   for (int i = 0; i < worker_configs_.size(); ++i) {
-    RETURN_IF_ERROR(workers_[i]->Init(worker_configs_[i]));
-    RETURN_IF_ERROR(mixers_[i]->Init(mixer_configs_[i]));
+    RETURN_IF_ERROR(workers_.at(i)->Init(worker_configs_.at(i)));
+    RETURN_IF_ERROR(mixers_.at(i)->Init(mixer_configs_.at(i)));
   }
 
   return StatusCode::OK;
@@ -145,7 +151,8 @@ bool ClusterTestBase::PushPoint(uint64_t timestamp, uint32_t duration,
   location->set_gps_latitude(latitude);
   location->set_gps_altitude(altitude);
 
-  grpc::Status status = mixers_[0]->PutLocation(&context, &request, &response);
+  grpc::Status status =
+      mixers_.at(0)->PutLocation(&context, &request, &response);
 
   return status.ok();
 }

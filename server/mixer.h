@@ -16,6 +16,7 @@ public:
   explicit ShardHandler(const ShardConfig &config);
   Status Init(const std::vector<PartitionConfig> &partitions);
   const std::string &Name() const;
+  bool IsDefaultShard() const;
 
   // Returns true if the location is accepted by this shard; the
   // actual sending of the point can be delayed in favor of batching.
@@ -41,6 +42,7 @@ private:
                      float gps_long, int64_t ts) const;
 
   ShardConfig config_;
+  bool is_default_ = false;
   std::vector<PartitionConfig> partitions_;
   std::vector<std::unique_ptr<proto::Pusher::Stub>> pushers_;
   std::vector<std::unique_ptr<proto::Seeker::Stub>> seekers_;

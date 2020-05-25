@@ -1,3 +1,5 @@
+#include <glog/logging.h>
+
 #include "proto/backtrace.pb.h"
 #include "server/cluster_test.h"
 
@@ -11,7 +13,6 @@ TEST_F(DbTest, TimestampOrdering) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kNumberOfPoints = 10000;
-
   // Push a bunch of points with a different timestamp.
   for (int i = 0; i < kNumberOfPoints; ++i) {
     EXPECT_TRUE(PushPoint(kBaseTimestamp + i, kBaseDuration, kBaseUserId,
@@ -20,7 +21,6 @@ TEST_F(DbTest, TimestampOrdering) {
   }
 
   int i = 0;
-
   for (auto &worker : workers_) {
     Db *db = worker->GetDb();
 

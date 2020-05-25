@@ -1,6 +1,7 @@
 #include <glog/logging.h>
 #include <google/protobuf/util/message_differencer.h>
 #include <grpc++/grpc++.h>
+#include <sstream>
 
 #include "common/signal.h"
 #include "server/mixer.h"
@@ -16,19 +17,33 @@ Status ShardHandler::Init(const std::vector<PartitionConfig> &partitions) {
     if (partition.shard_ == config_.name_) {
       partitions_.push_back(partition);
     }
+    if (partition.area_ == kDefaultArea) {
+      is_default_ = true;
+    }
+  }
+
+  if (is_default_ && partitions_.size() != 1) {
+    RETURN_ERROR(INVALID_CONFIG,
+                 "default shard must have exactly one partition");
   }
 
   for (const auto &worker : config_.workers_) {
+    std::stringstream ss;
+    ss << worker << ":" << config_.port_;
+    const std::string addr = ss.str();
+
     pushers_.push_back(proto::Pusher::NewStub(
-        grpc::CreateChannel(worker, grpc::InsecureChannelCredentials())));
+        grpc::CreateChannel(addr, grpc::InsecureChannelCredentials())));
     seekers_.push_back(proto::Seeker::NewStub(
-        grpc::CreateChannel(worker, grpc::InsecureChannelCredentials())));
+        grpc::CreateChannel(addr, grpc::InsecureChannelCredentials())));
   }
 
   return StatusCode::OK;
 }
 
 const std::string &ShardHandler::Name() const { return config_.name_; }
+
+bool ShardHandler::IsDefaultShard() const { return is_default_; }
 
 grpc::Status ShardHandler::DeleteUser(const proto::DeleteUserRequest *request,
                                       proto::DeleteUserResponse *response) {
@@ -95,11 +110,10 @@ bool ShardHandler::IsWithinShard(const PartitionConfig &partition,
                                  int64_t ts) const {
   // TODO: handle timestamp.
 
-  return (config_.name_ == kDefaultArea) ||
-         ((gps_lat >= partition.gps_latitude_begin_ &&
-           gps_lat < partition.gps_latitude_end_) &&
-          (gps_long >= partition.gps_longitude_begin_ &&
-           gps_long < partition.gps_longitude_end_));
+  return IsDefaultShard() || ((gps_lat >= partition.gps_latitude_begin_ &&
+                               gps_lat < partition.gps_latitude_end_) &&
+                              (gps_long >= partition.gps_longitude_begin_ &&
+                               gps_long < partition.gps_longitude_end_));
 }
 
 bool ShardHandler::HandleLocation(const proto::Location &location) {
@@ -122,7 +136,8 @@ bool ShardHandler::HandleLocation(const proto::Location &location) {
           stub->InternalPutLocation(&context, request, &response);
       if (!status.ok()) {
         LOG_EVERY_N(WARNING, 10000)
-            << "can't send location point to shard " << config_.name_;
+            << "can't send location point to shard " << config_.name_
+            << ", status=" << status.error_message();
       }
     }
 
@@ -180,13 +195,12 @@ Status Mixer::Init(const MixerConfig &config) {
 Status Mixer::InitHandlers(const MixerConfig &config) {
   for (const auto &shard : config.ShardConfigs()) {
     auto handler = std::make_shared<ShardHandler>(shard);
-
     Status status = handler->Init(config.PartitionConfigs());
     if (status != StatusCode::OK) {
       LOG(WARNING) << "unable to init handler, status=" << status;
     }
 
-    if (handler->Name() == kDefaultArea) {
+    if (handler->IsDefaultShard()) {
       default_handler_ = handler;
     } else {
       handlers_.push_back(handler);
