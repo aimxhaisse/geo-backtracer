@@ -19,27 +19,30 @@ TEST_F(DbTest, TimestampOrdering) {
                           kBaseGpsAltitude));
   }
 
-  Db *db = worker_->GetDb();
-
-  std::unique_ptr<rocksdb::Iterator> it(
-      db->Rocks()->NewIterator(rocksdb::ReadOptions(), db->TimelineHandle()));
-  it->SeekToFirst();
   int i = 0;
-  int64_t previous_ts = 0;
-  while (it->Valid()) {
-    const rocksdb::Slice key_raw = it->key();
-    proto::DbKey key;
-    EXPECT_TRUE(key.ParseFromArray(key_raw.data(), key_raw.size()));
 
-    int64_t ts = key.timestamp();
-    EXPECT_GE(ts, 0);
-    if (previous_ts) {
-      EXPECT_GE(ts, previous_ts);
+  for (auto &worker : workers_) {
+    Db *db = worker->GetDb();
+
+    std::unique_ptr<rocksdb::Iterator> it(
+        db->Rocks()->NewIterator(rocksdb::ReadOptions(), db->TimelineHandle()));
+    it->SeekToFirst();
+    int64_t previous_ts = 0;
+    while (it->Valid()) {
+      const rocksdb::Slice key_raw = it->key();
+      proto::DbKey key;
+      EXPECT_TRUE(key.ParseFromArray(key_raw.data(), key_raw.size()));
+
+      int64_t ts = key.timestamp();
+      EXPECT_GE(ts, 0);
+      if (previous_ts) {
+        EXPECT_GE(ts, previous_ts);
+      }
+      previous_ts = ts;
+
+      ++i;
+      it->Next();
     }
-    previous_ts = ts;
-
-    ++i;
-    it->Next();
   }
 
   EXPECT_EQ(i, kNumberOfPoints);

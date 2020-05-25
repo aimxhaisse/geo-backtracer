@@ -24,7 +24,9 @@ TEST_F(GcTest, SimpleGcRound) {
 
   DumpTimeline();
 
-  EXPECT_EQ(Gc()->Cleanup(), StatusCode::OK);
+  for (auto &worker : workers_) {
+    EXPECT_EQ(worker->GetGc()->Cleanup(), StatusCode::OK);
+  }
 
   DumpTimeline();
 
@@ -67,7 +69,9 @@ TEST_F(GcTest, ClearExpiredPoints) {
 
   DumpTimeline();
 
-  EXPECT_EQ(Gc()->Cleanup(), StatusCode::OK);
+  for (auto &worker : workers_) {
+    EXPECT_EQ(worker->GetGc()->Cleanup(), StatusCode::OK);
+  }
 
   DumpTimeline();
 

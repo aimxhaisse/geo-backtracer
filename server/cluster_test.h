@@ -2,7 +2,10 @@
 
 #include <gtest/gtest.h>
 
+#include "common/config.h"
 #include "server/db.h"
+#include "server/mixer.h"
+#include "server/mixer_config.h"
 #include "server/proto.h"
 #include "server/worker.h"
 #include "server/worker_config.h"
@@ -22,11 +25,7 @@ public:
   void SetUp();
   void TearDown();
 
-  Seeker *Seeker() { return worker_->GetSeeker(); }
-  Pusher *Pusher() { return worker_->GetPusher(); }
-
-  Gc *Gc() { return worker_->GetGc(); }
-
+  Status SetUpClusterWithNShards(int nb_shards);
   Status Init();
 
   // Pushes a point for a single user in the database, returns true on success.
@@ -47,8 +46,11 @@ public:
   // Delete a user from the database.
   bool DeleteUser(uint64_t user_id);
 
-  WorkerConfig worker_config_;
-  std::unique_ptr<Worker> worker_;
+  std::vector<WorkerConfig> worker_configs_;
+  std::vector<std::unique_ptr<Worker>> workers_;
+
+  std::vector<MixerConfig> mixer_configs_;
+  std::vector<std::unique_ptr<Mixer>> mixers_;
 };
 
 } // namespace bt
