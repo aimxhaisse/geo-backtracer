@@ -244,6 +244,75 @@ bool Seeker::IsNearbyFolk(const proto::DbKey &user_key,
   return is_nearby_ts && is_nearby_long && is_nearby_lat && is_nearby_alt;
 }
 
+grpc::Status Seeker::InternalBuildBlockForUser(
+    grpc::ServerContext *context,
+    const proto::InternalBuildBlockForUserRequest *request,
+    proto::InternalBuildBlockForUserResponse *response) {
+  proto::DbKey start_key = request->timeline_key();
+  start_key.set_user_id(0);
+
+  const uint64_t timestamp_end = start_key.timestamp() + kTimePrecision - 1;
+
+  std::string start_key_raw;
+  if (!start_key.SerializeToString(&start_key_raw)) {
+    LOG_EVERY_N(WARNING, 10000) << "can't serialize internal db timeline key";
+    return grpc::Status(grpc::StatusCode::INTERNAL,
+                        "can't serialize internal db timeline key");
+  }
+
+  std::unique_ptr<rocksdb::Iterator> timeline_it(
+      db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->TimelineHandle()));
+  timeline_it->Seek(rocksdb::Slice(start_key_raw.data(), start_key_raw.size()));
+
+  while (timeline_it->Valid()) {
+    const rocksdb::Slice key_raw = timeline_it->key();
+    proto::DbKey key;
+    if (!key.ParseFromArray(key_raw.data(), key_raw.size())) {
+      LOG_EVERY_N(WARNING, 10000)
+          << "can't unserialize internal db timeline key, user_id="
+          << key.user_id();
+      return grpc::Status(grpc::StatusCode::INTERNAL,
+                          "can't unserialize internal db timeline key");
+    }
+
+    const bool end_of_zone =
+        (key.timestamp() > timestamp_end) ||
+        (key.gps_longitude_zone() != start_key.gps_longitude_zone()) ||
+        (key.gps_latitude_zone() != start_key.gps_latitude_zone());
+    if (end_of_zone) {
+      break;
+    }
+
+    const rocksdb::Slice value_raw = timeline_it->value();
+    proto::DbValue value;
+    if (!value.ParseFromArray(value_raw.data(), value_raw.size())) {
+      LOG_EVERY_N(WARNING, 10000)
+          << "can't unserialize internal db timeline value, user_id="
+          << key.user_id();
+      return grpc::Status(grpc::StatusCode::INTERNAL,
+                          "can't unserialize internal db timeline value");
+    }
+
+    if (key.user_id() == request->user_id()) {
+      proto::BlockEntry *entry = response->add_user_entries();
+      *(entry->mutable_key()) = key;
+      *(entry->mutable_value()) = value;
+    } else {
+      proto::BlockEntry *entry = response->add_folk_entries();
+      *(entry->mutable_key()) = key;
+      *(entry->mutable_value()) = value;
+    }
+
+    timeline_it->Next();
+  }
+
+  LOG_EVERY_N(INFO, 10000) << "built logical block with user_entries="
+                           << response->user_entries_size() << ", folk_entries="
+                           << response->folk_entries_size();
+
+  return grpc::Status::OK;
+}
+
 namespace {
 
 proto::DbKey MakeKey(int64_t timestamp, int64_t user_id,

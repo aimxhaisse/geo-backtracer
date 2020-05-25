@@ -57,6 +57,7 @@ message DeleteUserResponse {}
 service Seeker {
   rpc GetUserTimeline(GetUserTimelineRequest) returns (GetUserTimelineResponse) {}
   rpc GetUserNearbyFolks(GetUserNearbyFolksRequest) returns (GetUserNearbyFolksResponse) {};
+  rpc InternalBuildBlockForUser(InternalBuildBlockForUserRequest) returns (InternalBuildBlockForUserResponse) {};
 }
 
 message GetUserTimelineRequest {

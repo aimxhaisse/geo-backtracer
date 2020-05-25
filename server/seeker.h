@@ -29,6 +29,11 @@ public:
                            const proto::DbKey &folk_key,
                            const proto::DbValue &folk_value);
 
+  grpc::Status InternalBuildBlockForUser(
+      grpc::ServerContext *context,
+      const proto::InternalBuildBlockForUserRequest *request,
+      proto::InternalBuildBlockForUserResponse *response) override;
+
 private:
   Status BuildTimelineKeysForUser(uint64_t user_id,
                                   std::list<proto::DbKey> *keys);
