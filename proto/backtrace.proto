@@ -140,3 +140,22 @@ message DbReverseValue {
   AdjacentZone adj_gps_longitude = 2;
   AdjacentZone adj_gps_latitude = 3;
 }
+
+// Internal service to retrieve all block entries at a given key,
+// split results between the given user and other users around to
+// simplify processing.  This request is per-shard and needs to be
+// aggretated.
+message InternalBuildBlockForUserRequest {
+  DbKey timeline_key = 1;
+  uint64 user_id = 2;
+}
+
+message BlockEntry {
+  DbKey key = 1;
+  DbValue value = 2;
+}
+
+message InternalBuildBlockForUserResponse {
+  repeated BlockEntry user_entries = 1;
+  repeated BlockEntry folk_entries = 2;
+}
