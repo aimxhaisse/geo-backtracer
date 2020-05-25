@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "server/nearby_folk.h"
 #include "server/seeker.h"
 #include "server/zones.h"
 

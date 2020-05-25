@@ -1,4 +1,5 @@
-#include "server/nearby_folks.h"
+#include "server/cluster_test.h"
+#include "server/nearby_folk.h"
 #include "server/zones.h"
 
 namespace bt {

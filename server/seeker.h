@@ -29,11 +29,6 @@ public:
       const proto::BuildBlockForUserRequest *request,
       proto::BuildBlockForUserResponse *response) override;
 
-  static bool IsNearbyFolk(const proto::DbKey &user_key,
-                           const proto::DbValue &user_value,
-                           const proto::DbKey &folk_key,
-                           const proto::DbValue &folk_value);
-
 private:
   Status BuildTimelineKeysForUser(uint64_t user_id,
                                   std::list<proto::DbKey> *keys);

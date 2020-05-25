@@ -69,7 +69,8 @@ Status Client::UserTimeline() {
   proto::GetUserTimelineResponse response;
   std::unique_ptr<proto::Seeker::Stub> stub = proto::Seeker::NewStub(
       grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
-  grpc::Status status = stub->GetUserTimeline(&context, request, &response);
+  grpc::Status status =
+      stub->InternalGetUserTimeline(&context, request, &response);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR, "unable to retrieve user timeline, status="
                                      << status.error_message());
@@ -99,7 +100,8 @@ Status Client::NearbyFolks() {
   proto::GetUserNearbyFolksResponse response;
   std::unique_ptr<proto::Seeker::Stub> stub = proto::Seeker::NewStub(
       grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
-  grpc::Status status = stub->GetUserNearbyFolks(&context, request, &response);
+  grpc::Status status =
+      stub->InternalGetUserNearbyFolks(&context, request, &response);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR, "unable to retrieve user nearby folks, status="
                                      << status.error_message());

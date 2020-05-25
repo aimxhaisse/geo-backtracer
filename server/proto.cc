@@ -33,7 +33,7 @@ void DumpProtoTimelineResponse(int64_t user_id,
   }
 }
 
-bool CompareTimelinePoints ::
+bool CompareTimelinePoints::
 operator()(const proto::UserTimelinePoint &lhs,
            const proto::UserTimelinePoint &rhs) const {
   if (lhs.timestamp() != rhs.timestamp()) {
@@ -50,6 +50,34 @@ operator()(const proto::UserTimelinePoint &lhs,
   }
 
   return lhs.duration() < rhs.duration();
+}
+
+bool CompareBlockEntry::operator()(const proto::BlockEntry &lhs,
+                                   const proto::BlockEntry &rhs) const {
+  if (lhs.key().timestamp() != rhs.key().timestamp()) {
+    return lhs.key().timestamp() < rhs.key().timestamp();
+  }
+  if (lhs.key().user_id() != rhs.key().user_id()) {
+    return lhs.key().user_id() < rhs.key().user_id();
+  }
+  if (lhs.key().gps_longitude_zone() != rhs.key().gps_longitude_zone()) {
+    return lhs.key().gps_longitude_zone() < rhs.key().gps_longitude_zone();
+  }
+  if (lhs.key().gps_latitude_zone() != rhs.key().gps_latitude_zone()) {
+    return lhs.key().gps_latitude_zone() < rhs.key().gps_latitude_zone();
+  }
+
+  if (lhs.value().duration() != rhs.value().duration()) {
+    return lhs.value().duration() < rhs.value().duration();
+  }
+  if (lhs.value().gps_latitude() != rhs.value().gps_latitude()) {
+    return lhs.value().gps_latitude() < rhs.value().gps_latitude();
+  }
+  if (lhs.value().gps_longitude() != rhs.value().gps_longitude()) {
+    return lhs.value().gps_longitude() < rhs.value().gps_longitude();
+  }
+
+  return lhs.value().gps_altitude() < rhs.value().gps_altitude();
 }
 
 } // namespace bt
