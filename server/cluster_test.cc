@@ -19,7 +19,7 @@ StatusOr<WorkerConfig> GenerateWorkerConfig(int id, int max) {
   sstream << "  host: '127.0.0.1'\n";
   sstream << "  port: " << 7000 + id << "\n";
   sstream << "gc:\n";
-  sstream << "  retention_period_days: 15\n";
+  sstream << "  retention_period_days: 14\n";
   sstream << "  delay_between_rounds_sec: 3600\n";
 
   LOG(INFO) << "worker config for idx=" << id << "\n" << sstream.str();
