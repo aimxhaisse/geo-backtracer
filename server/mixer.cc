@@ -326,6 +326,9 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
   std::set<proto::BlockEntry, CompareBlockEntry> user_entries;
   std::set<proto::BlockEntry, CompareBlockEntry> folk_entries;
 
+  std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
+  handlers.push_back(default_handler_);
+
   for (int i = 0; i < tl_rsp.point_size(); ++i) {
     const auto &point = tl_rsp.point(i);
     std::list<proto::DbKey> keys;
@@ -337,7 +340,7 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
     }
 
     for (const auto &key : keys) {
-      for (auto &handler : handlers_) {
+      for (auto &handler : handlers) {
         bool found = false;
         status = handler->InternalBuildBlockForUser(
             key, request->user_id(), &user_entries, &folk_entries, &found);
