@@ -9,7 +9,8 @@ namespace bt {
 
 namespace {
 
-StatusOr<WorkerConfig> GenerateWorkerConfig(int id, int max) {
+// Generate a worker config for a given id to infer port.
+StatusOr<WorkerConfig> GenerateWorkerConfig(int id) {
   std::stringstream sstream;
 
   sstream << "instance_type: 'worker'\n";
@@ -108,8 +109,7 @@ Status ClusterTestBase::SetUpClusterWithNShards(int nb_shards) {
     workers_.push_back(std::make_unique<Worker>());
     mixers_.push_back(std::make_unique<Mixer>());
 
-    StatusOr<WorkerConfig> worker_config_or =
-        GenerateWorkerConfig(i, nb_shards);
+    StatusOr<WorkerConfig> worker_config_or = GenerateWorkerConfig(i);
     RETURN_IF_ERROR(worker_config_or.GetStatus());
     worker_configs_.push_back(worker_config_or.ValueOrDie());
 

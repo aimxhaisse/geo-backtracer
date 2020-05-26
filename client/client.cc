@@ -11,6 +11,7 @@ DEFINE_string(
     mode, "push",
     "client mode (one of 'push', 'timeline', 'nearby-folks', 'wanderings').");
 DEFINE_int64(user_id, 0, "user id (if applicable)");
+DEFINE_string(mixer_address, "", "address of a mixer");
 
 using namespace bt;
 
@@ -37,6 +38,11 @@ Status Client::Init() {
     }
     user_id_ = FLAGS_user_id;
     mode_ = USER_TIMELINE;
+  }
+
+  mixer_address_ = FLAGS_mixer_address;
+  if (mixer_address_.empty()) {
+    RETURN_ERROR(INTERNAL_ERROR, "--mixer_address is required");
   }
 
   return StatusCode::OK;

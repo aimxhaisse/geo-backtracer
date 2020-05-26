@@ -32,6 +32,7 @@ private:
 
   Mode mode_ = NONE;
   uint64_t user_id_ = 0;
+  std::string mixer_address_;
 };
 
 } // namespace bt
