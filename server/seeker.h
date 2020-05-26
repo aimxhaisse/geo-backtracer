@@ -19,11 +19,6 @@ public:
                           const proto::GetUserTimelineRequest *request,
                           proto::GetUserTimelineResponse *response) override;
 
-  grpc::Status InternalGetUserNearbyFolks(
-      grpc::ServerContext *context,
-      const proto::GetUserNearbyFolksRequest *request,
-      proto::GetUserNearbyFolksResponse *response) override;
-
   grpc::Status InternalBuildBlockForUser(
       grpc::ServerContext *context,
       const proto::BuildBlockForUserRequest *request,
