@@ -69,10 +69,10 @@ Status Client::UserTimeline() {
 
   grpc::ClientContext context;
   proto::GetUserTimelineResponse response;
-  std::unique_ptr<proto::Seeker::Stub> stub = proto::Seeker::NewStub(
-      grpc::CreateChannel(mixer_address_, grpc::InsecureChannelCredentials()));
-  grpc::Status status =
-      stub->InternalGetUserTimeline(&context, request, &response);
+  std::unique_ptr<proto::MixerService::Stub> stub =
+      proto::MixerService::NewStub(grpc::CreateChannel(
+          mixer_address_, grpc::InsecureChannelCredentials()));
+  grpc::Status status = stub->GetUserTimeline(&context, request, &response);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR, "unable to retrieve user timeline, status="
                                      << status.error_message());
@@ -100,10 +100,10 @@ Status Client::NearbyFolks() {
 
   grpc::ClientContext context;
   proto::GetUserNearbyFolksResponse response;
-  std::unique_ptr<proto::Seeker::Stub> stub = proto::Seeker::NewStub(
-      grpc::CreateChannel(mixer_address_, grpc::InsecureChannelCredentials()));
-  grpc::Status status =
-      stub->InternalGetUserNearbyFolks(&context, request, &response);
+  std::unique_ptr<proto::MixerService::Stub> stub =
+      proto::MixerService::NewStub(grpc::CreateChannel(
+          mixer_address_, grpc::InsecureChannelCredentials()));
+  grpc::Status status = stub->GetUserNearbyFolks(&context, request, &response);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR, "unable to retrieve user nearby folks, status="
                                      << status.error_message());
@@ -135,8 +135,9 @@ Status Client::Wanderings() {
   const std::time_t now = std::time(nullptr);
   const std::time_t start_at = now - (20 * 3600);
 
-  std::unique_ptr<proto::Pusher::Stub> stub = proto::Pusher::NewStub(
-      grpc::CreateChannel(mixer_address_, grpc::InsecureChannelCredentials()));
+  std::unique_ptr<proto::MixerService::Stub> stub =
+      proto::MixerService::NewStub(grpc::CreateChannel(
+          mixer_address_, grpc::InsecureChannelCredentials()));
 
   for (int user_id = 0; user_id < kUserCount; ++user_id) {
     proto::PutLocationRequest request;
@@ -178,8 +179,7 @@ Status Client::Wanderings() {
 
     grpc::ClientContext context;
     proto::PutLocationResponse response;
-    grpc::Status status =
-        stub->InternalPutLocation(&context, request, &response);
+    grpc::Status status = stub->PutLocation(&context, request, &response);
     if (!status.ok()) {
       RETURN_ERROR(INTERNAL_ERROR,
                    "unable to send location to backtracer, status="
@@ -223,11 +223,10 @@ Status Client::BatchPush() {
 
     grpc::ClientContext context;
     proto::PutLocationResponse response;
-    std::unique_ptr<proto::Pusher::Stub> stub =
-        proto::Pusher::NewStub(grpc::CreateChannel(
+    std::unique_ptr<proto::MixerService::Stub> stub =
+        proto::MixerService::NewStub(grpc::CreateChannel(
             mixer_address_, grpc::InsecureChannelCredentials()));
-    grpc::Status status =
-        stub->InternalPutLocation(&context, request, &response);
+    grpc::Status status = stub->PutLocation(&context, request, &response);
     if (!status.ok()) {
       RETURN_ERROR(INTERNAL_ERROR,
                    "unable to send location to backtracer, status="
