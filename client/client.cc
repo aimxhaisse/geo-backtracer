@@ -15,10 +15,6 @@ DEFINE_string(mixer_address, "", "address of a mixer");
 
 using namespace bt;
 
-namespace {
-constexpr char kServerAddress[] = "0.0.0.0:6000";
-} // anonymous namespace
-
 Status Client::Init() {
   if (FLAGS_mode == "push") {
     mode_ = BATCH_PUSH;
@@ -74,7 +70,7 @@ Status Client::UserTimeline() {
   grpc::ClientContext context;
   proto::GetUserTimelineResponse response;
   std::unique_ptr<proto::Seeker::Stub> stub = proto::Seeker::NewStub(
-      grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
+      grpc::CreateChannel(mixer_address_, grpc::InsecureChannelCredentials()));
   grpc::Status status =
       stub->InternalGetUserTimeline(&context, request, &response);
   if (!status.ok()) {
@@ -105,7 +101,7 @@ Status Client::NearbyFolks() {
   grpc::ClientContext context;
   proto::GetUserNearbyFolksResponse response;
   std::unique_ptr<proto::Seeker::Stub> stub = proto::Seeker::NewStub(
-      grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
+      grpc::CreateChannel(mixer_address_, grpc::InsecureChannelCredentials()));
   grpc::Status status =
       stub->InternalGetUserNearbyFolks(&context, request, &response);
   if (!status.ok()) {
@@ -140,7 +136,7 @@ Status Client::Wanderings() {
   const std::time_t start_at = now - (20 * 3600);
 
   std::unique_ptr<proto::Pusher::Stub> stub = proto::Pusher::NewStub(
-      grpc::CreateChannel(kServerAddress, grpc::InsecureChannelCredentials()));
+      grpc::CreateChannel(mixer_address_, grpc::InsecureChannelCredentials()));
 
   for (int user_id = 0; user_id < kUserCount; ++user_id) {
     proto::PutLocationRequest request;
@@ -229,7 +225,7 @@ Status Client::BatchPush() {
     proto::PutLocationResponse response;
     std::unique_ptr<proto::Pusher::Stub> stub =
         proto::Pusher::NewStub(grpc::CreateChannel(
-            kServerAddress, grpc::InsecureChannelCredentials()));
+            mixer_address_, grpc::InsecureChannelCredentials()));
     grpc::Status status =
         stub->InternalPutLocation(&context, request, &response);
     if (!status.ok()) {
