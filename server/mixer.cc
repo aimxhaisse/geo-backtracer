@@ -225,7 +225,10 @@ Status Mixer::InitService(const MixerConfig &config) {
 grpc::Status Mixer::DeleteUser(grpc::ServerContext *context,
                                const proto::DeleteUserRequest *request,
                                proto::DeleteUserResponse *response) {
-  for (auto &handler : handlers_) {
+  std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
+  handlers.push_back(default_handler_);
+
+  for (auto &handler : handlers) {
     grpc::Status status = handler->DeleteUser(request, response);
     if (!status.ok()) {
       LOG(WARNING) << "unable to delete user in a shard, status="

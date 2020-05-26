@@ -63,7 +63,7 @@ TEST_F(PusherTest, DeleteUserSimpleKO) {
 TEST_F(PusherTest, DeleteUserLargeOK) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
-  for (int i = 0; i < 10000; ++i) {
+  for (int i = 0; i < 100; ++i) {
     for (int j = 0; j < 42; ++j) {
       EXPECT_TRUE(PushPoint(kBaseTimestamp + i, kBaseDuration, kBaseUserId + j,
                             kBaseGpsLongitude, kBaseGpsLatitude,
@@ -74,7 +74,7 @@ TEST_F(PusherTest, DeleteUserLargeOK) {
   for (int j = 0; j < 42; ++j) {
     proto::GetUserTimelineResponse response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId + j, &response));
-    EXPECT_EQ(response.point_size(), 10000);
+    EXPECT_EQ(response.point_size(), 100);
   }
 
   EXPECT_TRUE(DeleteUser(kBaseUserId));
@@ -86,7 +86,7 @@ TEST_F(PusherTest, DeleteUserLargeOK) {
     if (j == 0) {
       EXPECT_EQ(response.point_size(), 0);
     } else {
-      EXPECT_EQ(response.point_size(), 10000);
+      EXPECT_EQ(response.point_size(), 100);
     }
   }
 }
