@@ -19,13 +19,23 @@ constexpr float kBaseGpsLongitude = 53.2876332;
 constexpr float kBaseGpsLatitude = -6.3135357;
 constexpr float kBaseGpsAltitude = 120.2;
 
-// Helper class to run a small cluster for unit tests.
-class ClusterTestBase : public testing::Test {
+// Helper class to run a small cluster for unit tests. This is
+// parameterized to support different cluster configurations to cover
+// many edge cases. Tested configurations:
+//
+// - number of shards (done),
+// - number of databases per shards (todo),
+// - whether or not to round-robin against each mixer instance (todo),
+// - whether or not to omit a database in a shard to simulate an outage (todo).
+//
+// In all those configurations, the cluster should operate in the same way.
+class ClusterTestBase
+    : public testing::TestWithParam<int /* Number of shards in the cluster */> {
 public:
   void SetUp();
   void TearDown();
 
-  Status SetUpClusterWithNShards(int nb_shards);
+  Status SetUpShardsInCluster();
   Status Init();
 
   // Pushes a point for a single user in the database, returns true on success.
@@ -51,6 +61,10 @@ public:
 
   std::vector<MixerConfig> mixer_configs_;
   std::vector<std::unique_ptr<Mixer>> mixers_;
+
+  int nb_shards_ = 0;
 };
+
+#define CLUSTER_PARAMS ::testing::Range(1, 10) /* Number of shards */
 
 } // namespace bt

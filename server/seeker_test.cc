@@ -7,7 +7,7 @@ namespace {
 class SeekerTest : public ClusterTestBase {};
 
 // Tests that single insert works.
-TEST_F(SeekerTest, TimelineSinglePointOK) {
+TEST_P(SeekerTest, TimelineSinglePointOK) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
@@ -28,7 +28,7 @@ TEST_F(SeekerTest, TimelineSinglePointOK) {
 
 // Tests that insert of a single point that spawns multiple blocks results in
 // multiple points.
-TEST_F(SeekerTest, TimelineSinglePointLargeDurationOK) {
+TEST_P(SeekerTest, TimelineSinglePointLargeDurationOK) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kTimePrecision * 3, kBaseUserId,
@@ -88,7 +88,7 @@ TEST_F(SeekerTest, TimelineSinglePointLargeDurationOK) {
 }
 
 // Tests that retrieving a different user id yields 0 result.
-TEST_F(SeekerTest, TimelineSinglePointNoResult) {
+TEST_P(SeekerTest, TimelineSinglePointNoResult) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
@@ -101,7 +101,7 @@ TEST_F(SeekerTest, TimelineSinglePointNoResult) {
 }
 
 // Tests that retrieving works with different timestamp localities.
-TEST_F(SeekerTest, TimelineSingleUserMultipleTimestampZones) {
+TEST_P(SeekerTest, TimelineSingleUserMultipleTimestampZones) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kTimestampZones = 100;
@@ -133,7 +133,7 @@ TEST_F(SeekerTest, TimelineSingleUserMultipleTimestampZones) {
 
 // Tests that retrieving works with different users under same
 // timestamp zone.
-TEST_F(SeekerTest, TimelineMultipleUserSameTimestampZones) {
+TEST_P(SeekerTest, TimelineMultipleUserSameTimestampZones) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kUserCount = 100;
@@ -160,7 +160,7 @@ TEST_F(SeekerTest, TimelineMultipleUserSameTimestampZones) {
 
 // Tests that retrieving works with different users under multiple
 // timestamp zone.
-TEST_F(SeekerTest, TimelineMultipleUserMultipleTimestampZones) {
+TEST_P(SeekerTest, TimelineMultipleUserMultipleTimestampZones) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kUserCount = 100;
@@ -187,7 +187,7 @@ TEST_F(SeekerTest, TimelineMultipleUserMultipleTimestampZones) {
 
 // Tests that retrieving works with different timestamp localities
 // near a ts border; this is to reproduce a bug fixed in 882e9b3:
-TEST_F(SeekerTest, TimelineBorderNoDoubleEntriesBug) {
+TEST_P(SeekerTest, TimelineBorderNoDoubleEntriesBug) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   // Pick a TS that is a border (i.e: a multiple of kTimePrecision).
@@ -211,7 +211,7 @@ TEST_F(SeekerTest, TimelineBorderNoDoubleEntriesBug) {
   EXPECT_EQ(response.point_size(), 3);
 }
 
-TEST_F(SeekerTest, NoNearbyFolks) {
+TEST_P(SeekerTest, NoNearbyFolks) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kUserCount = 100;
@@ -236,7 +236,7 @@ TEST_F(SeekerTest, NoNearbyFolks) {
   }
 }
 
-TEST_F(SeekerTest, NoNearbyFolkCloseLatitude) {
+TEST_P(SeekerTest, NoNearbyFolkCloseLatitude) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   // Pushes two points for two users with the same latitude but faw
@@ -259,7 +259,7 @@ TEST_F(SeekerTest, NoNearbyFolkCloseLatitude) {
   }
 }
 
-TEST_F(SeekerTest, NoNearbyFolkCloseLongitude) {
+TEST_P(SeekerTest, NoNearbyFolkCloseLongitude) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   // Pushes two points for two users with the same longitude but faw
@@ -282,7 +282,7 @@ TEST_F(SeekerTest, NoNearbyFolkCloseLongitude) {
   }
 }
 
-TEST_F(SeekerTest, NoNearbyFolkSamePositionDifferentTime) {
+TEST_P(SeekerTest, NoNearbyFolkSamePositionDifferentTime) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   // Pushes two points for two users with at the same position but separated
@@ -304,7 +304,7 @@ TEST_F(SeekerTest, NoNearbyFolkSamePositionDifferentTime) {
   }
 }
 
-TEST_F(SeekerTest, NearbyFolkSamePositionDifferentTimeWithLongDuration) {
+TEST_P(SeekerTest, NearbyFolkSamePositionDifferentTimeWithLongDuration) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   // Pushes two points for two users with at the same position but separated
@@ -326,7 +326,7 @@ TEST_F(SeekerTest, NearbyFolkSamePositionDifferentTimeWithLongDuration) {
   }
 }
 
-TEST_F(SeekerTest, NearbyFolkSamePositionVeryDifferentTimeWithLongDuration) {
+TEST_P(SeekerTest, NearbyFolkSamePositionVeryDifferentTimeWithLongDuration) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   // Pushes two points for two users with at the same position but separated
@@ -348,7 +348,7 @@ TEST_F(SeekerTest, NearbyFolkSamePositionVeryDifferentTimeWithLongDuration) {
   }
 }
 
-TEST_F(SeekerTest, NoNearbyFolkOk) {
+TEST_P(SeekerTest, NoNearbyFolkOk) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   // Pushes two points for two users with at almost the same position
@@ -376,7 +376,7 @@ TEST_F(SeekerTest, NoNearbyFolkOk) {
   }
 }
 
-TEST_F(SeekerTest, NearbyFolkTimestampZone) {
+TEST_P(SeekerTest, NearbyFolkTimestampZone) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kBaseTs = 1582410000;
@@ -407,7 +407,7 @@ TEST_F(SeekerTest, NearbyFolkTimestampZone) {
   }
 }
 
-TEST_F(SeekerTest, NearbyFolkGPSZoneLongitude) {
+TEST_P(SeekerTest, NearbyFolkGPSZoneLongitude) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kBaseTs = 1582410000;
@@ -436,7 +436,7 @@ TEST_F(SeekerTest, NearbyFolkGPSZoneLongitude) {
   }
 }
 
-TEST_F(SeekerTest, NearbyFolkGPSZoneLatitude) {
+TEST_P(SeekerTest, NearbyFolkGPSZoneLatitude) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kBaseTs = 1582410000;
@@ -466,7 +466,7 @@ TEST_F(SeekerTest, NearbyFolkGPSZoneLatitude) {
   }
 }
 
-TEST_F(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitude) {
+TEST_P(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitude) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kBaseTs = 1582410000;
@@ -496,7 +496,7 @@ TEST_F(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitude) {
   }
 }
 
-TEST_F(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitudeAndTimestamp) {
+TEST_P(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitudeAndTimestamp) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   constexpr int kBaseTs = 1582410000;
@@ -526,7 +526,7 @@ TEST_F(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitudeAndTimestamp) {
   }
 }
 
-TEST_F(SeekerTest, NoNearbyFolkCloseAltitude) {
+TEST_P(SeekerTest, NoNearbyFolkCloseAltitude) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   // Pushes two points for two users with the same latitude/longitude
@@ -549,7 +549,7 @@ TEST_F(SeekerTest, NoNearbyFolkCloseAltitude) {
   }
 }
 
-TEST_F(SeekerTest, NearbyFolkCloseAltitude) {
+TEST_P(SeekerTest, NearbyFolkCloseAltitude) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   // Pushes two points for two users with the same latitude/longitude
@@ -571,6 +571,8 @@ TEST_F(SeekerTest, NearbyFolkCloseAltitude) {
     EXPECT_EQ(1, response.folk_size());
   }
 }
+
+INSTANTIATE_TEST_SUITE_P(GeoBtClusterLayouts, SeekerTest, CLUSTER_PARAMS);
 
 } // namespace
 } // namespace bt

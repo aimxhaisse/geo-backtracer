@@ -10,7 +10,7 @@ namespace {
 class GcTest : public ClusterTestBase {};
 
 // Tests that simple GC round works.
-TEST_F(GcTest, SimpleGcRound) {
+TEST_P(GcTest, SimpleGcRound) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
@@ -37,7 +37,7 @@ TEST_F(GcTest, SimpleGcRound) {
   }
 }
 
-TEST_F(GcTest, ClearExpiredPoints) {
+TEST_P(GcTest, ClearExpiredPoints) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   std::time_t now = std::time(nullptr);
@@ -83,6 +83,8 @@ TEST_F(GcTest, ClearExpiredPoints) {
     EXPECT_EQ(response.point_size(), kFreshCount);
   }
 }
+
+INSTANTIATE_TEST_SUITE_P(GeoBtClusterLayouts, GcTest, CLUSTER_PARAMS);
 
 } // namespace
 } // namespace bt

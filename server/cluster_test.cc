@@ -100,12 +100,8 @@ StatusOr<MixerConfig> GenerateMixerConfig(int id, int max) {
 
 } // namespace
 
-void ClusterTestBase::SetUp() {
-  EXPECT_EQ(SetUpClusterWithNShards(3), StatusCode::OK);
-}
-
-Status ClusterTestBase::SetUpClusterWithNShards(int nb_shards) {
-  for (int i = 0; i < nb_shards; ++i) {
+Status ClusterTestBase::SetUpShardsInCluster() {
+  for (int i = 0; i < nb_shards_; ++i) {
     workers_.push_back(std::make_unique<Worker>());
     mixers_.push_back(std::make_unique<Mixer>());
 
@@ -113,7 +109,7 @@ Status ClusterTestBase::SetUpClusterWithNShards(int nb_shards) {
     RETURN_IF_ERROR(worker_config_or.GetStatus());
     worker_configs_.push_back(worker_config_or.ValueOrDie());
 
-    StatusOr<MixerConfig> mixer_config_or = GenerateMixerConfig(i, nb_shards);
+    StatusOr<MixerConfig> mixer_config_or = GenerateMixerConfig(i, nb_shards_);
     RETURN_IF_ERROR(mixer_config_or.GetStatus());
     mixer_configs_.push_back(mixer_config_or.ValueOrDie());
   }
@@ -121,13 +117,21 @@ Status ClusterTestBase::SetUpClusterWithNShards(int nb_shards) {
   return StatusCode::OK;
 }
 
+void ClusterTestBase::SetUp() {
+  nb_shards_ = GetParam();
+
+  SetUpShardsInCluster();
+}
+
 void ClusterTestBase::TearDown() {
   workers_.clear();
   mixers_.clear();
+
+  nb_shards_ = 0;
 }
 
 Status ClusterTestBase::Init() {
-  for (int i = 0; i < worker_configs_.size(); ++i) {
+  for (int i = 0; i < nb_shards_; ++i) {
     RETURN_IF_ERROR(workers_.at(i)->Init(worker_configs_.at(i)));
     RETURN_IF_ERROR(mixers_.at(i)->Init(mixer_configs_.at(i)));
   }

@@ -5,7 +5,7 @@ namespace {
 
 class ClusterTest : public ClusterTestBase {};
 
-TEST_F(ClusterTest, InitOk) {
+TEST_P(ClusterTest, InitOk) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   for (auto &worker : workers_) {
@@ -15,6 +15,8 @@ TEST_F(ClusterTest, InitOk) {
     EXPECT_NE(nullptr, worker->GetGc());
   }
 }
+
+INSTANTIATE_TEST_SUITE_P(GeoBtClusterLayouts, ClusterTest, CLUSTER_PARAMS);
 
 } // namespace
 } // namespace bt

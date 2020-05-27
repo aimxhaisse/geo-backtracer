@@ -6,7 +6,7 @@ namespace {
 class PusherTest : public ClusterTestBase {};
 
 // Tests that single insert works.
-TEST_F(PusherTest, TimelineSinglePointOK) {
+TEST_P(PusherTest, TimelineSinglePointOK) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
@@ -18,7 +18,7 @@ TEST_F(PusherTest, TimelineSinglePointOK) {
   EXPECT_EQ(response.point_size(), 1);
 }
 
-TEST_F(PusherTest, DeleteUserSimpleOK) {
+TEST_P(PusherTest, DeleteUserSimpleOK) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
@@ -39,7 +39,7 @@ TEST_F(PusherTest, DeleteUserSimpleOK) {
   }
 }
 
-TEST_F(PusherTest, DeleteUserSimpleKO) {
+TEST_P(PusherTest, DeleteUserSimpleKO) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
@@ -60,7 +60,7 @@ TEST_F(PusherTest, DeleteUserSimpleKO) {
   }
 }
 
-TEST_F(PusherTest, DeleteUserLargeOK) {
+TEST_P(PusherTest, DeleteUserLargeOK) {
   EXPECT_EQ(Init(), StatusCode::OK);
 
   for (int i = 0; i < 100; ++i) {
@@ -90,6 +90,8 @@ TEST_F(PusherTest, DeleteUserLargeOK) {
     }
   }
 }
+
+INSTANTIATE_TEST_SUITE_P(GeoBtClusterLayouts, PusherTest, CLUSTER_PARAMS);
 
 } // namespace
 } // namespace bt
