@@ -118,7 +118,8 @@ Status ClusterTestBase::SetUpShardsInCluster() {
 }
 
 void ClusterTestBase::SetUp() {
-  nb_shards_ = GetParam();
+  nb_shards_ = std::get<0>(GetParam());
+  mixer_round_robin_ = std::get<1>(GetParam());
 
   SetUpShardsInCluster();
 }
@@ -139,6 +140,18 @@ Status ClusterTestBase::Init() {
   return StatusCode::OK;
 }
 
+Mixer *ClusterTestBase::GetMixer() {
+  if (mixer_round_robin_) {
+    static int round = 0;
+
+    ++round;
+
+    return mixers_.at(round % mixers_.size()).get();
+  }
+
+  return mixers_.at(0).get();
+}
+
 bool ClusterTestBase::PushPoint(uint64_t timestamp, uint32_t duration,
                                 uint64_t user_id, float longitude,
                                 float latitude, float altitude) {
@@ -155,8 +168,7 @@ bool ClusterTestBase::PushPoint(uint64_t timestamp, uint32_t duration,
   location->set_gps_latitude(latitude);
   location->set_gps_altitude(altitude);
 
-  grpc::Status status =
-      mixers_.at(0)->PutLocation(&context, &request, &response);
+  grpc::Status status = GetMixer()->PutLocation(&context, &request, &response);
 
   return status.ok();
 }
@@ -169,7 +181,7 @@ bool ClusterTestBase::FetchTimeline(uint64_t user_id,
   request.set_user_id(user_id);
 
   grpc::Status status =
-      mixers_[0]->GetUserTimeline(&context, &request, response);
+      GetMixer()->GetUserTimeline(&context, &request, response);
 
   return status.ok();
 }
@@ -182,7 +194,7 @@ bool ClusterTestBase::GetNearbyFolks(
   request.set_user_id(user_id);
 
   grpc::Status status =
-      mixers_[0]->GetUserNearbyFolks(&context, &request, response);
+      GetMixer()->GetUserNearbyFolks(&context, &request, response);
 
   return status.ok();
 }
@@ -226,7 +238,7 @@ bool ClusterTestBase::DeleteUser(uint64_t user_id) {
   proto::DeleteUserRequest request;
   request.set_user_id(user_id);
 
-  grpc::Status status = mixers_[0]->DeleteUser(&context, &request, &response);
+  grpc::Status status = GetMixer()->DeleteUser(&context, &request, &response);
 
   return status.ok();
 }

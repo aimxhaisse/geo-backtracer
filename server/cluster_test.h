@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gtest/gtest.h>
+#include <tuple>
 
 #include "common/config.h"
 #include "server/db.h"
@@ -24,19 +25,22 @@ constexpr float kBaseGpsAltitude = 120.2;
 // many edge cases. Tested configurations:
 //
 // - number of shards (done),
+// - whether or not to round-robin against each mixer instance (done),
 // - number of databases per shards (todo),
-// - whether or not to round-robin against each mixer instance (todo),
 // - whether or not to omit a database in a shard to simulate an outage (todo).
 //
 // In all those configurations, the cluster should operate in the same way.
 class ClusterTestBase
-    : public testing::TestWithParam<int /* Number of shards in the cluster */> {
+    : public testing::TestWithParam<
+          std::tuple<int /* Number of shards in the cluster */,
+                     bool /* Whether or not to round-robin between mixers */>> {
 public:
   void SetUp();
   void TearDown();
 
-  Status SetUpShardsInCluster();
   Status Init();
+
+  Status SetUpShardsInCluster();
 
   // Pushes a point for a single user in the database, returns true on success.
   bool PushPoint(uint64_t timestamp, uint32_t duration, uint64_t user_id,
@@ -50,6 +54,11 @@ public:
   bool GetNearbyFolks(uint64_t user_id,
                       proto::GetUserNearbyFolksResponse *response);
 
+  // Retrieves an instance of the mixer, depending on the parameters
+  // of the test, it can always be the same or a different one on each
+  // call.
+  Mixer *GetMixer();
+
   // Dump the timeline database, useful for debugging.
   void DumpTimeline();
 
@@ -62,9 +71,13 @@ public:
   std::vector<MixerConfig> mixer_configs_;
   std::vector<std::unique_ptr<Mixer>> mixers_;
 
+  // Test parameters.
   int nb_shards_ = 0;
+  bool mixer_round_robin_ = false;
 };
 
-#define CLUSTER_PARAMS ::testing::Range(1, 10) /* Number of shards */
+#define CLUSTER_PARAMS                                                         \
+  ::testing::Combine(::testing::Values(1, 2, 3, 6, 9), /* Shards */            \
+                     ::testing::Values(true, false))   /* Round robin mixer */
 
 } // namespace bt
