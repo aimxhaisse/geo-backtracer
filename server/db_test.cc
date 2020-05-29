@@ -45,7 +45,7 @@ TEST_P(DbTest, TimestampOrdering) {
     }
   }
 
-  EXPECT_EQ(i, kNumberOfPoints);
+  EXPECT_EQ(i, kNumberOfPoints * nb_databases_per_shard_);
 }
 
 INSTANTIATE_TEST_SUITE_P(GeoBtClusterLayouts, DbTest, CLUSTER_PARAMS);

@@ -78,9 +78,11 @@ public:
   bool mixer_round_robin_ = false;
 };
 
+// Cluster configurations to test, this is the carthesian product so
+// beware changing this can drastically increase the number of tests.
 #define CLUSTER_PARAMS                                                         \
-  ::testing::Combine(::testing::Values(1, 2, 6, 9),  /* Shards */              \
-                     ::testing::Values(1, 2, 3),     /* Databases per shard */ \
+  ::testing::Combine(::testing::Values(1, 2, 9),     /* Shards */              \
+                     ::testing::Values(1, 2),        /* Databases per shard */ \
                      ::testing::Values(true, false)) /* Round robin mixer */
 
 } // namespace bt

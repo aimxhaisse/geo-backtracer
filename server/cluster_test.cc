@@ -118,15 +118,17 @@ StatusOr<MixerConfig> GenerateMixerConfig(int shard_count, int shard_id,
 
 Status ClusterTestBase::SetUpShardsInCluster() {
   for (int i = 0; i < nb_shards_; ++i) {
-    workers_.push_back(std::make_unique<Worker>());
-    mixers_.push_back(std::make_unique<Mixer>());
-
     for (int j = 0; j < nb_databases_per_shard_; ++j) {
       StatusOr<WorkerConfig> worker_config_or =
           GenerateWorkerConfig(i, nb_databases_per_shard_, j);
       RETURN_IF_ERROR(worker_config_or.GetStatus());
       worker_configs_.push_back(worker_config_or.ValueOrDie());
+      workers_.push_back(std::make_unique<Worker>());
     }
+  }
+
+  for (int i = 0; i < nb_shards_; ++i) {
+    mixers_.push_back(std::make_unique<Mixer>());
 
     StatusOr<MixerConfig> mixer_config_or =
         GenerateMixerConfig(nb_shards_, i, nb_databases_per_shard_);
@@ -153,8 +155,11 @@ void ClusterTestBase::TearDown() {
 }
 
 Status ClusterTestBase::Init() {
-  for (int i = 0; i < nb_shards_; ++i) {
+  for (int i = 0; i < nb_shards_ * nb_databases_per_shard_; ++i) {
     RETURN_IF_ERROR(workers_.at(i)->Init(worker_configs_.at(i)));
+  }
+
+  for (int i = 0; i < nb_shards_; ++i) {
     RETURN_IF_ERROR(mixers_.at(i)->Init(mixer_configs_.at(i)));
   }
 
