@@ -31,10 +31,11 @@ constexpr float kBaseGpsAltitude = 120.2;
 //
 // In all those configurations, the cluster should operate in the same way.
 class ClusterTestBase
-    : public testing::TestWithParam<
-          std::tuple<int /* Number of shards in the cluster */,
-                     int /* Number of databases per shard */,
-                     bool /* Whether or not to round-robin between mixers */>> {
+    : public testing::TestWithParam<std::tuple<
+          int /* Number of shards in the cluster */,
+          int /* Number of databases per shard */,
+          bool /* Whether or not to round-robin between mixers */,
+          bool /* Whether or not to simulate one db down per shard */>> {
 public:
   void SetUp();
   void TearDown();
@@ -76,13 +77,16 @@ public:
   int nb_shards_ = 0;
   int nb_databases_per_shard_ = 1;
   bool mixer_round_robin_ = false;
+  bool simulate_db_down_ = false;
 };
 
 // Cluster configurations to test, this is the carthesian product so
 // beware changing this can drastically increase the number of tests.
 #define CLUSTER_PARAMS                                                         \
-  ::testing::Combine(::testing::Values(1, 2, 9),     /* Shards */              \
-                     ::testing::Values(1, 2),        /* Databases per shard */ \
-                     ::testing::Values(true, false)) /* Round robin mixer */
+  ::testing::Combine(                                                          \
+      ::testing::Values(1, 2, 9),     /* Shards */                             \
+      ::testing::Values(1, 2),        /* Databases per shard */                \
+      ::testing::Values(true, false), /* Round robin mixer */                  \
+      ::testing::Values(true, false)) /* Simulate one db down per shard */
 
 } // namespace bt

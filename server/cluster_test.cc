@@ -155,8 +155,18 @@ void ClusterTestBase::TearDown() {
 }
 
 Status ClusterTestBase::Init() {
-  for (int i = 0; i < nb_shards_ * nb_databases_per_shard_; ++i) {
-    RETURN_IF_ERROR(workers_.at(i)->Init(worker_configs_.at(i)));
+  for (int i = 0; i < nb_shards_; ++i) {
+    for (int j = 0; j < nb_databases_per_shard_; ++j) {
+      const int idx = i + j;
+
+      // Do not init this worker if we simulate one database down;
+      // mixer will try to reach it but fail.
+      if (simulate_db_down_ && nb_databases_per_shard_ > 1 && j == 0) {
+        continue;
+      }
+
+      RETURN_IF_ERROR(workers_.at(idx)->Init(worker_configs_.at(idx)));
+    }
   }
 
   for (int i = 0; i < nb_shards_; ++i) {
