@@ -36,14 +36,11 @@ geo:
 
 shards:
   - name: "8a00862"
-    port: 7000
     area: "default"
-    workers: ["gamgee", "bombadil"]
+    workers: ["gamgee:7000", "bombadil:7000"]
   - name: "eb3e451"
-    port: 7001
     area: "fr"
-    workers: ["gamgee", "treebeard"]
+    workers: ["gamgee:7001", "treebeard:7001"]
   - name: "735ec68"
-    port: 7002
     area: "fr"
-    workers: ["treebeard", "bombadil"]
+    workers: ["treebeard:7002", "bombadil:7002"]

@@ -81,16 +81,12 @@ Status MixerConfig::MakeShardConfigs(const Config &config) {
 
     shard.name_ = entry->Get<std::string>("name");
     shard.workers_ = entry->Get<std::vector<std::string>>("workers");
-    shard.port_ = entry->Get<int>("port");
 
     if (shard.name_.empty()) {
       RETURN_ERROR(INVALID_CONFIG, "shard entry must have a name");
     }
     if (shard.workers_.empty()) {
       RETURN_ERROR(INVALID_CONFIG, "shard entry must have a list of workers");
-    }
-    if (shard.port_ <= 0) {
-      RETURN_ERROR(INVALID_CONFIG, "shard entry must have a port");
     }
 
     shard_configs_.push_back(shard);

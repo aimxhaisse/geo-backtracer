@@ -15,7 +15,6 @@ constexpr auto kDefaultArea = "default";
 // Config of a shard.
 struct ShardConfig {
   std::string name_;
-  int port_ = 0;
   std::vector<std::string> workers_;
 };
 

@@ -27,11 +27,7 @@ Status ShardHandler::Init(const std::vector<PartitionConfig> &partitions) {
                  "default shard must have exactly one partition");
   }
 
-  for (const auto &worker : config_.workers_) {
-    std::stringstream ss;
-    ss << worker << ":" << config_.port_;
-    const std::string addr = ss.str();
-
+  for (const auto &addr : config_.workers_) {
     pushers_.push_back(proto::Pusher::NewStub(
         grpc::CreateChannel(addr, grpc::InsecureChannelCredentials())));
     seekers_.push_back(proto::Seeker::NewStub(

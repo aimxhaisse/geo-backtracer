@@ -21,7 +21,6 @@ network:
 shards:
 {%- for shard in shards %}
   - name: "{{ shard['name'] }}"
-    port: {{ shard['port'] }}
     workers: {{ shard['workers'] }}
 {%- endfor %}
 

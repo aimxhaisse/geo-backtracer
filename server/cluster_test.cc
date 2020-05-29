@@ -47,9 +47,10 @@ StatusOr<MixerConfig> GenerateMixerConfig(int id, int max) {
 
   sstream << "shards:\n";
   for (int i = 0; i < max; ++i) {
+    const int port = 7000 + i;
+
     sstream << "  - name: 'shard-" << std::to_string(i) << "'\n";
-    sstream << "    port: " << 7000 + i << "\n";
-    sstream << "    workers: ['127.0.0.1']\n";
+    sstream << "    workers: ['127.0.0.1:" << port << "']\n";
   }
 
   sstream << "partitions:\n";
