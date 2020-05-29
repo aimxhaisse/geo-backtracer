@@ -26,6 +26,7 @@ TEST_P(DbTest, TimestampOrdering) {
 
     std::unique_ptr<rocksdb::Iterator> it(
         db->Rocks()->NewIterator(rocksdb::ReadOptions(), db->TimelineHandle()));
+
     it->SeekToFirst();
     int64_t previous_ts = 0;
     while (it->Valid()) {
@@ -45,7 +46,12 @@ TEST_P(DbTest, TimestampOrdering) {
     }
   }
 
-  EXPECT_EQ(i, kNumberOfPoints * nb_databases_per_shard_);
+  int expected_databases = nb_databases_per_shard_;
+  if (simulate_db_down_ && nb_databases_per_shard_ > 1) {
+    --nb_databases_per_shard_;
+  }
+
+  EXPECT_EQ(i, kNumberOfPoints * expected_databases);
 }
 
 INSTANTIATE_TEST_SUITE_P(GeoBtClusterLayouts, DbTest, CLUSTER_PARAMS);

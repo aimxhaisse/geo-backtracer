@@ -16,8 +16,8 @@ int MakeWorkerPort(int shard_id, int db_count, int db_id) {
 int MakeMixerPort(int shard_id) { return 8000 + shard_id; }
 
 // Generate a worker config for a given id to infer port.
-StatusOr<WorkerConfig> GenerateWorkerConfig(int shard_id, int db_count,
-                                            int db_id) {
+StatusOr<WorkerConfig> GenerateWorkerConfig(bool simulate_db_down, int shard_id,
+                                            int db_count, int db_id) {
   std::stringstream sstream;
 
   sstream << "instance_type: 'worker'\n";
@@ -25,7 +25,17 @@ StatusOr<WorkerConfig> GenerateWorkerConfig(int shard_id, int db_count,
   sstream << "  data: ''\n";
   sstream << "network:\n";
   sstream << "  host: '127.0.0.1'\n";
-  sstream << "  port: " << MakeWorkerPort(shard_id, db_count, db_id) << "\n";
+
+  int port = MakeWorkerPort(shard_id, db_count, db_id);
+
+  // To simulate a database down from the mixer's perspective, we
+  // instantiate the worker with a different port, making it
+  // unreachable.
+  if (simulate_db_down && db_count > 1 && db_id == 0) {
+    port += 2000;
+  }
+
+  sstream << "  port: " << port << "\n";
   sstream << "gc:\n";
   sstream << "  retention_period_days: 14\n";
   sstream << "  delay_between_rounds_sec: 3600\n";
@@ -119,8 +129,8 @@ StatusOr<MixerConfig> GenerateMixerConfig(int shard_count, int shard_id,
 Status ClusterTestBase::SetUpShardsInCluster() {
   for (int i = 0; i < nb_shards_; ++i) {
     for (int j = 0; j < nb_databases_per_shard_; ++j) {
-      StatusOr<WorkerConfig> worker_config_or =
-          GenerateWorkerConfig(i, nb_databases_per_shard_, j);
+      StatusOr<WorkerConfig> worker_config_or = GenerateWorkerConfig(
+          simulate_db_down_, i, nb_databases_per_shard_, j);
       RETURN_IF_ERROR(worker_config_or.GetStatus());
       worker_configs_.push_back(worker_config_or.ValueOrDie());
       workers_.push_back(std::make_unique<Worker>());
@@ -155,18 +165,8 @@ void ClusterTestBase::TearDown() {
 }
 
 Status ClusterTestBase::Init() {
-  for (int i = 0; i < nb_shards_; ++i) {
-    for (int j = 0; j < nb_databases_per_shard_; ++j) {
-      const int idx = i + j;
-
-      // Do not init this worker if we simulate one database down;
-      // mixer will try to reach it but fail.
-      if (simulate_db_down_ && nb_databases_per_shard_ > 1 && j == 0) {
-        continue;
-      }
-
-      RETURN_IF_ERROR(workers_.at(idx)->Init(worker_configs_.at(idx)));
-    }
+  for (int i = 0; i < nb_shards_ * nb_databases_per_shard_; ++i) {
+    RETURN_IF_ERROR(workers_.at(i)->Init(worker_configs_.at(i)));
   }
 
   for (int i = 0; i < nb_shards_; ++i) {
