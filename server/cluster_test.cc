@@ -9,8 +9,15 @@ namespace bt {
 
 namespace {
 
+int MakeWorkerPort(int shard_id, int db_count, int db_id) {
+  return 7000 + shard_id * db_count + db_id;
+}
+
+int MakeMixerPort(int shard_id) { return 8000 + shard_id; }
+
 // Generate a worker config for a given id to infer port.
-StatusOr<WorkerConfig> GenerateWorkerConfig(int id) {
+StatusOr<WorkerConfig> GenerateWorkerConfig(int shard_id, int db_count,
+                                            int db_id) {
   std::stringstream sstream;
 
   sstream << "instance_type: 'worker'\n";
@@ -18,12 +25,14 @@ StatusOr<WorkerConfig> GenerateWorkerConfig(int id) {
   sstream << "  data: ''\n";
   sstream << "network:\n";
   sstream << "  host: '127.0.0.1'\n";
-  sstream << "  port: " << 7000 + id << "\n";
+  sstream << "  port: " << MakeWorkerPort(shard_id, db_count, db_id) << "\n";
   sstream << "gc:\n";
   sstream << "  retention_period_days: 14\n";
   sstream << "  delay_between_rounds_sec: 3600\n";
 
-  LOG(INFO) << "worker config for idx=" << id << "\n" << sstream.str();
+  LOG(INFO) << "worker config for shard=" << shard_id << ", db=" << db_id
+            << "\n"
+            << sstream.str();
 
   StatusOr<std::unique_ptr<Config>> config_or =
       Config::LoadFromString(sstream.str());
@@ -37,27 +46,33 @@ StatusOr<WorkerConfig> GenerateWorkerConfig(int id) {
   return worker_config;
 }
 
-StatusOr<MixerConfig> GenerateMixerConfig(int id, int max) {
+StatusOr<MixerConfig> GenerateMixerConfig(int shard_count, int shard_id,
+                                          int db_count) {
   std::stringstream sstream;
 
   sstream << "instance_type: 'mixer'\n";
   sstream << "network:\n";
   sstream << "  host: '127.0.0.1'\n";
-  sstream << "  port: " << 8000 + id << "\n";
+  sstream << "  port: " << MakeMixerPort(shard_id) << "\n";
 
   sstream << "shards:\n";
-  for (int i = 0; i < max; ++i) {
-    const int port = 7000 + i;
-
+  for (int i = 0; i < shard_count; ++i) {
     sstream << "  - name: 'shard-" << std::to_string(i) << "'\n";
-    sstream << "    workers: ['127.0.0.1:" << port << "']\n";
+    sstream << "    workers: [";
+    for (int j = 0; j < db_count; ++j) {
+      sstream << "'127.0.0.1:" << MakeWorkerPort(i, db_count, j) << "'";
+      if (j + 1 != db_count) {
+        sstream << ", ";
+      }
+    }
+    sstream << "]\n";
   }
 
   sstream << "partitions:\n";
   sstream << "  - at: 0\n";
   sstream << "    shards:\n";
 
-  for (int i = 0; i < max; ++i) {
+  for (int i = 0; i < shard_count; ++i) {
     sstream << "    - shard: 'shard-" << std::to_string(i) << "'\n";
     if (i == 0) {
       sstream << "      area: 'default'\n";
@@ -69,7 +84,7 @@ StatusOr<MixerConfig> GenerateMixerConfig(int id, int max) {
       constexpr float kBotLong = 44.0;
 
       const float increments =
-          (kBotLong - kTopLong) / static_cast<float>(max - 1);
+          (kBotLong - kTopLong) / static_cast<float>(shard_count - 1);
 
       const float top_lat = kTopLat;
       const float top_long = kTopLong + (static_cast<float>(i) * increments);
@@ -85,7 +100,7 @@ StatusOr<MixerConfig> GenerateMixerConfig(int id, int max) {
     }
   }
 
-  LOG(INFO) << "mixer config for idx=" << id << "\n" << sstream.str();
+  LOG(INFO) << "mixer config for idx=" << shard_id << "\n" << sstream.str();
 
   StatusOr<std::unique_ptr<Config>> config_or =
       Config::LoadFromString(sstream.str());
@@ -106,11 +121,15 @@ Status ClusterTestBase::SetUpShardsInCluster() {
     workers_.push_back(std::make_unique<Worker>());
     mixers_.push_back(std::make_unique<Mixer>());
 
-    StatusOr<WorkerConfig> worker_config_or = GenerateWorkerConfig(i);
-    RETURN_IF_ERROR(worker_config_or.GetStatus());
-    worker_configs_.push_back(worker_config_or.ValueOrDie());
+    for (int j = 0; j < nb_databases_per_shard_; ++j) {
+      StatusOr<WorkerConfig> worker_config_or =
+          GenerateWorkerConfig(i, nb_databases_per_shard_, j);
+      RETURN_IF_ERROR(worker_config_or.GetStatus());
+      worker_configs_.push_back(worker_config_or.ValueOrDie());
+    }
 
-    StatusOr<MixerConfig> mixer_config_or = GenerateMixerConfig(i, nb_shards_);
+    StatusOr<MixerConfig> mixer_config_or =
+        GenerateMixerConfig(nb_shards_, i, nb_databases_per_shard_);
     RETURN_IF_ERROR(mixer_config_or.GetStatus());
     mixer_configs_.push_back(mixer_config_or.ValueOrDie());
   }
@@ -120,7 +139,8 @@ Status ClusterTestBase::SetUpShardsInCluster() {
 
 void ClusterTestBase::SetUp() {
   nb_shards_ = std::get<0>(GetParam());
-  mixer_round_robin_ = std::get<1>(GetParam());
+  nb_databases_per_shard_ = std::get<1>(GetParam());
+  mixer_round_robin_ = std::get<2>(GetParam());
 
   SetUpShardsInCluster();
 }

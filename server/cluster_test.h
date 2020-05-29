@@ -33,6 +33,7 @@ constexpr float kBaseGpsAltitude = 120.2;
 class ClusterTestBase
     : public testing::TestWithParam<
           std::tuple<int /* Number of shards in the cluster */,
+                     int /* Number of databases per shard */,
                      bool /* Whether or not to round-robin between mixers */>> {
 public:
   void SetUp();
@@ -73,11 +74,13 @@ public:
 
   // Test parameters.
   int nb_shards_ = 0;
+  int nb_databases_per_shard_ = 1;
   bool mixer_round_robin_ = false;
 };
 
 #define CLUSTER_PARAMS                                                         \
-  ::testing::Combine(::testing::Values(1, 2, 3, 6, 9), /* Shards */            \
-                     ::testing::Values(true, false))   /* Round robin mixer */
+  ::testing::Combine(::testing::Values(1, 2, 6, 9),  /* Shards */              \
+                     ::testing::Values(1, 2, 3),     /* Databases per shard */ \
+                     ::testing::Values(true, false)) /* Round robin mixer */
 
 } // namespace bt
