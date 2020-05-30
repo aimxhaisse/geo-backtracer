@@ -30,12 +30,19 @@ TEST_P(PusherTest, DeleteUserSimpleOK) {
     EXPECT_EQ(response.point_size(), 1);
   }
 
-  EXPECT_TRUE(DeleteUser(kBaseUserId));
+  if (simulate_db_down_) {
+    EXPECT_FALSE(DeleteUser(kBaseUserId));
+  } else {
+    EXPECT_TRUE(DeleteUser(kBaseUserId));
+  }
 
   {
     proto::GetUserTimelineResponse response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
-    EXPECT_EQ(response.point_size(), 0);
+
+    if (!simulate_db_down_) {
+      EXPECT_EQ(response.point_size(), 0);
+    }
   }
 }
 
@@ -51,7 +58,11 @@ TEST_P(PusherTest, DeleteUserSimpleKO) {
     EXPECT_EQ(response.point_size(), 1);
   }
 
-  EXPECT_TRUE(DeleteUser(kBaseUserId + 2));
+  if (simulate_db_down_) {
+    EXPECT_FALSE(DeleteUser(kBaseUserId + 2));
+  } else {
+    EXPECT_TRUE(DeleteUser(kBaseUserId + 2));
+  }
 
   {
     proto::GetUserTimelineResponse response;
@@ -77,7 +88,11 @@ TEST_P(PusherTest, DeleteUserLargeOK) {
     EXPECT_EQ(response.point_size(), 100);
   }
 
-  EXPECT_TRUE(DeleteUser(kBaseUserId));
+  if (simulate_db_down_) {
+    EXPECT_FALSE(DeleteUser(kBaseUserId));
+  } else {
+    EXPECT_TRUE(DeleteUser(kBaseUserId));
+  }
 
   for (int j = 0; j < 42; ++j) {
     proto::GetUserTimelineResponse response;

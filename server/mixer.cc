@@ -43,16 +43,18 @@ bool ShardHandler::IsDefaultShard() const { return is_default_; }
 
 grpc::Status ShardHandler::DeleteUser(const proto::DeleteUserRequest *request,
                                       proto::DeleteUserResponse *response) {
+  grpc::Status status = grpc::Status::OK;
+
   for (auto &stub : pushers_) {
     grpc::ClientContext context;
-    grpc::Status status =
+    grpc::Status stub_status =
         stub->InternalDeleteUser(&context, *request, response);
-    if (!status.ok()) {
-      return status;
+    if (!stub_status.ok()) {
+      status = stub_status;
     }
   }
 
-  return grpc::Status::OK;
+  return status;
 }
 
 Status ShardHandler::InternalBuildBlockForUser(
