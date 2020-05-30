@@ -112,35 +112,44 @@ bool ShardHandler::IsWithinShard(const PartitionConfig &partition,
                                gps_long < partition.gps_longitude_end_));
 }
 
-bool ShardHandler::HandleLocation(const proto::Location &location) {
+bool ShardHandler::QueueLocation(const proto::Location &location) {
   for (const auto &partition : partitions_) {
     if (!IsWithinShard(partition, location.gps_latitude(),
                        location.gps_longitude(), location.timestamp())) {
       continue;
     }
 
-    // TODO: handle background thread batching requests.
-
-    for (auto &stub : pushers_) {
-      grpc::ClientContext context;
-      proto::PutLocationRequest request;
-      proto::PutLocationResponse response;
-
-      *request.add_locations() = location;
-
-      grpc::Status status =
-          stub->InternalPutLocation(&context, request, &response);
-      if (!status.ok()) {
-        LOG_EVERY_N(WARNING, 10000)
-            << "can't send location point to shard " << config_.name_
-            << ", status=" << status.error_message();
-      }
-    }
+    *locations_.add_locations() = location;
 
     return true;
   }
 
   return false;
+}
+
+grpc::Status ShardHandler::FlushLocations() {
+  grpc::Status status = grpc::Status::OK;
+
+  if (locations_.locations_size() == 0) {
+    return status;
+  }
+
+  for (auto &stub : pushers_) {
+    grpc::ClientContext context;
+    proto::PutLocationResponse response;
+    grpc::Status stub_status =
+        stub->InternalPutLocation(&context, locations_, &response);
+    if (!status.ok()) {
+      LOG_EVERY_N(WARNING, 10000)
+          << "can't send location point to shard " << config_.name_
+          << ", status=" << status.error_message();
+      status = stub_status;
+    }
+  }
+
+  locations_.clear_locations();
+
+  return status;
 }
 
 grpc::Status
@@ -244,19 +253,29 @@ grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
   for (const auto &loc : request->locations()) {
     bool sent = false;
     for (auto &handler : handlers_) {
-      if (handler->HandleLocation(loc)) {
+      if (handler->QueueLocation(loc)) {
         sent = true;
         break;
       }
     }
     if (!sent) {
-      if (!default_handler_->HandleLocation(loc)) {
+      if (!default_handler_->QueueLocation(loc)) {
         LOG_EVERY_N(WARNING, 1000) << "no matching shard handler for point";
       }
     }
   }
 
-  return grpc::Status::OK;
+  grpc::Status status = grpc::Status::OK;
+  std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
+  handlers.push_back(default_handler_);
+  for (auto &handler : handlers) {
+    grpc::Status handler_status = handler->FlushLocations();
+    if (!handler_status.ok()) {
+      status = handler_status;
+    }
+  }
+
+  return status;
 }
 
 grpc::Status

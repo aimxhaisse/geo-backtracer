@@ -19,11 +19,14 @@ public:
   bool IsDefaultShard() const;
 
   // Returns true if the location is accepted by this shard; the
-  // actual sending of the point can be delayed in favor of batching.
-  // We don't expose the GRPC interface here as this is handled in the
-  // background and we want to immediately return here, in a
-  // best-effort mode.
-  bool HandleLocation(const proto::Location &location);
+  // actual sending of the point is done when calling Flush. We don't
+  // do it in a dedicated thread to simplify the implementation (
+  // doing so would require to properly handle delete user in pending
+  // locations, in all other mixers).
+  bool QueueLocation(const proto::Location &location);
+
+  // Sends location points to the actual worker and clears the queue.
+  grpc::Status FlushLocations();
 
   Status InternalBuildBlockForUser(
       const proto::DbKey &key, int64_t user_id,
@@ -43,6 +46,7 @@ private:
 
   ShardConfig config_;
   bool is_default_ = false;
+  proto::PutLocationRequest locations_;
   std::vector<PartitionConfig> partitions_;
   std::vector<std::unique_ptr<proto::Pusher::Stub>> pushers_;
   std::vector<std::unique_ptr<proto::Seeker::Stub>> seekers_;
