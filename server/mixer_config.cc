@@ -98,9 +98,14 @@ Status MixerConfig::MakeShardConfigs(const Config &config) {
 Status MixerConfig::MakeNetworkConfig(const Config &config) {
   port_ = config.Get<int>("network.port");
   host_ = config.Get<std::string>("network.host");
+  worker_timeout_ms_ =
+      config.Get<int>("worker_timeout_ms", kDefaultWorkerTimeoutMs);
 
   if (port_ <= 0) {
     RETURN_ERROR(INVALID_CONFIG, "mixer must have a valid network port");
+  }
+  if (worker_timeout_ms_ <= 0) {
+    RETURN_ERROR(INVALID_CONFIG, "mixer must have a valid network timeout");
   }
   if (host_.empty()) {
     RETURN_ERROR(INVALID_CONFIG, "mixer must have a valid network host");
