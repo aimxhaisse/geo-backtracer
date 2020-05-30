@@ -30,7 +30,7 @@ TEST_P(PusherTest, DeleteUserSimpleOK) {
     EXPECT_EQ(response.point_size(), 1);
   }
 
-  if (simulate_db_down_) {
+  if (simulate_db_down_ && nb_databases_per_shard_ > 1) {
     EXPECT_FALSE(DeleteUser(kBaseUserId));
   } else {
     EXPECT_TRUE(DeleteUser(kBaseUserId));
@@ -40,7 +40,7 @@ TEST_P(PusherTest, DeleteUserSimpleOK) {
     proto::GetUserTimelineResponse response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
 
-    if (!simulate_db_down_) {
+    if (!(simulate_db_down_ && nb_databases_per_shard_ > 1)) {
       EXPECT_EQ(response.point_size(), 0);
     }
   }
@@ -58,7 +58,7 @@ TEST_P(PusherTest, DeleteUserSimpleKO) {
     EXPECT_EQ(response.point_size(), 1);
   }
 
-  if (simulate_db_down_) {
+  if (simulate_db_down_ && nb_databases_per_shard_ > 1) {
     EXPECT_FALSE(DeleteUser(kBaseUserId + 2));
   } else {
     EXPECT_TRUE(DeleteUser(kBaseUserId + 2));
@@ -88,7 +88,7 @@ TEST_P(PusherTest, DeleteUserLargeOK) {
     EXPECT_EQ(response.point_size(), 100);
   }
 
-  if (simulate_db_down_) {
+  if (simulate_db_down_ && nb_databases_per_shard_ > 1) {
     EXPECT_FALSE(DeleteUser(kBaseUserId));
   } else {
     EXPECT_TRUE(DeleteUser(kBaseUserId));
