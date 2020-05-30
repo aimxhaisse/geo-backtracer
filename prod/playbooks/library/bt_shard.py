@@ -13,6 +13,7 @@ TEMPLATE = """
 # space.
 
 instance_type: "mixer"
+worker_timeout_ms: 60000
 
 network:
   host: "{{ mixer_ip }}"
