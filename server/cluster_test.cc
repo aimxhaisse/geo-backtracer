@@ -155,6 +155,11 @@ void ClusterTestBase::SetUp() {
   mixer_round_robin_ = std::get<2>(GetParam());
   simulate_db_down_ = std::get<3>(GetParam());
 
+  LOG(INFO) << "Testing params: shards=" << nb_shards_
+            << ", db_per_shard=" << nb_databases_per_shard_
+            << ", round_robin=" << mixer_round_robin_
+            << ", simulate_db_down=" << simulate_db_down_;
+
   SetUpShardsInCluster();
 }
 

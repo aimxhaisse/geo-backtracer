@@ -48,7 +48,7 @@ TEST_P(DbTest, TimestampOrdering) {
 
   int expected_databases = nb_databases_per_shard_;
   if (simulate_db_down_ && nb_databases_per_shard_ > 1) {
-    --nb_databases_per_shard_;
+    --expected_databases;
   }
 
   EXPECT_EQ(i, kNumberOfPoints * expected_databases);
