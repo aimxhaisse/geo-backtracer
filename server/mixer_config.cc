@@ -13,6 +13,8 @@ const std::vector<PartitionConfig> &MixerConfig::PartitionConfigs() const {
   return partition_configs_;
 }
 
+bool MixerConfig::BackoffFailFast() const { return backoff_fail_fast_; }
+
 std::string MixerConfig::NetworkAddress() const {
   std::stringstream ss;
 

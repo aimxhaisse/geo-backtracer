@@ -12,7 +12,8 @@ namespace bt {
 
 ShardHandler::ShardHandler(const ShardConfig &config) : config_(config) {}
 
-Status ShardHandler::Init(const std::vector<PartitionConfig> &partitions) {
+Status ShardHandler::Init(const MixerConfig &config,
+                          const std::vector<PartitionConfig> &partitions) {
   for (const auto &partition : partitions) {
     if (partition.shard_ == config_.name_) {
       partitions_.push_back(partition);
@@ -27,11 +28,21 @@ Status ShardHandler::Init(const std::vector<PartitionConfig> &partitions) {
                  "default shard must have exactly one partition");
   }
 
+  grpc::ChannelArguments args;
+
+  // This is set in unit test to speed up failing to connect to a
+  // worker.
+  if (config.BackoffFailFast()) {
+    args.SetInt(GRPC_ARG_INITIAL_RECONNECT_BACKOFF_MS, 100);
+    args.SetInt(GRPC_ARG_MIN_RECONNECT_BACKOFF_MS, 100);
+    args.SetInt(GRPC_ARG_MAX_RECONNECT_BACKOFF_MS, 200);
+  }
+
   for (const auto &addr : config_.workers_) {
-    pushers_.push_back(proto::Pusher::NewStub(
-        grpc::CreateChannel(addr, grpc::InsecureChannelCredentials())));
-    seekers_.push_back(proto::Seeker::NewStub(
-        grpc::CreateChannel(addr, grpc::InsecureChannelCredentials())));
+    pushers_.push_back(proto::Pusher::NewStub(grpc::CreateCustomChannel(
+        addr, grpc::InsecureChannelCredentials(), args)));
+    seekers_.push_back(proto::Seeker::NewStub(grpc::CreateCustomChannel(
+        addr, grpc::InsecureChannelCredentials(), args)));
   }
 
   return StatusCode::OK;
@@ -202,7 +213,7 @@ Status Mixer::Init(const MixerConfig &config) {
 Status Mixer::InitHandlers(const MixerConfig &config) {
   for (const auto &shard : config.ShardConfigs()) {
     auto handler = std::make_shared<ShardHandler>(shard);
-    Status status = handler->Init(config.PartitionConfigs());
+    Status status = handler->Init(config, config.PartitionConfigs());
     if (status != StatusCode::OK) {
       LOG(WARNING) << "unable to init handler, status=" << status;
     }

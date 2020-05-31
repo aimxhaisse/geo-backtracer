@@ -14,7 +14,8 @@ namespace bt {
 class ShardHandler {
 public:
   explicit ShardHandler(const ShardConfig &config);
-  Status Init(const std::vector<PartitionConfig> &partitions);
+  Status Init(const MixerConfig &config,
+              const std::vector<PartitionConfig> &partitions);
   const std::string &Name() const;
   bool IsDefaultShard() const;
 
