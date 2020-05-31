@@ -84,7 +84,7 @@ public:
 // beware changing this can drastically increase the number of tests.
 #define CLUSTER_PARAMS                                                         \
   ::testing::Combine(                                                          \
-      ::testing::Values(1, 2, 9),     /* Shards */                             \
+      ::testing::Values(1, 2, 3, 9),  /* Shards */                             \
       ::testing::Values(1, 2),        /* Databases per shard */                \
       ::testing::Values(true, false), /* Round robin mixer */                  \
       ::testing::Values(true, false)) /* Simulate one db down per shard */
