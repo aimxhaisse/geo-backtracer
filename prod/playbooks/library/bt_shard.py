@@ -13,7 +13,11 @@ TEMPLATE = """
 # space.
 
 instance_type: "mixer"
-worker_timeout_ms: 60000
+
+# Whether or not to fail fast connections to workers. In production
+# environments, it must be set to false as we want to do long
+# exponential backoffs to handles nicely upgrades etc.
+backoff_fail_fast: false
 
 network:
   host: "{{ mixer_ip }}"

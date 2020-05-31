@@ -7,7 +7,11 @@
 # space.
 
 instance_type: "mixer"
-worker_timeout_ms: 60000
+
+# Whether or not to fail connections to workers fast; this is
+# typically set to true in unit tests where we don't want to wait 5
+# minutes.
+backoff_fail_fast: false
 
 network:
   host: 127.0.0.1

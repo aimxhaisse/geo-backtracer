@@ -11,7 +11,6 @@ namespace bt {
 
 constexpr auto kMixerConfigType = "mixer";
 constexpr auto kDefaultArea = "default";
-constexpr auto kDefaultWorkerTimeoutMs = 60000;
 
 // Config of a shard.
 struct ShardConfig {
@@ -39,14 +38,14 @@ public:
   const std::vector<ShardConfig> &ShardConfigs() const;
   const std::vector<PartitionConfig> &PartitionConfigs() const;
   std::string NetworkAddress() const;
-  int WorkerTimeoutMs() const;
+  bool BackoffFailFast() const;
 
 private:
   Status MakePartitionConfigs(const Config &config);
   Status MakeShardConfigs(const Config &config);
   Status MakeNetworkConfig(const Config &config);
 
-  int worker_timeout_ms_ = kDefaultWorkerTimeoutMs;
+  bool backoff_fail_fast_ = false;
   int port_ = 0;
   std::string host_;
   std::vector<PartitionConfig> partition_configs_;
