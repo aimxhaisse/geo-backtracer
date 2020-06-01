@@ -12,7 +12,7 @@ TEST_P(PusherTest, TimelineSinglePointOK) {
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
-  proto::GetUserTimelineResponse response;
+  proto::GetUserTimeline_Response response;
   EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
 
   EXPECT_EQ(response.point_size(), 1);
@@ -25,7 +25,7 @@ TEST_P(PusherTest, DeleteUserSimpleOK) {
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
     EXPECT_EQ(response.point_size(), 1);
   }
@@ -37,7 +37,7 @@ TEST_P(PusherTest, DeleteUserSimpleOK) {
   }
 
   {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
 
     if (!(simulate_db_down_ && nb_databases_per_shard_ > 1)) {
@@ -53,7 +53,7 @@ TEST_P(PusherTest, DeleteUserSimpleKO) {
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
     EXPECT_EQ(response.point_size(), 1);
   }
@@ -65,7 +65,7 @@ TEST_P(PusherTest, DeleteUserSimpleKO) {
   }
 
   {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
     EXPECT_EQ(response.point_size(), 1);
   }
@@ -83,7 +83,7 @@ TEST_P(PusherTest, DeleteUserLargeOK) {
   }
 
   for (int j = 0; j < 42; ++j) {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId + j, &response));
     EXPECT_EQ(response.point_size(), 100);
   }
@@ -95,7 +95,7 @@ TEST_P(PusherTest, DeleteUserLargeOK) {
   }
 
   for (int j = 0; j < 42; ++j) {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId + j, &response));
 
     if (j == 0) {

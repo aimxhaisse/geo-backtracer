@@ -10,25 +10,25 @@ package proto;
 service MixerService {
   // For each point in the request, finds the appropriate shard and
   // writes it to the underlying databases.
-  rpc PutLocation(PutLocationRequest) returns (PutLocationResponse) {}
+  rpc PutLocation(PutLocation.Request) returns (PutLocation.Response) {}
 
   // Deletes a user from all shards in the cluster.
-  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
+  rpc DeleteUser(DeleteUser.Request) returns (DeleteUser.Response) {}
 
   // Queries all shards and merges the timeline for a given user,
   // ordered by timestamp.
-  rpc GetUserTimeline(GetUserTimelineRequest) returns (GetUserTimelineResponse) {}
+  rpc GetUserTimeline(GetUserTimeline.Request) returns (GetUserTimeline.Response) {}
 
   // Queries all shards to find out correlations (i.e: users that were
   // close for a given period of time).
-  rpc GetUserNearbyFolks(GetUserNearbyFolksRequest) returns (GetUserNearbyFolksResponse) {};
+  rpc GetUserNearbyFolks(GetUserNearbyFolks.Request) returns (GetUserNearbyFolks.Response) {};
 }
 
 // --- Internal interface to push location points in a database.
 
 service Pusher {
-  rpc InternalPutLocation(PutLocationRequest) returns (PutLocationResponse) {}
-  rpc InternalDeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
+  rpc InternalPutLocation(PutLocation.Request) returns (PutLocation.Response) {}
+  rpc InternalDeleteUser(DeleteUser.Request) returns (DeleteUser.Response) {}
 }
 
 // Location of a user for a duration at a given timestamp.
@@ -41,33 +41,42 @@ message Location {
   float gps_altitude = 6;
 }
 
-// Insert location points in the database.
-message PutLocationRequest {
-  repeated Location locations = 1;
+message PutLocation {
+  // Insert location points in the database.
+  message Request {
+    repeated Location locations = 1;
+  }
+  // Ack for the insert.
+  message Response {}
 }
 
-// Ack for the insert.
-message PutLocationResponse {}
 
-// Delete all user data from the database.
-message DeleteUserRequest {
-  uint64 user_id = 1;
+message DeleteUser {
+  // Delete all user data from the database.
+  message Request {
+    uint64 user_id = 1;
+  }
+  // Ack for the deletion.
+  message Response {}
 }
-
-// Ack for the deletion.
-message DeleteUserResponse {}
 
 // --- Internal interface to retrieve points from the database.
 
 service Seeker {
-  rpc InternalGetUserTimeline(GetUserTimelineRequest) returns (GetUserTimelineResponse) {}
-  rpc InternalGetUserNearbyFolks(GetUserNearbyFolksRequest) returns (GetUserNearbyFolksResponse) {};
-  rpc InternalBuildBlockForUser(BuildBlockForUserRequest) returns (BuildBlockForUserResponse) {};
+  rpc InternalGetUserTimeline(GetUserTimeline.Request) returns (GetUserTimeline.Response) {}
+  rpc InternalGetUserNearbyFolks(GetUserNearbyFolks.Request) returns (GetUserNearbyFolks.Response) {};
+  rpc InternalBuildBlockForUser(BuildBlockForUser.Request) returns (BuildBlockForUser.Response) {};
 }
 
-// Ask for the timeline of a user.
-message GetUserTimelineRequest {
-  uint64 user_id = 1;
+message GetUserTimeline {
+  // Ask for the timeline of a user.
+  message Request {
+    uint64 user_id = 1;
+  }
+  // Timeline of the user, ordered by timestamp.
+  message Response {
+    repeated UserTimelinePoint point = 1;
+  }
 }
 
 // A timeline point for a user, it may be split in N minutes blocks
@@ -82,14 +91,15 @@ message UserTimelinePoint {
   float gps_altitude = 5;
 };
 
-// Timeline of the user, ordered by timestamp.
-message GetUserTimelineResponse {
-  repeated UserTimelinePoint point = 1;
-}
-
-// Ask for correlations for a given user.
-message GetUserNearbyFolksRequest {
-  uint64 user_id = 1;
+message GetUserNearbyFolks {
+  // Ask for correlations for a given user.
+  message Request {
+    uint64 user_id = 1;
+  }
+  // List of correlations found.
+  message Response {
+    repeated NearbyUserFolk folk = 1;
+  }
 }
 
 // A correlation with a score denoting how close the two users were
@@ -99,28 +109,24 @@ message NearbyUserFolk {
   int64 score = 2;
 }
 
-// List of correlations found.
-message GetUserNearbyFolksResponse {
-  repeated NearbyUserFolk folk = 1;
-}
-
-// Internal service to retrieve all block entries at a given key.
-message BuildBlockForUserRequest {
-  DbKey timeline_key = 1;
-  uint64 user_id = 2;
+message BuildBlockForUser {
+  // Internal service to retrieve all block entries at a given key.
+  message Request {
+    DbKey timeline_key = 1;
+    uint64 user_id = 2;
+  }
+  // Here we split results between the given user and other users around
+  // to simplify processing.
+  message Response {
+    repeated BlockEntry user_entries = 1;
+    repeated BlockEntry folk_entries = 2;
+  }
 }
 
 // Block entry from the database.
 message BlockEntry {
   DbKey key = 1;
   DbValue value = 2;
-}
-
-// Here we split results between the given user and other users around
-// to simplify processing.
-message BuildBlockForUserResponse {
-  repeated BlockEntry user_entries = 1;
-  repeated BlockEntry folk_entries = 2;
 }
 
 // --- Database internals data structures.

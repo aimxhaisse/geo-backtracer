@@ -50,11 +50,11 @@ public:
 
   // Retrieves timeline for a given user.
   bool FetchTimeline(uint64_t user_id,
-                     proto::GetUserTimelineResponse *response);
+                     proto::GetUserTimeline_Response *response);
 
   // Retrieves nearby folks for a given user.
   bool GetNearbyFolks(uint64_t user_id,
-                      proto::GetUserNearbyFolksResponse *response);
+                      proto::GetUserNearbyFolks_Response *response);
 
   // Retrieves an instance of the mixer, depending on the parameters
   // of the test, it can always be the same or a different one on each

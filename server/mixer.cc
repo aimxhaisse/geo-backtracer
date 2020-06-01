@@ -52,8 +52,8 @@ const std::string &ShardHandler::Name() const { return config_.name_; }
 
 bool ShardHandler::IsDefaultShard() const { return is_default_; }
 
-grpc::Status ShardHandler::DeleteUser(const proto::DeleteUserRequest *request,
-                                      proto::DeleteUserResponse *response) {
+grpc::Status ShardHandler::DeleteUser(const proto::DeleteUser_Request *request,
+                                      proto::DeleteUser_Response *response) {
   grpc::Status status = grpc::Status::OK;
 
   for (auto &stub : pushers_) {
@@ -81,14 +81,14 @@ Status ShardHandler::InternalBuildBlockForUser(
 
     *found = true;
 
-    proto::BuildBlockForUserRequest request;
+    proto::BuildBlockForUser_Request request;
     request.set_user_id(user_id);
     *(request.mutable_timeline_key()) = key;
 
     bool ok = false;
 
     for (auto &stub : seekers_) {
-      proto::BuildBlockForUserResponse response;
+      proto::BuildBlockForUser_Response response;
       grpc::ClientContext context;
       grpc::Status grpc_status =
           stub->InternalBuildBlockForUser(&context, request, &response);
@@ -149,7 +149,7 @@ grpc::Status ShardHandler::FlushLocations() {
 
   for (auto &stub : pushers_) {
     grpc::ClientContext context;
-    proto::PutLocationResponse response;
+    proto::PutLocation_Response response;
     grpc::Status stub_status =
         stub->InternalPutLocation(&context, locations_, &response);
     if (!status.ok()) {
@@ -166,8 +166,8 @@ grpc::Status ShardHandler::FlushLocations() {
 }
 
 grpc::Status
-ShardHandler::GetUserTimeline(const proto::GetUserTimelineRequest *request,
-                              proto::GetUserTimelineResponse *response) {
+ShardHandler::GetUserTimeline(const proto::GetUserTimeline_Request *request,
+                              proto::GetUserTimeline_Response *response) {
   grpc::Status retval = grpc::Status::OK;
   std::set<proto::UserTimelinePoint, CompareTimelinePoints> timeline;
   bool success = false;
@@ -177,7 +177,7 @@ ShardHandler::GetUserTimeline(const proto::GetUserTimelineRequest *request,
   // timeline.
   for (auto &stub : seekers_) {
     grpc::ClientContext context;
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     grpc::Status status =
         stub->InternalGetUserTimeline(&context, *request, &response);
 
@@ -241,8 +241,8 @@ Status Mixer::InitService(const MixerConfig &config) {
 }
 
 grpc::Status Mixer::DeleteUser(grpc::ServerContext *context,
-                               const proto::DeleteUserRequest *request,
-                               proto::DeleteUserResponse *response) {
+                               const proto::DeleteUser_Request *request,
+                               proto::DeleteUser_Response *response) {
   std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
   handlers.push_back(default_handler_);
 
@@ -261,8 +261,8 @@ grpc::Status Mixer::DeleteUser(grpc::ServerContext *context,
 }
 
 grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
-                                const proto::PutLocationRequest *request,
-                                proto::PutLocationResponse *response) {
+                                const proto::PutLocation_Request *request,
+                                proto::PutLocation_Response *response) {
   for (const auto &loc : request->locations()) {
     bool sent = false;
     for (auto &handler : handlers_) {
@@ -293,15 +293,15 @@ grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
 
 grpc::Status
 Mixer::GetUserTimeline(grpc::ServerContext *context,
-                       const proto::GetUserTimelineRequest *request,
-                       proto::GetUserTimelineResponse *response) {
+                       const proto::GetUserTimeline_Request *request,
+                       proto::GetUserTimeline_Response *response) {
   std::set<proto::UserTimelinePoint, CompareTimelinePoints> timeline;
 
   std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
   handlers.push_back(default_handler_);
 
   for (auto &handler : handlers) {
-    proto::GetUserTimelineResponse shard_response;
+    proto::GetUserTimeline_Response shard_response;
     grpc::Status status = handler->GetUserTimeline(request, &shard_response);
     if (!status.ok()) {
       LOG_EVERY_N(WARNING, 10000)
@@ -339,10 +339,10 @@ proto::DbKey MakeKey(int64_t timestamp, int64_t user_id,
 
 grpc::Status
 Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
-                          const proto::GetUserNearbyFolksRequest *request,
-                          proto::GetUserNearbyFolksResponse *response) {
-  proto::GetUserTimelineResponse tl_rsp;
-  proto::GetUserTimelineRequest tl_request;
+                          const proto::GetUserNearbyFolks_Request *request,
+                          proto::GetUserNearbyFolks_Response *response) {
+  proto::GetUserTimeline_Response tl_rsp;
+  proto::GetUserTimeline_Request tl_request;
   tl_request.set_user_id(request->user_id());
   grpc::Status grpc_status = GetUserTimeline(context, &tl_request, &tl_rsp);
   if (!grpc_status.ok()) {

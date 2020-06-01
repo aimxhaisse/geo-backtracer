@@ -199,8 +199,8 @@ bool ClusterTestBase::PushPoint(uint64_t timestamp, uint32_t duration,
                                 uint64_t user_id, float longitude,
                                 float latitude, float altitude) {
   grpc::ServerContext context;
-  proto::PutLocationRequest request;
-  proto::PutLocationResponse response;
+  proto::PutLocation_Request request;
+  proto::PutLocation_Response response;
 
   proto::Location *location = request.add_locations();
 
@@ -217,9 +217,9 @@ bool ClusterTestBase::PushPoint(uint64_t timestamp, uint32_t duration,
 }
 
 bool ClusterTestBase::FetchTimeline(uint64_t user_id,
-                                    proto::GetUserTimelineResponse *response) {
+                                    proto::GetUserTimeline_Response *response) {
   grpc::ServerContext context;
-  proto::GetUserTimelineRequest request;
+  proto::GetUserTimeline_Request request;
 
   request.set_user_id(user_id);
 
@@ -230,9 +230,9 @@ bool ClusterTestBase::FetchTimeline(uint64_t user_id,
 }
 
 bool ClusterTestBase::GetNearbyFolks(
-    uint64_t user_id, proto::GetUserNearbyFolksResponse *response) {
+    uint64_t user_id, proto::GetUserNearbyFolks_Response *response) {
   grpc::ServerContext context;
-  proto::GetUserNearbyFolksRequest request;
+  proto::GetUserNearbyFolks_Request request;
 
   request.set_user_id(user_id);
 
@@ -277,8 +277,8 @@ void ClusterTestBase::DumpTimeline() {
 
 bool ClusterTestBase::DeleteUser(uint64_t user_id) {
   grpc::ServerContext context;
-  proto::DeleteUserResponse response;
-  proto::DeleteUserRequest request;
+  proto::DeleteUser_Response response;
+  proto::DeleteUser_Request request;
   request.set_user_id(user_id);
 
   grpc::Status status = GetMixer()->DeleteUser(&context, &request, &response);

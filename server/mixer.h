@@ -35,11 +35,11 @@ public:
       std::set<proto::BlockEntry, CompareBlockEntry> *folk_entries,
       bool *found);
 
-  grpc::Status GetUserTimeline(const proto::GetUserTimelineRequest *request,
-                               proto::GetUserTimelineResponse *response);
+  grpc::Status GetUserTimeline(const proto::GetUserTimeline_Request *request,
+                               proto::GetUserTimeline_Response *response);
 
-  grpc::Status DeleteUser(const proto::DeleteUserRequest *request,
-                          proto::DeleteUserResponse *response);
+  grpc::Status DeleteUser(const proto::DeleteUser_Request *request,
+                          proto::DeleteUser_Response *response);
 
 private:
   bool IsWithinShard(const PartitionConfig &partition, float gps_lat,
@@ -47,7 +47,7 @@ private:
 
   ShardConfig config_;
   bool is_default_ = false;
-  proto::PutLocationRequest locations_;
+  proto::PutLocation_Request locations_;
   std::vector<PartitionConfig> partitions_;
   std::vector<std::unique_ptr<proto::Pusher::Stub>> pushers_;
   std::vector<std::unique_ptr<proto::Seeker::Stub>> seekers_;
@@ -60,22 +60,22 @@ public:
   Status Run();
 
   grpc::Status DeleteUser(grpc::ServerContext *context,
-                          const proto::DeleteUserRequest *request,
-                          proto::DeleteUserResponse *response) override;
+                          const proto::DeleteUser_Request *request,
+                          proto::DeleteUser_Response *response) override;
 
   grpc::Status PutLocation(grpc::ServerContext *context,
-                           const proto::PutLocationRequest *request,
-                           proto::PutLocationResponse *response) override;
+                           const proto::PutLocation_Request *request,
+                           proto::PutLocation_Response *response) override;
 
   grpc::Status
   GetUserTimeline(grpc::ServerContext *context,
-                  const proto::GetUserTimelineRequest *request,
-                  proto::GetUserTimelineResponse *response) override;
+                  const proto::GetUserTimeline_Request *request,
+                  proto::GetUserTimeline_Response *response) override;
 
   grpc::Status
   GetUserNearbyFolks(grpc::ServerContext *context,
-                     const proto::GetUserNearbyFolksRequest *request,
-                     proto::GetUserNearbyFolksResponse *response) override;
+                     const proto::GetUserNearbyFolks_Request *request,
+                     proto::GetUserNearbyFolks_Response *response) override;
 
 private:
   Status InitHandlers(const MixerConfig &config);

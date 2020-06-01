@@ -17,7 +17,7 @@ TEST_P(GcTest, SimpleGcRound) {
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
     EXPECT_EQ(response.point_size(), 1);
   }
@@ -31,7 +31,7 @@ TEST_P(GcTest, SimpleGcRound) {
   DumpTimeline();
 
   {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
     EXPECT_EQ(response.point_size(), 0);
   }
@@ -62,7 +62,7 @@ TEST_P(GcTest, ClearExpiredPoints) {
 
   // Expect all points to be there before GC pass.
   {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
     EXPECT_EQ(response.point_size(), kFreshCount + kExpiredCount);
   }
@@ -77,7 +77,7 @@ TEST_P(GcTest, ClearExpiredPoints) {
 
   // Expect points after the cutoff to be there after GC pass.
   {
-    proto::GetUserTimelineResponse response;
+    proto::GetUserTimeline_Response response;
     EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
     DumpProtoTimelineResponse(kBaseUserId, response);
     EXPECT_EQ(response.point_size(), kFreshCount);
