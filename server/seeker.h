@@ -16,19 +16,19 @@ public:
 
   grpc::Status
   InternalGetUserTimeline(grpc::ServerContext *context,
-                          const proto::GetUserTimelineRequest *request,
-                          proto::GetUserTimelineResponse *response) override;
+                          const proto::GetUserTimeline_Request *request,
+                          proto::GetUserTimeline_Response *response) override;
 
   grpc::Status InternalBuildBlockForUser(
       grpc::ServerContext *context,
-      const proto::BuildBlockForUserRequest *request,
-      proto::BuildBlockForUserResponse *response) override;
+      const proto::BuildBlockForUser_Request *request,
+      proto::BuildBlockForUser_Response *response) override;
 
 private:
   Status BuildTimelineKeysForUser(uint64_t user_id,
                                   std::list<proto::DbKey> *keys);
   Status BuildTimelineForUser(const std::list<proto::DbKey> &keys,
-                              proto::GetUserTimelineResponse *timeline);
+                              proto::GetUserTimeline_Response *timeline);
   Status BuildKeysToSearchAroundPoint(uint64_t user_id,
                                       const proto::UserTimelinePoint &point,
                                       std::list<proto::DbKey> *keys);

@@ -13,7 +13,7 @@ TEST_P(SeekerTest, TimelineSinglePointOK) {
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
-  proto::GetUserTimelineResponse response;
+  proto::GetUserTimeline_Response response;
   EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
 
   EXPECT_EQ(response.point_size(), 1);
@@ -34,7 +34,7 @@ TEST_P(SeekerTest, TimelineSinglePointLargeDurationOK) {
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kTimePrecision * 3, kBaseUserId,
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
-  proto::GetUserTimelineResponse response;
+  proto::GetUserTimeline_Response response;
   EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
 
   EXPECT_EQ(response.point_size(), 4);
@@ -94,7 +94,7 @@ TEST_P(SeekerTest, TimelineSinglePointNoResult) {
   EXPECT_TRUE(PushPoint(kBaseTimestamp, kBaseDuration, kBaseUserId,
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
-  proto::GetUserTimelineResponse response;
+  proto::GetUserTimeline_Response response;
   EXPECT_TRUE(FetchTimeline(kBaseUserId + 1, &response));
 
   EXPECT_EQ(response.point_size(), 0);
@@ -125,7 +125,7 @@ TEST_P(SeekerTest, TimelineSingleUserMultipleTimestampZones) {
                           kBaseGpsAltitude));
   }
 
-  proto::GetUserTimelineResponse response;
+  proto::GetUserTimeline_Response response;
   EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
 
   EXPECT_EQ(response.point_size(), 5 * kTimestampZones);
@@ -151,7 +151,7 @@ TEST_P(SeekerTest, TimelineMultipleUserSameTimestampZones) {
 
   for (int i = 0; i < kUserCount; ++i) {
     for (int j = 0; j <= i; ++j) {
-      proto::GetUserTimelineResponse response;
+      proto::GetUserTimeline_Response response;
       EXPECT_TRUE(FetchTimeline(kBaseUserId + i, &response));
       EXPECT_EQ(response.point_size(), i + 1);
     }
@@ -178,7 +178,7 @@ TEST_P(SeekerTest, TimelineMultipleUserMultipleTimestampZones) {
 
   for (int i = 0; i < kUserCount; ++i) {
     for (int j = 0; j <= i; ++j) {
-      proto::GetUserTimelineResponse response;
+      proto::GetUserTimeline_Response response;
       EXPECT_TRUE(FetchTimeline(kBaseUserId + i, &response));
       EXPECT_EQ(response.point_size(), i + 1);
     }
@@ -206,7 +206,7 @@ TEST_P(SeekerTest, TimelineBorderNoDoubleEntriesBug) {
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   // Now, expect to get three points for this user.
-  proto::GetUserTimelineResponse response;
+  proto::GetUserTimeline_Response response;
   EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
   EXPECT_EQ(response.point_size(), 3);
 }
@@ -230,7 +230,7 @@ TEST_P(SeekerTest, NoNearbyFolks) {
   }
 
   for (int i = 0; i < kUserCount; ++i) {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + i, &response));
     EXPECT_EQ(0, response.folk_size());
   }
@@ -248,12 +248,12 @@ TEST_P(SeekerTest, NoNearbyFolkCloseLatitude) {
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(0, response.folk_size());
   }
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(0, response.folk_size());
   }
@@ -271,12 +271,12 @@ TEST_P(SeekerTest, NoNearbyFolkCloseLongitude) {
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(0, response.folk_size());
   }
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(0, response.folk_size());
   }
@@ -293,12 +293,12 @@ TEST_P(SeekerTest, NoNearbyFolkSamePositionDifferentTime) {
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(0, response.folk_size());
   }
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(0, response.folk_size());
   }
@@ -315,12 +315,12 @@ TEST_P(SeekerTest, NearbyFolkSamePositionDifferentTimeWithLongDuration) {
                         kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
   }
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(1, response.folk_size());
   }
@@ -337,12 +337,12 @@ TEST_P(SeekerTest, NearbyFolkSamePositionVeryDifferentTimeWithLongDuration) {
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
   }
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(1, response.folk_size());
   }
@@ -360,7 +360,7 @@ TEST_P(SeekerTest, NoNearbyFolkOk) {
                         kBaseGpsLongitude, kBaseGpsLatitude, kBaseGpsAltitude));
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
@@ -368,7 +368,7 @@ TEST_P(SeekerTest, NoNearbyFolkOk) {
   }
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
@@ -391,7 +391,7 @@ TEST_P(SeekerTest, NearbyFolkTimestampZone) {
 
   // Expect to find correlations
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
@@ -399,7 +399,7 @@ TEST_P(SeekerTest, NearbyFolkTimestampZone) {
   }
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
@@ -420,7 +420,7 @@ TEST_P(SeekerTest, NearbyFolkGPSZoneLongitude) {
 
   // Expect to find correlations
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
@@ -428,7 +428,7 @@ TEST_P(SeekerTest, NearbyFolkGPSZoneLongitude) {
   }
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
@@ -450,7 +450,7 @@ TEST_P(SeekerTest, NearbyFolkGPSZoneLatitude) {
 
   // Expect to find correlations
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
@@ -458,7 +458,7 @@ TEST_P(SeekerTest, NearbyFolkGPSZoneLatitude) {
   }
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
@@ -480,7 +480,7 @@ TEST_P(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitude) {
 
   // Expect to find correlations
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
@@ -488,7 +488,7 @@ TEST_P(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitude) {
   }
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
@@ -510,7 +510,7 @@ TEST_P(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitudeAndTimestamp) {
 
   // Expect to find correlations
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId + 1, response.folk(0).user_id());
@@ -518,7 +518,7 @@ TEST_P(SeekerTest, NearbyFolkGPSZoneLatitudeAndLongitudeAndTimestamp) {
   }
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(1, response.folk_size());
     EXPECT_EQ(kBaseUserId, response.folk(0).user_id());
@@ -538,12 +538,12 @@ TEST_P(SeekerTest, NoNearbyFolkCloseAltitude) {
                         kBaseGpsAltitude + 10.0));
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(0, response.folk_size());
   }
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(0, response.folk_size());
   }
@@ -561,12 +561,12 @@ TEST_P(SeekerTest, NearbyFolkCloseAltitude) {
                         kBaseGpsAltitude + 1.0));
 
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
   }
   {
-    proto::GetUserNearbyFolksResponse response;
+    proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));
     EXPECT_EQ(1, response.folk_size());
   }

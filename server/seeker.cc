@@ -69,7 +69,7 @@ Status Seeker::BuildTimelineKeysForUser(uint64_t user_id,
 }
 
 Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey> &keys,
-                                    proto::GetUserTimelineResponse *timeline) {
+                                    proto::GetUserTimeline_Response *timeline) {
   std::unique_ptr<rocksdb::Iterator> timeline_it(
       db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->TimelineHandle()));
 
@@ -123,8 +123,8 @@ Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey> &keys,
 
 grpc::Status
 Seeker::InternalGetUserTimeline(grpc::ServerContext *context,
-                                const proto::GetUserTimelineRequest *request,
-                                proto::GetUserTimelineResponse *response) {
+                                const proto::GetUserTimeline_Request *request,
+                                proto::GetUserTimeline_Response *response) {
   std::list<proto::DbKey> keys;
   Status status = BuildTimelineKeysForUser(request->user_id(), &keys);
   if (status != StatusCode::OK) {
@@ -155,8 +155,8 @@ Seeker::InternalGetUserTimeline(grpc::ServerContext *context,
 
 grpc::Status Seeker::InternalBuildBlockForUser(
     grpc::ServerContext *context,
-    const proto::BuildBlockForUserRequest *request,
-    proto::BuildBlockForUserResponse *response) {
+    const proto::BuildBlockForUser_Request *request,
+    proto::BuildBlockForUser_Response *response) {
   proto::DbKey start_key = request->timeline_key();
   start_key.set_user_id(0);
 

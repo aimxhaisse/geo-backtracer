@@ -11,7 +11,7 @@ void DumpDbTimelineKey(const proto::DbKey &key);
 void DumpDbTimelineValue(const proto::DbValue &value);
 
 void DumpProtoTimelineResponse(int64_t user_id,
-                               const proto::GetUserTimelineResponse &timeline);
+                               const proto::GetUserTimeline_Response &timeline);
 
 struct CompareTimelinePoints {
   bool operator()(const proto::UserTimelinePoint &lhs,

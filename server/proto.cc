@@ -24,7 +24,7 @@ void DumpDbTimelineValue(const proto::DbValue &value) {
 }
 
 void DumpProtoTimelineResponse(int64_t user_id,
-                               const proto::GetUserTimelineResponse &timeline) {
+                               const proto::GetUserTimeline_Response &timeline) {
   for (int i = 0; i < timeline.point_size(); ++i) {
     const proto::UserTimelinePoint &entry = timeline.point(i);
     LOG(INFO) << "@" << entry.timestamp() << "+" << entry.duration()

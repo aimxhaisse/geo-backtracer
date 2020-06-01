@@ -64,11 +64,11 @@ Status Client::Run() {
 Status Client::UserTimeline() {
   LOG(INFO) << "starting to retrieve timeline, user_id=" << user_id_;
 
-  proto::GetUserTimelineRequest request;
+  proto::GetUserTimeline_Request request;
   request.set_user_id(user_id_);
 
   grpc::ClientContext context;
-  proto::GetUserTimelineResponse response;
+  proto::GetUserTimeline_Response response;
   std::unique_ptr<proto::MixerService::Stub> stub =
       proto::MixerService::NewStub(grpc::CreateChannel(
           mixer_address_, grpc::InsecureChannelCredentials()));
@@ -95,11 +95,11 @@ Status Client::UserTimeline() {
 Status Client::NearbyFolks() {
   LOG(INFO) << "starting to retrieve nearby folks, user_id=" << user_id_;
 
-  proto::GetUserNearbyFolksRequest request;
+  proto::GetUserNearbyFolks_Request request;
   request.set_user_id(user_id_);
 
   grpc::ClientContext context;
-  proto::GetUserNearbyFolksResponse response;
+  proto::GetUserNearbyFolks_Response response;
   std::unique_ptr<proto::MixerService::Stub> stub =
       proto::MixerService::NewStub(grpc::CreateChannel(
           mixer_address_, grpc::InsecureChannelCredentials()));
@@ -140,7 +140,7 @@ Status Client::Wanderings() {
           mixer_address_, grpc::InsecureChannelCredentials()));
 
   for (int user_id = 0; user_id < kUserCount; ++user_id) {
-    proto::PutLocationRequest request;
+    proto::PutLocation_Request request;
 
     float gps_latitude = dis(gen);
     float gps_longitude = dis(gen);
@@ -178,7 +178,7 @@ Status Client::Wanderings() {
     }
 
     grpc::ClientContext context;
-    proto::PutLocationResponse response;
+    proto::PutLocation_Response response;
     grpc::Status status = stub->PutLocation(&context, request, &response);
     if (!status.ok()) {
       RETURN_ERROR(INTERNAL_ERROR,
@@ -200,7 +200,7 @@ Status Client::BatchPush() {
 
   // Send 1.000 batch of 10.000 points (10.000.000 points).
   for (int i = 0; i < 1000; ++i) {
-    proto::PutLocationRequest request;
+    proto::PutLocation_Request request;
 
     // Prepare a batch of 10.000 points with:
     //
@@ -222,7 +222,7 @@ Status Client::BatchPush() {
     }
 
     grpc::ClientContext context;
-    proto::PutLocationResponse response;
+    proto::PutLocation_Response response;
     std::unique_ptr<proto::MixerService::Stub> stub =
         proto::MixerService::NewStub(grpc::CreateChannel(
             mixer_address_, grpc::InsecureChannelCredentials()));

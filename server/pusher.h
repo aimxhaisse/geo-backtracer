@@ -19,12 +19,12 @@ public:
 
   grpc::Status
   InternalPutLocation(grpc::ServerContext *context,
-                      const proto::PutLocationRequest *request,
-                      proto::PutLocationResponse *response) override;
+                      const proto::PutLocation_Request *request,
+                      proto::PutLocation_Response *response) override;
 
   grpc::Status InternalDeleteUser(grpc::ServerContext *context,
-                                  const proto::DeleteUserRequest *request,
-                                  proto::DeleteUserResponse *response) override;
+                                  const proto::DeleteUser_Request *request,
+                                  proto::DeleteUser_Response *response) override;
 
 private:
   Status PutTimelineLocation(int64_t user_id, int64_t ts, uint32_t duration,
