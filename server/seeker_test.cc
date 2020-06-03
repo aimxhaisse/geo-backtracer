@@ -561,10 +561,23 @@ TEST_P(SeekerTest, NearbyFolkCloseAltitude) {
                         kBaseGpsAltitude + 1.0));
 
   {
+    proto::GetUserTimeline_Response response;
+    EXPECT_TRUE(FetchTimeline(kBaseUserId, &response));
+    EXPECT_EQ(response.point_size(), 1);
+  }
+
+  {
+    proto::GetUserTimeline_Response response;
+    EXPECT_TRUE(FetchTimeline(kBaseUserId + 1, &response));
+    EXPECT_EQ(response.point_size(), 1);
+  }
+
+  {
     proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId, &response));
     EXPECT_EQ(1, response.folk_size());
   }
+
   {
     proto::GetUserNearbyFolks_Response response;
     EXPECT_TRUE(GetNearbyFolks(kBaseUserId + 1, &response));

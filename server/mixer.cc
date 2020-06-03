@@ -221,8 +221,10 @@ Status Mixer::InitHandlers(const MixerConfig &config) {
     if (handler->IsDefaultShard()) {
       default_handler_ = handler;
     } else {
-      handlers_.push_back(handler);
+      area_handlers_.push_back(handler);
     }
+
+    all_handlers_.push_back(handler);
   }
 
   return StatusCode::OK;
@@ -243,21 +245,20 @@ Status Mixer::InitService(const MixerConfig &config) {
 grpc::Status Mixer::DeleteUser(grpc::ServerContext *context,
                                const proto::DeleteUser_Request *request,
                                proto::DeleteUser_Response *response) {
-  std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
-  handlers.push_back(default_handler_);
+  grpc::Status ret = grpc::Status::OK;
 
-  for (auto &handler : handlers) {
+  for (auto &handler : all_handlers_) {
     grpc::Status status = handler->DeleteUser(request, response);
     if (!status.ok()) {
       LOG(WARNING) << "unable to delete user in a shard, status="
                    << status.error_message();
-      return status;
+      ret = status;
     }
   }
 
   LOG(INFO) << "user deleted in all shards";
 
-  return grpc::Status::OK;
+  return ret;
 }
 
 grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
@@ -265,7 +266,7 @@ grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
                                 proto::PutLocation_Response *response) {
   for (const auto &loc : request->locations()) {
     bool sent = false;
-    for (auto &handler : handlers_) {
+    for (auto &handler : area_handlers_) {
       if (handler->QueueLocation(loc)) {
         sent = true;
         break;
@@ -279,9 +280,7 @@ grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
   }
 
   grpc::Status status = grpc::Status::OK;
-  std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
-  handlers.push_back(default_handler_);
-  for (auto &handler : handlers) {
+  for (auto &handler : all_handlers_) {
     grpc::Status handler_status = handler->FlushLocations();
     if (!handler_status.ok()) {
       status = handler_status;
@@ -297,10 +296,7 @@ Mixer::GetUserTimeline(grpc::ServerContext *context,
                        proto::GetUserTimeline_Response *response) {
   std::set<proto::UserTimelinePoint, CompareTimelinePoints> timeline;
 
-  std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
-  handlers.push_back(default_handler_);
-
-  for (auto &handler : handlers) {
+  for (auto &handler : all_handlers_) {
     proto::GetUserTimeline_Response shard_response;
     grpc::Status status = handler->GetUserTimeline(request, &shard_response);
     if (!status.ok()) {
@@ -354,7 +350,11 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
   std::set<proto::BlockEntry, CompareBlockEntry> user_entries;
   std::set<proto::BlockEntry, CompareBlockEntry> folk_entries;
 
-  std::vector<std::shared_ptr<ShardHandler>> handlers = handlers_;
+  // We don't use all_handlers_ here because *order* is important, we
+  // want the default handler to be the fallback if no other found
+  // it. The default handler will always consider it can accept any
+  // request, even if it is supposed to be handled by another one.
+  std::vector<std::shared_ptr<ShardHandler>> handlers = area_handlers_;
   handlers.push_back(default_handler_);
 
   for (int i = 0; i < tl_rsp.point_size(); ++i) {

@@ -85,8 +85,10 @@ private:
                                       const proto::UserTimelinePoint &point,
                                       std::list<proto::DbKey> *keys);
 
-  std::vector<std::shared_ptr<ShardHandler>> handlers_;
+  std::vector<std::shared_ptr<ShardHandler>> all_handlers_;
+  std::vector<std::shared_ptr<ShardHandler>> area_handlers_;
   std::shared_ptr<ShardHandler> default_handler_;
+
   std::unique_ptr<grpc::Server> grpc_;
 };
 
