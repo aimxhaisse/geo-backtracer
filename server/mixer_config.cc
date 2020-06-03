@@ -64,11 +64,11 @@ Status MixerConfig::MakePartitionConfigs(const Config &config) {
             "non-default partition must have a bottom right GPS point");
       }
 
-      partition.gps_longitude_begin_ = top_left[0];
-      partition.gps_latitude_begin_ = top_left[1];
+      partition.gps_latitude_begin_ = top_left[0];
+      partition.gps_longitude_begin_ = top_left[1];
 
-      partition.gps_longitude_end_ = bottom_right[0];
-      partition.gps_latitude_end_ = bottom_right[1];
+      partition.gps_latitude_end_ = bottom_right[0];
+      partition.gps_longitude_end_ = bottom_right[1];
 
       partition_configs_.push_back(partition);
     }

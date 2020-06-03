@@ -56,6 +56,24 @@ StatusOr<WorkerConfig> GenerateWorkerConfig(bool simulate_db_down, int shard_id,
   return worker_config;
 }
 
+namespace {
+
+float GetShardLatitudeTop(float start, float end, int nb_shard, int idx) {
+  const float distance = fabs(end - start);
+  const float increment = distance / static_cast<float>(nb_shard - 1);
+
+  return start + static_cast<float>(idx - 1) * increment;
+}
+
+float GetShardLatitudeBot(float start, float end, int nb_shard, int idx) {
+  const float distance = fabs(end - start);
+  const float increment = distance / static_cast<float>(nb_shard - 1);
+
+  return start + static_cast<float>(idx) * increment;
+}
+
+} // namespace
+
 StatusOr<MixerConfig> GenerateMixerConfig(int shard_count, int shard_id,
                                           int db_count) {
   std::stringstream sstream;
@@ -88,26 +106,19 @@ StatusOr<MixerConfig> GenerateMixerConfig(int shard_count, int shard_id,
     if (i == 0) {
       sstream << "      area: 'default'\n";
     } else {
-      constexpr float kTopLat = -5.0;
-      constexpr float kTopLong = 51.0;
+      constexpr float kTopLong = -5.0;
+      constexpr float kTopLat = 51.0;
 
-      constexpr float kBotLat = 7.50;
-      constexpr float kBotLong = 44.0;
-
-      const float increments =
-          (kBotLong - kTopLong) / static_cast<float>(shard_count - 1);
-
-      const float top_lat = kTopLat;
-      const float top_long = kTopLong + (static_cast<float>(i) * increments);
-
-      const float bot_lat = kBotLat;
-      const float bot_long =
-          kTopLong + (static_cast<float>(i) + 1.0) * increments;
+      constexpr float kBotLong = 7.50;
+      constexpr float kBotLat = 44.0;
 
       sstream << "      area: 'fr'\n";
-      sstream << "      top_left: [" << top_lat << ", " << top_long << "]\n";
-      sstream << "      bottom_right: [" << bot_lat << ", " << bot_long
-              << "]\n";
+      sstream << "      top_left: ["
+              << GetShardLatitudeTop(kTopLat, kBotLat, shard_count, i) << ", "
+              << kTopLong << "]\n";
+      sstream << "      bottom_right: ["
+              << GetShardLatitudeBot(kTopLat, kBotLat, shard_count, i) << ", "
+              << kBotLong << "]\n";
     }
   }
 
