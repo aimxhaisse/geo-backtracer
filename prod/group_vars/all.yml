@@ -24,6 +24,8 @@ geo:
   # This will define the sharding strategy: all points inside the
   # rectangle below will be divided in (number of shards - 1),
   # everything outside will default to a fallback shard.
+  #
+  # Tuples below are [lat, long].
   - area: "fr"
     top_left: [-5.00, 51.00]
     bottom_right: [7.50, 44.00]

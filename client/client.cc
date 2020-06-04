@@ -13,6 +13,14 @@ DEFINE_string(
 DEFINE_int64(user_id, 0, "user id (if applicable)");
 DEFINE_string(mixer_address, "", "address of a mixer");
 
+// Flags for the wandering simulation, it is meant to be used at scale
+// with multiple clients pushing points to the cluster.
+DEFINE_int64(wanderings_user_count, 10000, "number of users to simulate");
+DEFINE_int64(wanderings_push_days, 14, "number of days to push");
+DEFINE_double(wanderings_longitude, 14, "gps longitude to wander around");
+DEFINE_double(wanderings_latitude, 14, "gps latitude to wander around");
+DEFINE_double(wanderings_area, 14, "estimation of the area to wander around");
+
 using namespace bt;
 
 Status Client::Init() {
@@ -119,6 +127,78 @@ Status Client::NearbyFolks() {
   return StatusCode::OK;
 }
 
+namespace {
+
+// Simulates someone walking randomly around.
+class Wanderer {
+public:
+  Wanderer(float latitude, float longitude, float area)
+      : gen_(rd_()),
+        moves_(0.0001,
+               0.0010) /* move between 1 and 10 meters on each iteration */ {
+    gps_latitude_ = latitude;
+    gps_longitude_ = longitude;
+    gps_area_ = area;
+
+    InitDirections();
+    InitPositions();
+  }
+
+  void InitDirections() {
+    if (std::rand() % 2 == 0) {
+      latitude_dir_ = 1.0;
+    } else {
+      latitude_dir_ = -1.0;
+    }
+
+    if (std::rand() % 2 == 0) {
+      longitude_dir_ = 1.0;
+    } else {
+      longitude_dir_ = 1.0;
+    }
+  }
+
+  void InitPositions() {
+    current_latitude_ =
+        gps_latitude_ +
+        fmod(float(std::rand() / 1000.0), gps_area_) * latitude_dir_;
+    current_longitude_ =
+        gps_longitude_ +
+        fmod(float(std::rand() / 1000.0), gps_area_) * longitude_dir_;
+  }
+
+  void Move() {
+    if (std::rand() % 25 == 0) {
+      latitude_dir_ *= -1.0;
+    }
+    if (std::rand() % 25 == 0) {
+      longitude_dir_ *= -1.0;
+    }
+
+    current_latitude_ += moves_(gen_) * latitude_dir_;
+    current_longitude_ += moves_(gen_) * longitude_dir_;
+  }
+
+  std::random_device rd_;
+  std::mt19937 gen_;
+
+  // Area to wander around.
+  float gps_latitude_ = 0.0;
+  float gps_longitude_ = 0.0;
+  float gps_area_ = 0.0;
+
+  // Current position.
+  float current_latitude_ = 0.0;
+  float current_longitude_ = 0.0;
+
+  // Moves and directions.
+  std::uniform_real_distribution<float> moves_;
+  float latitude_dir_ = 1.0;
+  float longitude_dir_ = 1.0;
+};
+
+} // namespace
+
 Status Client::Wanderings() {
   LOG(INFO) << "starting to simulate a bunch of users walking around";
 
@@ -128,8 +208,8 @@ Status Client::Wanderings() {
   // 4 digits gives a precision of 1.1km.
   std::uniform_real_distribution<float> dis(10.11, 10.12);
 
-  // Each move will be between 1 and 5 meters.
-  std::uniform_real_distribution<float> mov(0.0001, 0.0005);
+  // Each move will be between 1 and 10 meters every minute.
+  std::uniform_real_distribution<float> mov(0.0001, 0.0010);
 
   constexpr int kUserCount = 10000;
   const std::time_t now = std::time(nullptr);
