@@ -17,9 +17,10 @@ DEFINE_string(mixer_address, "", "address of a mixer");
 // with multiple clients pushing points to the cluster.
 DEFINE_int64(wanderings_user_count, 10000, "number of users to simulate");
 DEFINE_int64(wanderings_push_days, 14, "number of days to push");
-DEFINE_double(wanderings_longitude, 14, "gps longitude to wander around");
-DEFINE_double(wanderings_latitude, 14, "gps latitude to wander around");
-DEFINE_double(wanderings_area, 14, "estimation of the area to wander around");
+
+DEFINE_double(wanderings_latitude, 1.50, "gps latitude to wander around");
+DEFINE_double(wanderings_longitude, 47.50, "gps longitude to wander around");
+DEFINE_double(wanderings_area, 6.0, "estimation of the area to wander around");
 
 using namespace bt;
 
@@ -132,10 +133,12 @@ namespace {
 // Simulates someone walking randomly around.
 class Wanderer {
 public:
-  Wanderer(float latitude, float longitude, float area)
-      : gen_(rd_()),
+  Wanderer(int64_t user_id, float latitude, float longitude, float area,
+           int64_t start_ts, int64_t end_ts)
+      : user_id_(user_id), gen_(rd_()),
         moves_(0.0001,
-               0.0010) /* move between 1 and 10 meters on each iteration */ {
+               0.0010 /* move between 1 and 10 meters on each iteration */),
+        current_ts_(start_ts), end_ts_(end_ts) {
     gps_latitude_ = latitude;
     gps_longitude_ = longitude;
     gps_area_ = area;
@@ -167,7 +170,13 @@ public:
         fmod(float(std::rand() / 1000.0), gps_area_) * longitude_dir_;
   }
 
-  void Move() {
+  bool Move() {
+    current_ts_ += current_duration_;
+
+    if (current_ts_ > end_ts_) {
+      return false;
+    }
+
     if (std::rand() % 25 == 0) {
       latitude_dir_ *= -1.0;
     }
@@ -177,10 +186,16 @@ public:
 
     current_latitude_ += moves_(gen_) * latitude_dir_;
     current_longitude_ += moves_(gen_) * longitude_dir_;
+
+    current_duration_ = 60 * (std::rand() % 10 + 1);
+
+    return true;
   }
 
+  int64_t user_id_ = 0;
   std::random_device rd_;
   std::mt19937 gen_;
+  std::uniform_real_distribution<float> moves_;
 
   // Area to wander around.
   float gps_latitude_ = 0.0;
@@ -190,9 +205,13 @@ public:
   // Current position.
   float current_latitude_ = 0.0;
   float current_longitude_ = 0.0;
+  float current_altitude_ = 0.0;
+
+  int64_t current_ts_ = 0;
+  int64_t end_ts_ = 0;
+  int64_t current_duration_ = 60;
 
   // Moves and directions.
-  std::uniform_real_distribution<float> moves_;
   float latitude_dir_ = 1.0;
   float longitude_dir_ = 1.0;
 };
@@ -202,59 +221,42 @@ public:
 Status Client::Wanderings() {
   LOG(INFO) << "starting to simulate a bunch of users walking around";
 
-  std::random_device rd;
-  std::mt19937 gen(rd());
-
-  // 4 digits gives a precision of 1.1km.
-  std::uniform_real_distribution<float> dis(10.11, 10.12);
-
-  // Each move will be between 1 and 10 meters every minute.
-  std::uniform_real_distribution<float> mov(0.0001, 0.0010);
-
-  constexpr int kUserCount = 10000;
-  const std::time_t now = std::time(nullptr);
-  const std::time_t start_at = now - (20 * 3600);
-
   std::unique_ptr<proto::MixerService::Stub> stub =
       proto::MixerService::NewStub(grpc::CreateChannel(
           mixer_address_, grpc::InsecureChannelCredentials()));
 
-  for (int user_id = 0; user_id < kUserCount; ++user_id) {
+  const std::time_t now = std::time(nullptr);
+  const std::time_t start_at = now - (FLAGS_wanderings_push_days * 24 * 3600);
+
+  std::vector<std::unique_ptr<Wanderer>> wanderers;
+  int64_t base_user_id = std::rand();
+  for (int user = 0; user < FLAGS_wanderings_user_count; ++user) {
+    wanderers.push_back(std::make_unique<Wanderer>(
+        base_user_id + user, FLAGS_wanderings_latitude,
+        FLAGS_wanderings_longitude, FLAGS_wanderings_area, start_at, now));
+  }
+
+  bool done = false;
+  while (!done) {
     proto::PutLocation_Request request;
 
-    float gps_latitude = dis(gen);
-    float gps_longitude = dis(gen);
-    float gps_altitude = dis(gen);
+    done = true;
 
-    float gps_lat_direction = 1.0;
-    float gps_long_direction = 1.0;
+    for (auto &wanderer : wanderers) {
+      if (!wanderer->Move()) {
+        continue;
+      }
 
-    // Prepare a batch of 10 hours of walking.
-    for (int j = 0; j < 60 * 10; ++j) {
+      done = false;
+
       proto::Location *loc = request.add_locations();
-      loc->set_timestamp(start_at + j * 60);
-      loc->set_duration(0);
-      loc->set_user_id(user_id);
+      loc->set_timestamp(wanderer->current_ts_);
+      loc->set_duration(wanderer->current_duration_);
 
-      // From time to time, move a bit.
-      if (std::rand() % 2 == 0) {
-        gps_latitude += (mov(gen) * gps_lat_direction);
-      }
-      if (std::rand() % 2 == 0) {
-        gps_longitude += (mov(gen) * gps_long_direction);
-      }
-
-      // From time to time, change direction.
-      if (std::rand() % 10 == 0) {
-        gps_lat_direction *= -1.0;
-      }
-      if (std::rand() % 10 == 0) {
-        gps_long_direction *= -1.0;
-      }
-
-      loc->set_gps_latitude(gps_latitude);
-      loc->set_gps_longitude(gps_longitude);
-      loc->set_gps_altitude(gps_altitude);
+      loc->set_user_id(wanderer->user_id_);
+      loc->set_gps_latitude(wanderer->current_latitude_);
+      loc->set_gps_longitude(wanderer->current_longitude_);
+      loc->set_gps_altitude(wanderer->current_altitude_);
     }
 
     grpc::ClientContext context;
@@ -264,6 +266,8 @@ Status Client::Wanderings() {
       RETURN_ERROR(INTERNAL_ERROR,
                    "unable to send location to backtracer, status="
                        << status.error_message());
+    } else {
+      LOG(INFO) << "wrote " << request.locations_size() << " GPS locations";
     }
   }
 
