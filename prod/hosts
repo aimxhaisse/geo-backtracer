@@ -1,8 +1,12 @@
 [workers]
 
+# Dev machines.
 gamgee ansible_host=gamgee.sbrk.org ansible_user=mxs vpn_ip=10.0.0.1
 bombadil ansible_host=bombadil.sbrk.org ansible_user=mxs vpn_ip=10.0.0.2
 treebeard ansible_host=treebeard.sbrk.org ansible_user=mxs vpn_ip=10.0.0.3
+
+# High CPU + nvme/ssd machines.
+beorn ansible_host=beorn.sbrk.org ansible_user=mxs vpn_ip=10.0.0.4
 
 [all:vars]
 
