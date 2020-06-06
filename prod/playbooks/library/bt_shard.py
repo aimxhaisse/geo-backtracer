@@ -51,6 +51,20 @@ Partition = namedtuple(
     "Partition", ["area", "shard", "top_left", "bottom_right"])
 
 
+def make_latitude_top(start, end, nb_shard, idx):
+    dist = abs(end - start)
+    inc = dist / (float(nb_shard - 1))
+
+    return start + (idx - 1) * inc
+
+
+def make_latitude_bot(start, end, nb_shard, idx):
+    dist = abs(end - start)
+    inc = dist / (float(nb_shard - 1))
+
+    return start + idx * inc
+
+
 def make_partition(area, shard, idx, shard_count):
     """Creates a partition given a shard and its id."""
     if (area['area'] == "default"):
@@ -64,12 +78,14 @@ def make_partition(area, shard, idx, shard_count):
     # arbitrary way of sharding. It doesn't need to be aligned on a
     # block, the mixer will round properly.
     top_left = [
-        area['top_left'][0],
-        area['top_left'][1] + idx * increments
+        make_latitude_top(
+            area['top_left'][0], area['bottom_right'][0], shard_count, idx),
+        area['top_left'][1]
     ]
     bottom_right = [
-        area['bottom_right'][0],
-        area['top_left'][1] + (idx + 1) * increments
+        make_latitude_bot(
+            area['top_left'][0], area['bottom_right'][0], shard_count, idx),
+        area['bottom_right'][1]
     ]
 
     return Partition(
