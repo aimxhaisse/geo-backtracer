@@ -1,5 +1,6 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
+#include <math.h>
 #include <sstream>
 
 #include "server/cluster_test.h"
