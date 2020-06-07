@@ -26,7 +26,7 @@ network:
 shards:
 {%- for shard in shards %}
   - name: "{{ shard['name'] }}"
-    workers: [{% for w in shards['worker'] %}"{{ w.address }}:{{ w.port}}"{{", " if not loop.last}}{% endfor %}]
+    workers: [{% for w in shard['hosts'] %}"{{ w }}:{{ shard['worker_port'] }}"{{", " if not loop.last}}{% endfor %}]
 {%- endfor %}
 
 partitions:
