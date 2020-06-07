@@ -3,11 +3,22 @@
 # Setup the Geo-Backtracer.
 
 - name: "create directory structure"
-  become_user: "{{ geo_user }}"
-  become: yes
   file:
-    path: "/home/{{ geo_user }}/bt/{{ item[0].name }}/{{ item[1] }}"
+    owner: "{{ geo_user }}"
+    path: "/data/bt/{{ item[0].name }}/{{ item[1] }}"
     state: directory
+    mode: 0755
+  with_nested:
+    - "{{ shards }}"
+    - ['log', 'etc', 'bin', 'data']
+  when: inventory_hostname in item[0].workers
+
+- name: "add symlinks to data path"
+  file:
+    src: "/data/bt/{{ item[0].name }}/{{ item[1] }}"
+    path: "/home/{{ geo_user }}/bt/{{ item[0].name }}/{{ item[1] }}"
+    state: link
+    owner: "{{ geo_user }}"
     mode: 0755
   with_nested:
     - "{{ shards }}"
