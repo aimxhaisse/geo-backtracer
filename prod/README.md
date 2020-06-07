@@ -36,8 +36,8 @@ Ubuntu's vanilla install), you need to explicitly specify your
 password (the set up will then configure sudo to avoid doing this each
 time):
 
-    ansible-playbook site.yml --extra-vars "ansible_sudo_pass=YOUR_PASSWORD"
+    ansible-playbook playbooks/setup.yml --extra-vars "ansible_sudo_pass=YOUR_PASSWORD"
 
 Further runs can directly use:
 
-    ansible-playbook site.yml
+    ansible-playbook playbooks/setup.yml
