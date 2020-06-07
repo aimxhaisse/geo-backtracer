@@ -9,7 +9,7 @@
       command: ./all.bash worker status
       register: worker_status
       loop: "{{ shards }}"
-      when: inventory_hostname in item.workers
+      when: inventory_hostname in item.hosts
 
     - name: show status of worker jobs
       debug:
@@ -21,7 +21,7 @@
       command: ./all.bash mixer status
       register: mixer_status
       loop: "{{ shards }}"
-      when: inventory_hostname in item.workers
+      when: inventory_hostname in item.hosts
 
     - name: show status of mixer jobs
       debug:

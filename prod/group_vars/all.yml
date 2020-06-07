@@ -39,10 +39,13 @@ geo:
 shards:
   - name: "8a00862"
     area: "default"
-    workers: ["gamgee:7000", "bombadil:7000"]
+    hosts: ['beorn']
+    worker_port: 7000
+    mixer_port: 8000
+
   - name: "eb3e451"
     area: "fr"
-    workers: ["gamgee:7001", "treebeard:7001"]
-  - name: "735ec68"
-    area: "fr"
-    workers: ["treebeard:7002", "bombadil:7002"]
+    hosts: ['beorn']
+    worker_port: 7001
+    mixer_port: 8001
+

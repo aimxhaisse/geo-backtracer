@@ -2,35 +2,49 @@
 
 # Setup the Geo-Backtracer.
 
-- name: "create directory structure"
+- name: "create volume directory for shards"
   file:
     owner: "{{ geo_user }}"
-    path: "/data/bt/{{ item[0].name }}/{{ item[1] }}"
+    path: "/data/bt/{{ item.name }}"
     state: directory
     mode: 0755
-  with_nested:
-    - "{{ shards }}"
-    - ['log', 'etc', 'bin', 'data']
-  when: inventory_hostname in item[0].workers
+  when: inventory_hostname is in item.hosts
+  loop: "{{ shards }}"
 
-- name: "add symlinks to data path"
+- name: "create bt directory for geo-bt user"
   file:
-    src: "/data/bt/{{ item[0].name }}/{{ item[1] }}"
-    path: "/home/{{ geo_user }}/bt/{{ item[0].name }}/{{ item[1] }}"
+    owner: "{{ geo_user }}"
+    path: "/home/{{ geo_user }}/bt"
+    state: directory
+    mode: 0755
+
+- name: "add symlinks to data directory for shards"
+  file:
+    src: "/data/bt/{{ item.name }}"
+    path: "/home/{{ geo_user }}/bt/{{ item.name }}"
     state: link
     owner: "{{ geo_user }}"
     mode: 0755
+  when: inventory_hostname is in item.hosts
+  loop: "{{ shards }}"
+
+- name: "create directories for shards"
+  file:
+    owner: "{{ geo_user }}"
+    path: "/home/{{ geo_user }}/bt/{{ item[0].name }}/{{ item[1] }}"
+    state: directory
+    mode: 0755
+  when: inventory_hostname is in item[0].hosts
   with_nested:
     - "{{ shards }}"
-    - ['log', 'etc', 'bin', 'data']
-  when: inventory_hostname in item[0].workers
+    - ['bin', 'log', 'etc', 'data']
 
 - name: "create worker config file"
   template:
     src: templates/worker.yml
     dest: "/home/{{ geo_user }}/bt/{{ item.name }}/etc/worker.yml"
+  when: inventory_hostname is in item.hosts
   loop: "{{ shards }}"
-  when: inventory_hostname in item.workers
 
 - name: "generate mixer config file"
   bt_shard:
@@ -38,11 +52,9 @@
     shards: "{{ shards }}"
     dest: "/home/{{ geo_user }}/bt/{{ item.name }}/etc/mixer.yml"
     mixer_ip: "{{ vpn_ip }}"
-    mixer_port: "{{ 8000 + idx }}"
+    mixer_port: "{{ item.mixer_port }}"
+  when: inventory_hostname is in item.hosts
   loop: "{{ shards }}"
-  loop_control:
-    index_var: idx
-  when: inventory_hostname in item.workers
 
 - name: "install geo-bt"
   make:
@@ -50,5 +62,5 @@
     target: install
     params:
       INSTALL_DIR: "/home/{{ geo_user }}/bt/{{ item.name }}"
+  when: inventory_hostname is in item.hosts
   loop: "{{ shards }}"
-  when: inventory_hostname in item.workers

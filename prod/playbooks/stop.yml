@@ -8,11 +8,11 @@
         chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
       command: ./all.bash worker stop
       loop: "{{ shards }}"
-      when: inventory_hostname in item.workers
+      when: inventory_hostname in item.hosts
 
     - name: stop mixer jobs
       args:
         chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
       command: ./all.bash mixer stop
       loop: "{{ shards }}"
-      when: inventory_hostname in item.workers
+      when: inventory_hostname in item.hosts

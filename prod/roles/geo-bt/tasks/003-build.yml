@@ -16,9 +16,3 @@
     chdir: "/home/{{ geo_user }}/src"
     target: all
 
-- name: "run geo-bt tests"
-  become_user: "{{ geo_user }}"
-  become: yes
-  make:
-    chdir: "/home/{{ geo_user }}/src"
-    target: test

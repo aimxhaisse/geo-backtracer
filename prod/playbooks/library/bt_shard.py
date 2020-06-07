@@ -26,7 +26,7 @@ network:
 shards:
 {%- for shard in shards %}
   - name: "{{ shard['name'] }}"
-    workers: {{ shard['workers'] }}
+    workers: [{% for w in shards['worker'] %}"{{ w.address }}:{{ w.port}}"{{", " if not loop.last}}{% endfor %}]
 {%- endfor %}
 
 partitions:
@@ -53,14 +53,14 @@ Partition = namedtuple(
 
 def make_latitude_top(start, end, nb_shard, idx):
     dist = abs(end - start)
-    inc = dist / (float(nb_shard - 1))
+    inc = dist / float(nb_shard)
 
     return start + (idx - 1) * inc
 
 
 def make_latitude_bot(start, end, nb_shard, idx):
     dist = abs(end - start)
-    inc = dist / (float(nb_shard - 1))
+    inc = dist / float(nb_shard)
 
     return start + idx * inc
 
@@ -70,9 +70,6 @@ def make_partition(area, shard, idx, shard_count):
     if (area['area'] == "default"):
         return Partition(
             area=area, shard=shard['name'], top_left=None, bottom_right=None)
-
-    increments = (
-        area['bottom_right'][1] - area['top_left'][1]) / float(shard_count)
 
     # Here we shard the area in horizontal stripes, this is a
     # arbitrary way of sharding. It doesn't need to be aligned on a
