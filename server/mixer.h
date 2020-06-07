@@ -2,6 +2,7 @@
 
 #include <grpc++/grpc++.h>
 #include <map>
+#include <mutex>
 
 #include "common/status.h"
 #include "proto/backtrace.grpc.pb.h"
@@ -45,6 +46,7 @@ private:
   bool IsWithinShard(const PartitionConfig &partition, float gps_lat,
                      float gps_long, int64_t ts) const;
 
+  std::mutex lock_;
   ShardConfig config_;
   bool is_default_ = false;
   proto::PutLocation_Request locations_;

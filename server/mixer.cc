@@ -132,7 +132,10 @@ bool ShardHandler::QueueLocation(const proto::Location &location) {
       continue;
     }
 
-    *locations_.add_locations() = location;
+    {
+      std::lock_guard<std::mutex> lk(lock_);
+      *locations_.add_locations() = location;
+    }
 
     return true;
   }
@@ -143,6 +146,7 @@ bool ShardHandler::QueueLocation(const proto::Location &location) {
 grpc::Status ShardHandler::FlushLocations() {
   grpc::Status status = grpc::Status::OK;
 
+  std::lock_guard<std::mutex> lk(lock_);
   if (locations_.locations_size() == 0) {
     return status;
   }
