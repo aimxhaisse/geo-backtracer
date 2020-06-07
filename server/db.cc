@@ -231,9 +231,9 @@ Status Db::Init(const WorkerConfig &config) {
   rocksdb_options.create_if_missing = true;
   rocksdb_options.write_buffer_size = 512 << 20;
   rocksdb_options.compression = rocksdb::kLZ4Compression;
-  rocksdb_options.max_background_compactions = 4;
-  rocksdb_options.max_background_flushes = 2;
-  rocksdb_options.bytes_per_sync = 1048576;
+  rocksdb_options.max_background_compactions = 16;
+  rocksdb_options.max_background_flushes = 8;
+  rocksdb_options.bytes_per_sync = 16 * 1048576;
   rocksdb_options.compaction_pri = rocksdb::kMinOverlappingRatio;
 
   // Column families need to be created prior to opening the database.
