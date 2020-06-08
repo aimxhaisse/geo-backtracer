@@ -211,9 +211,10 @@ Status Pusher::DeleteUserFromBlock(int64_t user_id,
   return StatusCode::OK;
 }
 
-grpc::Status Pusher::InternalDeleteUser(grpc::ServerContext *context,
-                                        const proto::DeleteUser_Request *request,
-                                        proto::DeleteUser_Response *response) {
+grpc::Status
+Pusher::InternalDeleteUser(grpc::ServerContext *context,
+                           const proto::DeleteUser_Request *request,
+                           proto::DeleteUser_Response *response) {
   int64_t user_id = request->user_id();
   int64_t reverse_count = 0;
   int64_t timeline_count = 0;

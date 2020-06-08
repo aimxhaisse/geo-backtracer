@@ -46,6 +46,9 @@ std::ostream &operator<<(std::ostream &os, const Status &status) {
   case INVALID_CONFIG:
     str_code = "INVALID_CONFIG";
     break;
+  case INVALID_ARGUMENT:
+    str_code = "INVALID_ARGUMENT";
+    break;
   default:
     str_code = "UNKNOWN";
     break;

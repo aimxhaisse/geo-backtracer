@@ -12,6 +12,7 @@ enum StatusCode {
   INTERNAL_ERROR,
   NOT_YET_IMPLEMENTED,
   INVALID_CONFIG,
+  INVALID_ARGUMENT,
 };
 
 class Status {
