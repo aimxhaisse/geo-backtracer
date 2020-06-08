@@ -7,7 +7,7 @@
 #include <mutex>
 #include <utility>
 
-#include <common/status.h>
+#include "common/status.h"
 
 namespace bt {
 
@@ -28,8 +28,8 @@ public:
   // Adds a count at the current time.
   void Increment(uint64_t count);
 
-  // Returns the average QPS for the last N seconds.
-  Status RateForLastNSeconds(int last_n_seconds, uint64_t *rate_per_second);
+  // Returns the average QPS for the last N duration_seconds.
+  Status RateForLastNSeconds(int duration_seconds, uint64_t *rate_for_duration);
 
 private:
   using Counter = std::pair<std::time_t, uint64_t>;

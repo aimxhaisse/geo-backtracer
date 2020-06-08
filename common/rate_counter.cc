@@ -12,32 +12,33 @@ void RateCounter::Increment(uint64_t count) {
   CleanUp();
 }
 
-Status RateCounter::RateForLastNSeconds(int last_n_seconds,
-                                        uint64_t *rate_per_second) {
+Status RateCounter::RateForLastNSeconds(int duration_seconds,
+                                        uint64_t *rate_for_duration) {
   CleanUp();
 
-  if (last_n_seconds <= 0 || last_n_seconds > kMaxSeconds) {
-    RETURN_ERROR(INVALID_CONFIG,
+  if (duration_seconds <= 0 || duration_seconds > kMaxSeconds) {
+    RETURN_ERROR(INVALID_ARGUMENT,
                  "rate can't be computed over "
-                     << last_n_seconds
+                     << duration_seconds
                      << " seconds (must be > 0 and <= " << kMaxSeconds << ")");
   }
 
   uint64_t rate = 0;
   const std::time_t end_at = std::time(nullptr);
-  const std::time_t start_at = end_at - last_n_seconds;
+  const std::time_t start_at = end_at - duration_seconds;
 
   {
     std::lock_guard<std::mutex> lk(mutex_);
     auto pos = std::find_if(
         timeline_.begin(), timeline_.end(),
-        [start_at](const Counter &entry) { return start_at >= entry.first; });
+        [start_at](const Counter &entry) { return entry.first >= start_at; });
     while (pos != timeline_.end()) {
       rate += pos->second;
+      ++pos;
     }
   }
 
-  *rate_per_second = rate / (end_at - start_at);
+  *rate_for_duration = rate / (end_at - start_at);
 
   return StatusCode::OK;
 }
