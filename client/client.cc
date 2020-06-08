@@ -167,6 +167,8 @@ Status GetAggregatedMixerStats(const std::vector<std::string> &mixer_addresses,
             mixer_addr, grpc::InsecureChannelCredentials()));
     grpc::Status status = mixer->GetMixerStats(&context, request, &response);
     if (!status.ok()) {
+      LOG(WARNING) << "unable to get mixer stats, error="
+                   << status.error_message();
       RETURN_ERROR(INTERNAL_ERROR, status.error_message());
     }
 
@@ -193,9 +195,7 @@ Status Client::Stats() {
     Status status = GetAggregatedMixerStats(mixer_addresses_, &rate_60s,
                                             &rate_10m, &rate_1h);
 
-    if (status != StatusCode::OK) {
-      LOG(WARNING) << "unable to get mixer stats, status=" << status;
-    } else {
+    if (status == StatusCode::OK) {
       LOG(INFO) << "cluster QPS rates: 60s=" << rate_60s << ", 10m=" << rate_10m
                 << ", 1h=" << rate_1h << "...";
     }
