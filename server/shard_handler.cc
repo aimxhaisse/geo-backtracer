@@ -143,29 +143,47 @@ bool ShardHandler::QueueLocation(const proto::Location &location) {
 }
 
 grpc::Status ShardHandler::FlushLocations() {
-  grpc::Status status = grpc::Status::OK;
-
-  std::lock_guard<std::mutex> lk(lock_);
-  if (locations_.locations_size() == 0) {
-    return status;
+  // Here we try to limit the amount of time we keep the lock at the
+  // cost of CPU, this is done by doing extra copies but doesn't block
+  // other threads queueing elements while waiting for the network or
+  // the worker to wait.
+  proto::PutLocation_Request locations;
+  {
+    std::lock_guard<std::mutex> lk(lock_);
+    if (locations_.locations_size() == 0) {
+      return grpc::Status::OK;
+    }
+    locations = locations_;
+    locations_.clear_locations();
   }
 
+  bool sent = false;
+  grpc::Status last_status = grpc::Status::OK;
   for (auto &stub : pushers_) {
     grpc::ClientContext context;
     proto::PutLocation_Response response;
     grpc::Status stub_status =
-        stub->InternalPutLocation(&context, locations_, &response);
-    if (!status.ok()) {
+        stub->InternalPutLocation(&context, locations, &response);
+    if (!stub_status.ok()) {
       LOG_EVERY_N(WARNING, 10000)
           << "can't send location point to shard " << config_.name_
-          << ", status=" << status.error_message();
-      status = stub_status;
+          << ", status=" << stub_status.error_message();
+      last_status = stub_status;
+    } else {
+      sent = true;
     }
   }
 
-  locations_.clear_locations();
+  // If we failed to send it to all shards, we fail the request and
+  // don't retry anything. We could queue them back and return OK to
+  // the caller but doing so would increase memory usage if all shards
+  // were down for a while, better have clients retrying until the
+  // cluster is up again.
+  if (!sent) {
+    return last_status;
+  }
 
-  return status;
+  return grpc::Status::OK;
 }
 
 grpc::Status

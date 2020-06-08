@@ -16,19 +16,21 @@ namespace bt {
 class ShardHandler {
 public:
   explicit ShardHandler(const ShardConfig &config);
+
   Status Init(const MixerConfig &config,
               const std::vector<PartitionConfig> &partitions);
   const std::string &Name() const;
   bool IsDefaultShard() const;
 
   // Returns true if the location is accepted by this shard; the
-  // actual sending of the point is done when calling Flush. We don't
-  // do it in a dedicated thread to simplify the implementation (
-  // doing so would require to properly handle delete user in pending
-  // locations, in all other mixers).
+  // actual sending of the point is done when calling Flush.
   bool QueueLocation(const proto::Location &location);
 
-  // Sends location points to the actual worker and clears the queue.
+  // Sends location points to the actual worker and clears the queue,
+  // actual sending of the point is done here when calling Flush. We
+  // don't do it in a dedicated background thread to simplify the
+  // implementation ( doing so would require to properly handle delete
+  // user in pending locations, in all other mixers).
   grpc::Status FlushLocations();
 
   Status InternalBuildBlockForUser(
