@@ -9,9 +9,10 @@
 
 DEFINE_string(
     mode, "push",
-    "client mode (one of 'push', 'timeline', 'nearby-folks', 'wanderings').");
+    "client mode (one of  'timeline', 'nearby-folks', 'wanderings').");
 DEFINE_int64(user_id, 0, "user id (if applicable)");
-DEFINE_string(mixer_address, "", "address of a mixer");
+DEFINE_string(config, "etc/client.yml",
+              "path to the config file ('client.yml')");
 
 // Flags for the wandering simulation, it is meant to be used at scale
 // with multiple clients pushing points to the cluster.
@@ -25,9 +26,21 @@ DEFINE_double(wanderings_area, 6.0, "estimation of the area to wander around");
 using namespace bt;
 
 Status Client::Init() {
-  if (FLAGS_mode == "push") {
-    mode_ = BATCH_PUSH;
-  } else if (FLAGS_mode == "wanderings") {
+  StatusOr<std::unique_ptr<Config>> config_status =
+      Config::LoadFromPath(FLAGS_config);
+  if (!config_status.Ok()) {
+    LOG(ERROR) << "unable to init config, status=" << config_status.GetStatus();
+    return config_status.GetStatus();
+  }
+  config_ = std::move(config_status.ValueOrDie());
+
+  mixer_addresses_ = config_->Get<std::vector<std::string>>("mixers");
+  if (mixer_addresses_.empty()) {
+    RETURN_ERROR(INTERNAL_ERROR,
+                 "can't find mixer addresses in the config file");
+  }
+
+  if (FLAGS_mode == "wanderings") {
     mode_ = WANDERINGS;
   } else if (FLAGS_mode == "nearby-folks") {
     mode_ = NEARBY_FOLKS;
@@ -42,26 +55,23 @@ Status Client::Init() {
       RETURN_ERROR(INTERNAL_ERROR, "--user_id is required in timeline mode");
     }
     user_id_ = FLAGS_user_id;
-    mode_ = USER_TIMELINE;
-  }
-
-  mixer_address_ = FLAGS_mixer_address;
-  if (mixer_address_.empty()) {
-    RETURN_ERROR(INTERNAL_ERROR, "--mixer_address is required");
+    mode_ = TIMELINE;
   }
 
   return StatusCode::OK;
+}
+
+const std::string &Client::RandomMixerAddress() {
+  return mixer_addresses_[std::rand() % mixer_addresses_.size()];
 }
 
 Status Client::Run() {
   switch (mode_) {
   case NONE:
     break;
-  case BATCH_PUSH:
-    return BatchPush();
   case WANDERINGS:
     return Wanderings();
-  case USER_TIMELINE:
+  case TIMELINE:
     return UserTimeline();
   case NEARBY_FOLKS:
     return NearbyFolks();
@@ -80,7 +90,7 @@ Status Client::UserTimeline() {
   proto::GetUserTimeline_Response response;
   std::unique_ptr<proto::MixerService::Stub> stub =
       proto::MixerService::NewStub(grpc::CreateChannel(
-          mixer_address_, grpc::InsecureChannelCredentials()));
+          RandomMixerAddress(), grpc::InsecureChannelCredentials()));
   grpc::Status status = stub->GetUserTimeline(&context, request, &response);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR, "unable to retrieve user timeline, status="
@@ -111,7 +121,7 @@ Status Client::NearbyFolks() {
   proto::GetUserNearbyFolks_Response response;
   std::unique_ptr<proto::MixerService::Stub> stub =
       proto::MixerService::NewStub(grpc::CreateChannel(
-          mixer_address_, grpc::InsecureChannelCredentials()));
+          RandomMixerAddress(), grpc::InsecureChannelCredentials()));
   grpc::Status status = stub->GetUserNearbyFolks(&context, request, &response);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR, "unable to retrieve user nearby folks, status="
@@ -223,7 +233,7 @@ Status Client::Wanderings() {
 
   std::unique_ptr<proto::MixerService::Stub> stub =
       proto::MixerService::NewStub(grpc::CreateChannel(
-          mixer_address_, grpc::InsecureChannelCredentials()));
+          RandomMixerAddress(), grpc::InsecureChannelCredentials()));
 
   const std::time_t now = std::time(nullptr);
   const std::time_t start_at = now - (FLAGS_wanderings_push_days * 24 * 3600);
@@ -268,53 +278,6 @@ Status Client::Wanderings() {
                        << status.error_message());
     } else {
       LOG(INFO) << "wrote " << request.locations_size() << " GPS locations";
-    }
-  }
-
-  LOG(INFO) << "done writing points";
-
-  return StatusCode::OK;
-}
-
-Status Client::BatchPush() {
-  LOG(INFO) << "starting to write 10 000 000 points";
-
-  std::random_device rd;
-  std::mt19937 gen(rd());
-
-  // Send 1.000 batch of 10.000 points (10.000.000 points).
-  for (int i = 0; i < 1000; ++i) {
-    proto::PutLocation_Request request;
-
-    // Prepare a batch of 10.000 points with:
-    //
-    // - different users (with IDs in [1,1000]),
-    // - random locations in a 100km^2 area,
-    // - current time.
-    for (int i = 0; i < 10000; ++i) {
-      proto::Location *loc = request.add_locations();
-      loc->set_timestamp(static_cast<uint64_t>(std::time(nullptr)));
-      loc->set_duration(0);
-
-      loc->set_user_id(std::rand() % 10000000);
-      // 3 digits gives a precision of 10km.
-      std::uniform_real_distribution<float> dis(10.1, 10.2);
-
-      loc->set_gps_latitude(dis(gen));
-      loc->set_gps_longitude(dis(gen));
-      loc->set_gps_altitude(dis(gen));
-    }
-
-    grpc::ClientContext context;
-    proto::PutLocation_Response response;
-    std::unique_ptr<proto::MixerService::Stub> stub =
-        proto::MixerService::NewStub(grpc::CreateChannel(
-            mixer_address_, grpc::InsecureChannelCredentials()));
-    grpc::Status status = stub->PutLocation(&context, request, &response);
-    if (!status.ok()) {
-      RETURN_ERROR(INTERNAL_ERROR,
-                   "unable to send location to backtracer, status="
-                       << status.error_message());
     }
   }
 
