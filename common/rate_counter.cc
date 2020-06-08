@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <sstream>
 
 #include "common/rate_counter.h"
 
@@ -23,6 +24,15 @@ Status RateCounter::RateForLastNSeconds(int duration_seconds,
                      << " seconds (must be > 0 and <= " << kMaxSeconds << ")");
   }
 
+  *rate_for_duration = InternalRateForLastNSeconds(duration_seconds);
+
+  return StatusCode::OK;
+}
+
+uint64_t RateCounter::InternalRateForLastNSeconds(int duration_seconds) {
+  // Here we assume duration_seconds is valid, this is checked in the
+  // public interface first.
+
   uint64_t rate = 0;
   const std::time_t end_at = std::time(nullptr);
   const std::time_t start_at = end_at - duration_seconds;
@@ -38,9 +48,18 @@ Status RateCounter::RateForLastNSeconds(int duration_seconds,
     }
   }
 
-  *rate_for_duration = rate / (end_at - start_at);
+  return rate / (end_at - start_at);
+}
 
-  return StatusCode::OK;
+std::string RateCounter::ToString() {
+  std::stringstream ss;
+
+  ss << "qps_60s=" << InternalRateForLastNSeconds(60)
+     << ", qps_5m=" << InternalRateForLastNSeconds(5 * 60)
+     << ", qps_15m=" << InternalRateForLastNSeconds(15 * 60)
+     << ", qps_1h=" << InternalRateForLastNSeconds(60 * 60);
+
+  return ss.str();
 }
 
 void RateCounter::CleanUp() {
