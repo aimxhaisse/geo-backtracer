@@ -6,11 +6,12 @@
 namespace bt {
 
 void RateCounter::Increment(uint64_t count) {
+  CleanUp();
+
   {
     std::lock_guard<std::mutex> lk(mutex_);
     timeline_.push_back(std::make_pair<>(std::time(nullptr), count));
   }
-  CleanUp();
 }
 
 Status RateCounter::RateForLastNSeconds(int duration_seconds,

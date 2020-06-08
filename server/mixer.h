@@ -5,6 +5,7 @@
 #include <mutex>
 #include <vector>
 
+#include "common/rate_counter.h"
 #include "common/status.h"
 #include "proto/backtrace.grpc.pb.h"
 #include "server/mixer_config.h"
@@ -48,6 +49,8 @@ private:
   std::vector<std::shared_ptr<ShardHandler>> all_handlers_;
   std::vector<std::shared_ptr<ShardHandler>> area_handlers_;
   std::shared_ptr<ShardHandler> default_handler_;
+
+  RateCounter pushed_points_counter_;
 
   std::unique_ptr<grpc::Server> grpc_;
 };
