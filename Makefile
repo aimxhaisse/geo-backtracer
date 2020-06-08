@@ -15,8 +15,8 @@ ALL_DEPS 	:= $(DEPS_GTEST)
 CXXFLAGS = -O3 -Wall -Wno-unused-local-typedef -Wno-deprecated-declarations -std=c++17 $(shell freetype-config --cflags 2>/dev/null) -I. -I/usr/local/include/google/protobuf $(DEPS_CXXFLAGS)
 LDLIBS = -lglog -lgflags -lrocksdb -lboost_filesystem -lgrpc++ -lprotobuf -lyaml-cpp -lpthread -lboost_system -lz -ldl -lzstd -lsnappy -lbz2 -llz4 $(DEPS_LDFLAGS)
 
-SERVER := build/bt_server
-CLIENT := build/bt_client
+SERVER := build/bt
+CLIENT := build/client
 DAEMON := build/daemonizer
 TEST   := build/bt_test
 CXX    := clang++
@@ -66,7 +66,7 @@ help:
 	@echo "make clean	# clean all build artifacts"
 	@echo "make re		# rebuild covid backtracer"
 	@echo "make server	# run a local instance of covid backtracer"
-	@echo "make client	# inject fixtures into local instance"
+	@echo "make install     # install built binaries to INSTALL_DIR"
 	@echo ""
 
 all: $(SERVER) $(CLIENT) $(TEST) $(DAEMON)
@@ -131,12 +131,10 @@ install: $(BIN) $(DAEMON) $(SERVER)
 	(cd $(INSTALL_DIR) ; ./all.bash mixer stop ; ./all.bash worker stop)
 	cp $(SERVER) $(INSTALL_DIR)/bin/bt
 	cp $(DAEMON) $(INSTALL_DIR)/bin/daemonizer
+	cp $(CLIENT) $(INSTALL_DIR)/bin/client
 
 server: $(SERVER)
 	$(SERVER)
-
-client: $(CLIENT)
-	$(CLIENT)
 
 test: $(TEST)
 	$(TEST)
