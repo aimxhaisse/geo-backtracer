@@ -1,15 +1,17 @@
+#include <chrono>
 #include <cstdint>
 #include <ctime>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <grpc++/grpc++.h>
 #include <random>
+#include <thread>
 
 #include "client/client.h"
 
 DEFINE_string(
     mode, "push",
-    "client mode (one of  'timeline', 'nearby-folks', 'wanderings').");
+    "client mode (one of  'timeline', 'nearby-folks', 'wanderings', 'stats').");
 DEFINE_int64(user_id, 0, "user id (if applicable)");
 DEFINE_string(config, "etc/client.yml",
               "path to the config file ('client.yml')");
@@ -56,6 +58,8 @@ Status Client::Init() {
     }
     user_id_ = FLAGS_user_id;
     mode_ = TIMELINE;
+  } else if (FLAGS_mode == "stats") {
+    mode_ = STATS;
   }
 
   return StatusCode::OK;
@@ -75,6 +79,8 @@ Status Client::Run() {
     return UserTimeline();
   case NEARBY_FOLKS:
     return NearbyFolks();
+  case STATS:
+    return Stats();
   };
 
   return StatusCode::OK;
@@ -134,6 +140,69 @@ Status Client::NearbyFolks() {
   }
 
   LOG(INFO) << "retrieved " << response.folk().size() << " nearby folks";
+
+  return StatusCode::OK;
+}
+
+namespace {
+
+Status GetAggregatedMixerStats(const std::vector<std::string> &mixer_addresses,
+                               uint64_t *rate_60s, uint64_t *rate_10m,
+                               uint64_t *rate_1h) {
+  uint64_t rate_60s_aggr = 0;
+  uint64_t rate_10m_aggr = 0;
+  uint64_t rate_1h_aggr = 0;
+
+  *rate_60s = 0;
+  *rate_10m = 0;
+  *rate_1h = 0;
+
+  for (auto &mixer_addr : mixer_addresses) {
+    grpc::ClientContext context;
+    proto::MixerStats_Request request;
+    proto::MixerStats_Response response;
+
+    std::unique_ptr<proto::MixerService::Stub> mixer =
+        proto::MixerService::NewStub(grpc::CreateChannel(
+            mixer_addr, grpc::InsecureChannelCredentials()));
+    grpc::Status status = mixer->GetMixerStats(&context, request, &response);
+    if (!status.ok()) {
+      RETURN_ERROR(INTERNAL_ERROR, status.error_message());
+    }
+
+    rate_60s_aggr += response.insert_rate_60s();
+    rate_10m_aggr += response.insert_rate_10m();
+    rate_1h_aggr += response.insert_rate_1h();
+  }
+
+  *rate_60s = rate_60s_aggr;
+  *rate_10m = rate_10m_aggr;
+  *rate_1h = rate_1h_aggr;
+
+  return StatusCode::OK;
+}
+
+} // namespace
+
+Status Client::Stats() {
+  while (true) {
+    uint64_t rate_60s;
+    uint64_t rate_10m;
+    uint64_t rate_1h;
+
+    Status status = GetAggregatedMixerStats(mixer_addresses_, &rate_60s,
+                                            &rate_10m, &rate_1h);
+
+    if (status != StatusCode::OK) {
+      LOG(WARNING) << "unable to get mixer stats, status=" << status;
+      continue;
+    }
+
+    LOG(INFO) << "cluster QPS rates: 60s=" << rate_60s << ", 10m=" << rate_10m
+              << ", 1h=" << rate_1h << "...";
+
+    std::this_thread::sleep_for(std::chrono::seconds(30));
+  }
 
   return StatusCode::OK;
 }

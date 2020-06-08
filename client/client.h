@@ -17,8 +17,9 @@ public:
   enum Mode {
     NONE = 0,     // Do nothing,
     WANDERINGS,   // Simulates a bunch of users walking around,
-    TIMELINE,     // Seeks the timeline of a user id.
-    NEARBY_FOLKS, // Seeks folks that were close to a user id.
+    TIMELINE,     // Seeks the timeline of a user id,
+    NEARBY_FOLKS, // Seeks folks that were close to a user id,
+    STATS,        // Polls all mixers and aggregates insert cluster stats.
   };
 
   Status Init();
@@ -28,6 +29,7 @@ private:
   Status Wanderings();
   Status UserTimeline();
   Status NearbyFolks();
+  Status Stats();
 
   const std::string &RandomMixerAddress();
 
