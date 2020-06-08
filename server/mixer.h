@@ -38,6 +38,10 @@ public:
                      const proto::GetUserNearbyFolks_Request *request,
                      proto::GetUserNearbyFolks_Response *response) override;
 
+  grpc::Status GetMixerStats(grpc::ServerContext *context,
+                             const proto::MixerStats_Request *request,
+                             proto::MixerStats_Response *response) override;
+
 private:
   Status InitHandlers(const MixerConfig &config);
   Status InitService(const MixerConfig &config);

@@ -28,7 +28,6 @@ public:
 
   StatusCode Code() const;
   const std::string &Message() const;
-  std::string &Message();
 
 private:
   StatusCode code_;

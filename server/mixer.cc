@@ -104,6 +104,42 @@ grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
   return status;
 }
 
+grpc::Status Mixer::GetMixerStats(grpc::ServerContext *context,
+                                  const proto::MixerStats_Request *request,
+                                  proto::MixerStats_Response *response) {
+  Status status;
+  uint64_t rate_60s;
+  uint64_t rate_10m;
+  uint64_t rate_1h;
+
+  status = pushed_points_counter_.RateForLastNSeconds(60, &rate_60s);
+  if (status != StatusCode::OK) {
+    return grpc::Status(grpc::StatusCode::INTERNAL,
+                        "unable to get stats for 60 seconds duration, status=" +
+                            status.Message());
+  }
+
+  status = pushed_points_counter_.RateForLastNSeconds(60 * 10, &rate_10m);
+  if (status != StatusCode::OK) {
+    return grpc::Status(grpc::StatusCode::INTERNAL,
+                        "unable to get stats for 10 minutes duration, status=" +
+                            status.Message());
+  }
+
+  status = pushed_points_counter_.RateForLastNSeconds(60 * 60, &rate_1h);
+  if (status != StatusCode::OK) {
+    return grpc::Status(grpc::StatusCode::INTERNAL,
+                        "unable to get stats for 10 hour duration, status=" +
+                            status.Message());
+  }
+
+  response->set_insert_rate_60s(rate_60s);
+  response->set_insert_rate_10m(rate_10m);
+  response->set_insert_rate_1h(rate_1h);
+
+  return grpc::Status::OK;
+}
+
 grpc::Status
 Mixer::GetUserTimeline(grpc::ServerContext *context,
                        const proto::GetUserTimeline_Request *request,

@@ -22,6 +22,9 @@ service MixerService {
   // Queries all shards to find out correlations (i.e: users that were
   // close for a given period of time).
   rpc GetUserNearbyFolks(GetUserNearbyFolks.Request) returns (GetUserNearbyFolks.Response) {};
+
+  // Get statistics for a mixer.
+  rpc GetMixerStats(MixerStats.Request) returns (MixerStats.Response) {};
 }
 
 // --- Internal interface to push location points in a database.
@@ -50,7 +53,6 @@ message PutLocation {
   message Response {}
 }
 
-
 message DeleteUser {
   // Delete all user data from the database.
   message Request {
@@ -58,6 +60,16 @@ message DeleteUser {
   }
   // Ack for the deletion.
   message Response {}
+}
+
+message MixerStats {
+  message Request {}
+
+  message Response {
+    uint64 insert_rate_60s = 1;
+    uint64 insert_rate_10m = 2;
+    uint64 insert_rate_1h = 3;
+  }
 }
 
 // --- Internal interface to retrieve points from the database.
