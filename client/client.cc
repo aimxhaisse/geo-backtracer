@@ -195,11 +195,10 @@ Status Client::Stats() {
 
     if (status != StatusCode::OK) {
       LOG(WARNING) << "unable to get mixer stats, status=" << status;
-      continue;
+    } else {
+      LOG(INFO) << "cluster QPS rates: 60s=" << rate_60s << ", 10m=" << rate_10m
+                << ", 1h=" << rate_1h << "...";
     }
-
-    LOG(INFO) << "cluster QPS rates: 60s=" << rate_60s << ", 10m=" << rate_10m
-              << ", 1h=" << rate_1h << "...";
 
     std::this_thread::sleep_for(std::chrono::seconds(30));
   }
