@@ -61,6 +61,9 @@ public:
   // call.
   Mixer *GetMixer();
 
+  bool GetAggregatedMixerStats(uint64_t *rate_60s, uint64_t *rate_10m,
+                               uint64_t *rate_1h);
+
   // Dump the timeline database, useful for debugging.
   void DumpTimeline();
 

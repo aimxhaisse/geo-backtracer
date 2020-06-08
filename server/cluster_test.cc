@@ -207,6 +207,39 @@ Mixer *ClusterTestBase::GetMixer() {
   return mixers_.at(0).get();
 }
 
+bool ClusterTestBase::GetAggregatedMixerStats(uint64_t *rate_60s,
+                                              uint64_t *rate_10m,
+                                              uint64_t *rate_1h) {
+  uint64_t rate_60s_aggr = 0;
+  uint64_t rate_10m_aggr = 0;
+  uint64_t rate_1h_aggr = 0;
+
+  *rate_60s = 0;
+  *rate_10m = 0;
+  *rate_1h = 0;
+
+  for (auto &mixer : mixers_) {
+    grpc::ServerContext context;
+    proto::MixerStats_Request request;
+    proto::MixerStats_Response response;
+
+    grpc::Status status = mixer->GetMixerStats(&context, &request, &response);
+    if (!status.ok()) {
+      return false;
+    }
+
+    rate_60s_aggr += response.insert_rate_60s();
+    rate_10m_aggr += response.insert_rate_10m();
+    rate_1h_aggr += response.insert_rate_1h();
+  }
+
+  *rate_60s = rate_60s_aggr;
+  *rate_10m = rate_10m_aggr;
+  *rate_1h = rate_1h_aggr;
+
+  return true;
+}
+
 bool ClusterTestBase::PushPoint(uint64_t timestamp, uint32_t duration,
                                 uint64_t user_id, float longitude,
                                 float latitude, float altitude) {
