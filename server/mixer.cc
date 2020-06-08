@@ -98,8 +98,8 @@ grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
     pushed_points_counter_.Increment(request->locations_size());
   }
 
-  LOG_EVERY_N(INFO, 100) << "stats for mixer QPS over last hour "
-                         << pushed_points_counter_.ToString();
+  LOG_EVERY_N(INFO, 10000) << "stats for mixer QPS over last hour "
+                           << pushed_points_counter_.ToString();
 
   return status;
 }
