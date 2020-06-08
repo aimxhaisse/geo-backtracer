@@ -46,6 +46,13 @@
   when: inventory_hostname is in item.hosts
   loop: "{{ shards }}"
 
+- name: "create client config file"
+  template:
+    src: templates/client.yml
+    dest: "/home/{{ geo_user }}/bt/{{ item.name }}/etc/client.yml"
+  when: inventory_hostname is in item.hosts
+  loop: "{{ shards }}"
+
 - name: "generate mixer config file"
   bt_shard:
     geo: "{{ geo }}"

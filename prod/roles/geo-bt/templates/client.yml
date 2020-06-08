@@ -1,0 +1,12 @@
+---
+
+# This file is generated, do not edit.
+
+# Configuration file for clients.
+
+mixers:
+{% for shard in shards %}
+{% for host in shard.hosts %}
+    - "{{ host }}:{{ shard.mixer_port }}"
+{% endfor %}
+{% endfor %}
