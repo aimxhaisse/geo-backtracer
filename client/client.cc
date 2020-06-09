@@ -307,7 +307,11 @@ Status Client::Wanderings() {
   const std::time_t start_at = now - (FLAGS_wanderings_push_days * 24 * 3600);
 
   std::vector<std::unique_ptr<Wanderer>> wanderers;
-  int64_t base_user_id = std::rand();
+  const int64_t base_user_id = std::rand();
+
+  LOG(INFO) << "generating " << FLAGS_wanderings_push_days
+            << " wanderers starting at user_id=" << base_user_id;
+
   for (int user = 0; user < FLAGS_wanderings_user_count; ++user) {
     wanderers.push_back(std::make_unique<Wanderer>(
         base_user_id + user, FLAGS_wanderings_latitude,
