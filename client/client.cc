@@ -309,7 +309,7 @@ Status Client::Wanderings() {
   std::vector<std::unique_ptr<Wanderer>> wanderers;
   const int64_t base_user_id = std::rand();
 
-  LOG(INFO) << "generating " << FLAGS_wanderings_push_days
+  LOG(INFO) << "generating " << FLAGS_wanderings_user_count
             << " wanderers starting at user_id=" << base_user_id;
 
   for (int user = 0; user < FLAGS_wanderings_user_count; ++user) {
