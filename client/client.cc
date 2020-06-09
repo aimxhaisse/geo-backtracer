@@ -23,7 +23,7 @@ DEFINE_int64(wanderings_push_days, 14, "number of days to push");
 
 DEFINE_double(wanderings_latitude, 1.50, "gps latitude to wander around");
 DEFINE_double(wanderings_longitude, 47.50, "gps longitude to wander around");
-DEFINE_double(wanderings_area, 6.0, "estimation of the area to wander around");
+DEFINE_double(wanderings_area, 6.5, "estimation of the area to wander around");
 
 using namespace bt;
 
@@ -358,6 +358,8 @@ int main(int ac, char **av) {
   FLAGS_logtostderr = 1;
   ::google::InitGoogleLogging(av[0]);
   ::gflags::ParseCommandLineFlags(&ac, &av, true);
+
+  std::srand(std::time(nullptr));
 
   Client client;
   Status status = client.Init();
