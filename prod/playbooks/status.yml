@@ -4,6 +4,8 @@
   gather_facts: no
   tasks:
     - name: get status of worker jobs
+      become_user: "{{ geo_user }}"
+      become: yes
       args:
         chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
       command: ./all.bash worker status
@@ -16,6 +18,8 @@
         msg: "{{ worker_status.results|map(attribute='stdout_lines')|list }}"
 
     - name: get status of mixer jobs
+      become_user: "{{ geo_user }}"
+      become: yes
       args:
         chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
       command: ./all.bash mixer status

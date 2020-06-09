@@ -41,6 +41,7 @@
 
 - name: "create worker config file"
   template:
+    owner: "{{ geo_user }}"
     src: templates/worker.yml
     dest: "/home/{{ geo_user }}/bt/{{ item.name }}/etc/worker.yml"
   when: inventory_hostname is in item.hosts
@@ -48,6 +49,7 @@
 
 - name: "create client config file"
   template:
+    owner: "{{ geo_user }}"
     src: templates/client.yml
     dest: "/home/{{ geo_user }}/bt/{{ item.name }}/etc/client.yml"
   when: inventory_hostname is in item.hosts
@@ -64,6 +66,8 @@
   loop: "{{ shards }}"
 
 - name: "install geo-bt"
+  become_user: "{{ geo_user }}"
+  become: yes
   make:
     chdir: "/home/{{ geo_user }}/src"
     target: install

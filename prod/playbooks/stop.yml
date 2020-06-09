@@ -4,6 +4,8 @@
   gather_facts: no
   tasks:
     - name: stop worker jobs
+      become_user: "{{ geo_user }}"
+      become: yes
       args:
         chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
       command: ./all.bash worker stop
@@ -11,6 +13,8 @@
       when: inventory_hostname in item.hosts
 
     - name: stop mixer jobs
+      become_user: "{{ geo_user }}"
+      become: yes
       args:
         chdir: "/home/{{ geo_user}}/bt/{{ item.name }}"
       command: ./all.bash mixer stop
