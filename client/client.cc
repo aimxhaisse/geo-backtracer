@@ -242,10 +242,10 @@ public:
   void InitPositions() {
     current_latitude_ =
         gps_latitude_ +
-        fmod(float(std::rand() / 1000.0), gps_area_) * latitude_dir_;
+        fmod(float(std::rand()) / 1000.0, gps_area_) * latitude_dir_;
     current_longitude_ =
         gps_longitude_ +
-        fmod(float(std::rand() / 1000.0), gps_area_) * longitude_dir_;
+        fmod(float(std::rand()) / 1000.0, gps_area_) * longitude_dir_;
   }
 
   bool Move() {
