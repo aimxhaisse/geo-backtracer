@@ -5,9 +5,4 @@
 # machines.
 
 mixers:
-  - "gamgee:8000"
-  - "gamgee:8001"
-  - "treebeard:8000"
-  - "treebeard:8001"
-  - "bombadil:8000"
-  - "bombadil:8001"
+  - "127.0.0.1:8000"

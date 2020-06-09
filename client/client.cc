@@ -157,11 +157,11 @@ Status GetAggregatedMixerStats(const std::vector<std::string> &mixer_addresses,
   *rate_10m = 0;
   *rate_1h = 0;
 
+  proto::MixerStats_Request request;
+
   for (auto &mixer_addr : mixer_addresses) {
     grpc::ClientContext context;
-    proto::MixerStats_Request request;
     proto::MixerStats_Response response;
-
     std::unique_ptr<proto::MixerService::Stub> mixer =
         proto::MixerService::NewStub(grpc::CreateChannel(
             mixer_addr, grpc::InsecureChannelCredentials()));
