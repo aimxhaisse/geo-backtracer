@@ -10,7 +10,7 @@ users:
 
 netname: midearth
 vpn_interface: tun0
-physical_ip: "{{ ansible_eno16.ipv4.address }}"
+physical_ip: "{{ ansible_default_ipv4.address }}"
 network_mask: 24
 network_addr: 10.0.0.0
 
