@@ -165,6 +165,7 @@ Status GetAggregatedMixerStats(const std::vector<std::string> &mixer_addresses,
     std::unique_ptr<proto::MixerService::Stub> mixer =
         proto::MixerService::NewStub(grpc::CreateChannel(
             mixer_addr, grpc::InsecureChannelCredentials()));
+
     grpc::Status status = mixer->GetMixerStats(&context, request, &response);
     if (!status.ok()) {
       LOG(WARNING) << "unable to get mixer stats for mixer=" << mixer_addr;

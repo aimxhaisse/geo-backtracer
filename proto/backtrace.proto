@@ -21,10 +21,10 @@ service MixerService {
 
   // Queries all shards to find out correlations (i.e: users that were
   // close for a given period of time).
-  rpc GetUserNearbyFolks(GetUserNearbyFolks.Request) returns (GetUserNearbyFolks.Response) {};
+  rpc GetUserNearbyFolks(GetUserNearbyFolks.Request) returns (GetUserNearbyFolks.Response) {}
 
   // Get statistics for a mixer.
-  rpc GetMixerStats(MixerStats.Request) returns (MixerStats.Response) {};
+  rpc GetMixerStats(MixerStats.Request) returns (MixerStats.Response) {}
 }
 
 // --- Internal interface to push location points in a database.
