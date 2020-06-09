@@ -55,14 +55,14 @@ def make_latitude_top(start, end, nb_shard, idx):
     dist = end - start
     inc = dist / float(nb_shard)
 
-    return start + (idx - 1) * inc
+    return start + idx * inc
 
 
 def make_latitude_bot(start, end, nb_shard, idx):
     dist = end - start
     inc = dist / float(nb_shard)
 
-    return start + idx * inc
+    return start + (idx + 1) * inc
 
 
 def make_partition(area, shard, idx, shard_count):
