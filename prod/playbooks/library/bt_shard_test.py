@@ -162,7 +162,92 @@ class BtShardTest(unittest.TestCase):
             """)
 
             self.assertEqual(self.mixerConfig(), expected)
-            
+
+    def testThreeShards(self):
+        params = {
+            'shards': [
+                {
+                    'name': 'shard-a',
+                    'area': 'default',
+                    'hosts': ['gamgee', 'bombadil'],
+                    'worker_port': 7000,
+                    'mixer_port': 8000
+                },
+                {
+                    'name': 'shard-b',
+                    'area': 'fr',
+                    'hosts': ['gamgee', 'bombadil'],
+                    'worker_port': 7001,
+                    'mixer_port': 8001
+                },
+                {
+                    'name': 'shard-c',
+                    'area': 'fr',
+                    'hosts': ['gamgee', 'bombadil'],
+                    'worker_port': 7002,
+                    'mixer_port': 8002
+                },
+            ],
+            'geo': [
+                {
+                    'area': 'default'
+                },
+                {
+                    'area': "fr",
+                    'top_left': [-5.00, 51.00],
+                    'bottom_right': [7.50, 44.00]
+                }
+            ],
+            'dest': self._tmp_file,
+            'mixer_ip': '10.0.0.1',
+            'mixer_port': 8000
+        }
+        with patch.object(bt_shard, 'AnsibleModule', MakeAnsibleMock(params)):
+            bt_shard.run_module()
+
+            expected = textwrap.dedent("""
+            # Do not update this file: it is updated by Ansible to populate the
+            # sharding mapping, which can evolve each time a new shard is added to
+            # the cluster. This make it possible to start with a small cluster and
+            # little by little, add machines as the backtracer takes more and
+            # space.
+
+            instance_type: "mixer"
+
+            # Whether or not to fail fast connections to workers. In production
+            # environments, it must be set to false as we want to do long
+            # exponential backoffs to handles nicely upgrades etc.
+            backoff_fail_fast: false
+
+            network:
+              host: "10.0.0.1"
+              port: 8000
+
+            shards:
+              - name: "shard-a"
+                workers: ["gamgee:7000", "bombadil:7000"]
+              - name: "shard-b"
+                workers: ["gamgee:7001", "bombadil:7001"]
+              - name: "shard-c"
+                workers: ["gamgee:7002", "bombadil:7002"]
+
+            partitions:
+              - at: 0
+                shards:
+                - shard: "shard-a"
+                  area: "default"
+                - shard: "shard-b"
+                  area: "fr"
+                  top_left: [-5.0, 51.0]
+                  bottom_right: [1.25, 44.0]
+                - shard: "shard-c"
+                  area: "fr"
+                  top_left: [1.25, 51.0]
+                  bottom_right: [7.5, 44.0]
+            """)
+
+            self.assertEqual(self.mixerConfig(), expected)
+
 
 if __name__ == '__main__':
     unittest.main()
