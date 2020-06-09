@@ -9,3 +9,5 @@ prod/playbooks/.cache
 deps/
 build/
 log/
+*.pyc
+__pycache__

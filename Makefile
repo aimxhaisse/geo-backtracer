@@ -52,6 +52,7 @@ HEAD_GRPC := $(SRCS_GRPC:.proto=.grpc.pb.h) $(SRCS_GRPC:.proto=.grpc.pb.d)
 GTEST_VERSION 	:= v1.10.x
 
 INSTALL_DIR	?= ./
+PYTHONPATH      ?= /usr/local/Cellar/ansible/2.9.7/libexec/lib/python3.8/site-packages
 
 .PHONY: all clean re test fmt help run inject server client
 
@@ -67,6 +68,7 @@ help:
 	@echo "make re		# rebuild covid backtracer"
 	@echo "make server	# run a local instance of covid backtracer"
 	@echo "make install     # install built binaries to INSTALL_DIR"
+	@echo "make pytest      # run python unit tests"
 	@echo ""
 
 all: $(SERVER) $(CLIENT) $(TEST) $(DAEMON)
@@ -138,6 +140,13 @@ server: $(SERVER)
 
 test: $(TEST)
 	$(TEST)
+
+# Quick & dirty way to run unit tests, this should evolve if there is
+# a need to improve the geo-bt ansible module, which is not expected
+# for now. This only works on mac os, at a specific point in time, with
+# ansible installed from brew.
+pytest:
+	PYTHONPATH=$(PYTHONPATH) python3 prod/playbooks/library/bt_shard_test.py
 
 -include $(DEPS_SERVER)
 -include $(DEPS_CLIENT)

@@ -167,9 +167,8 @@ Status GetAggregatedMixerStats(const std::vector<std::string> &mixer_addresses,
             mixer_addr, grpc::InsecureChannelCredentials()));
     grpc::Status status = mixer->GetMixerStats(&context, request, &response);
     if (!status.ok()) {
-      LOG(WARNING) << "unable to get mixer stats, error="
-                   << status.error_message();
-      RETURN_ERROR(INTERNAL_ERROR, status.error_message());
+      LOG(WARNING) << "unable to get mixer stats for mixer=" << mixer_addr;
+      RETURN_ERROR(INTERNAL_ERROR, "unable to get mixer stats");
     }
 
     rate_60s_aggr += response.insert_rate_60s();

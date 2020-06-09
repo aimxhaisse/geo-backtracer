@@ -8,5 +8,7 @@
       geo: "{{ geo }}"
       shards: "{{ shards }}"
       dest: "/home/{{ geo_user }}/bt/{{ item.name }}/etc/mixer.yml"
+      mixer_ip: "{{ vpn_ip }}"
+      mixer_port: "{{ item.mixer_port }}"
+    when: inventory_hostname is in item.hosts
     loop: "{{ shards }}"
-    when: inventory_hostname in item.workers

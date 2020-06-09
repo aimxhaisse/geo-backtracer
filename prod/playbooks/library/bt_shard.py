@@ -52,14 +52,14 @@ Partition = namedtuple(
 
 
 def make_latitude_top(start, end, nb_shard, idx):
-    dist = abs(end - start)
+    dist = end - start
     inc = dist / float(nb_shard)
 
     return start + (idx - 1) * inc
 
 
 def make_latitude_bot(start, end, nb_shard, idx):
-    dist = abs(end - start)
+    dist = end - start
     inc = dist / float(nb_shard)
 
     return start + idx * inc
