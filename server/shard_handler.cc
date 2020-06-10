@@ -16,9 +16,9 @@ Status ShardHandler::Init(const MixerConfig &config,
   for (const auto &partition : partitions) {
     if (partition.shard_ == config_.name_) {
       partitions_.push_back(partition);
-    }
-    if (partition.area_ == kDefaultArea) {
-      is_default_ = true;
+      if (partition.area_ == kDefaultArea) {
+        is_default_ = true;
+      }
     }
   }
 
