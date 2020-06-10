@@ -44,6 +44,19 @@ Status ShardHandler::Init(const MixerConfig &config,
         addr, grpc::InsecureChannelCredentials(), args)));
   }
 
+  LOG(INFO) << "initialized shard handler for " << config_.name_ << " with "
+            << config_.workers_.size() << " workers";
+
+  if (is_default_) {
+    LOG(INFO) << "this shard is the default shard (i.e: fallback)";
+  } else {
+    for (const auto &p : partitions_) {
+      LOG(INFO) << "this shard handles points inside [" << p.gps_latitude_begin_
+                << ", " << p.gps_longitude_begin_ << " [" << p.gps_latitude_end_
+                << ", " << p.gps_longitude_end_ << "]";
+    }
+  }
+
   return StatusCode::OK;
 }
 
