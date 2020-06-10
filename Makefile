@@ -129,11 +129,14 @@ $(DEPS_GTEST): $(DEPS_GTEST_DIR)
 	touch $@
 
 install: $(BIN) $(DAEMON) $(SERVER)
-	rsync all.bash $(INSTALL_DIR)
+	rsync all.bash $(INSTALL_DIR) # rsync to handle copy to self (local).
+	pkill -9 client
 	(cd $(INSTALL_DIR) ; ./all.bash mixer stop ; ./all.bash worker stop)
+	sleep 10 # leave some time for servers to quit.
 	cp $(SERVER) $(INSTALL_DIR)/bin/bt
 	cp $(DAEMON) $(INSTALL_DIR)/bin/daemonizer
 	cp $(CLIENT) $(INSTALL_DIR)/bin/client
+	(cd $(INSTALL_DIR) ; ./all.bash mixer start ; ./all.bash worker start)
 
 server: $(SERVER)
 	$(SERVER)
