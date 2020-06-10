@@ -77,6 +77,11 @@ Once done, run the Makefile to get more help about available commands:
     make server     # run a local instance of covid backtracer
     make client     # inject fixtures into local instance
 
+As unit tests simulate clusters with multiple databases and gRPC
+stubs, they can fail due to hitting limits on file descriptors
+(default 256 on common setups), to increase the limit:
+
+    ulimit -n 1024
 
 ## Integration with mobile data
 
