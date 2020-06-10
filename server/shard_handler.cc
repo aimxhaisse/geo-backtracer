@@ -52,8 +52,8 @@ Status ShardHandler::Init(const MixerConfig &config,
   } else {
     for (const auto &p : partitions_) {
       LOG(INFO) << "this shard handles points inside [" << p.gps_latitude_begin_
-                << ", " << p.gps_longitude_begin_ << " [" << p.gps_latitude_end_
-                << ", " << p.gps_longitude_end_ << "]";
+                << ", " << p.gps_longitude_begin_ << "] -- ["
+                << p.gps_latitude_end_ << ", " << p.gps_longitude_end_ << "]";
     }
   }
 
