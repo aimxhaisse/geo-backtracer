@@ -235,7 +235,7 @@ public:
     if (std::rand() % 2 == 0) {
       longitude_dir_ = 1.0;
     } else {
-      longitude_dir_ = 1.0;
+      longitude_dir_ = -1.0;
     }
   }
 
