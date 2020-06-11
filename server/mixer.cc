@@ -26,6 +26,11 @@ Status Mixer::InitHandlers(const MixerConfig &config) {
     }
 
     if (handler->IsDefaultShard()) {
+      if (default_handler_ != nullptr) {
+        LOG(WARNING) << "there can't be more than one default handler";
+        RETURN_ERROR(INVALID_CONFIG,
+                     "more than one default handler found in config");
+      }
       default_handler_ = handler;
     } else {
       area_handlers_.push_back(handler);
