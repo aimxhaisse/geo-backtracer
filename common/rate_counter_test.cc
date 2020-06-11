@@ -1,4 +1,6 @@
+#include <chrono>
 #include <gtest/gtest.h>
+#include <thread>
 
 #include "common/rate_counter.h"
 
@@ -32,6 +34,28 @@ TEST(RateCounterTest, InvalidArgs) {
             StatusCode::INVALID_ARGUMENT);
   EXPECT_EQ(counter.RateForLastNSeconds(0, &rate),
             StatusCode::INVALID_ARGUMENT);
+}
+
+TEST(RateCounterTest, CleanUp) {
+  RateCounter counter;
+  uint64_t rate;
+
+  counter.Increment(10);
+  counter.Increment(100);
+
+  EXPECT_EQ(counter.RateForLastNSeconds(10, &rate), StatusCode::OK);
+  EXPECT_EQ(rate, 11);
+
+  EXPECT_EQ(counter.RateForLastNSeconds(100, &rate), StatusCode::OK);
+  EXPECT_EQ(rate, 1);
+
+  counter.CleanUp(0);
+
+  EXPECT_EQ(counter.RateForLastNSeconds(10, &rate), StatusCode::OK);
+  EXPECT_EQ(rate, 0);
+
+  EXPECT_EQ(counter.RateForLastNSeconds(100, &rate), StatusCode::OK);
+  EXPECT_EQ(rate, 0);
 }
 
 } // namespace

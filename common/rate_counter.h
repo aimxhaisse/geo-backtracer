@@ -31,6 +31,9 @@ public:
   // Returns the average QPS for the last N duration_seconds.
   Status RateForLastNSeconds(int duration_seconds, uint64_t *rate_for_duration);
 
+  // Removes expired points.
+  void CleanUp(uint64_t older_than_sec);
+
   // Returns a quick summary of the current rates.
   std::string ToString();
 
@@ -39,9 +42,6 @@ private:
   using Timeline = std::list<Counter>;
 
   uint64_t InternalRateForLastNSeconds(int duration_seconds);
-
-  // Removes expired points.
-  void CleanUp();
 
   std::mutex mutex_;
   Timeline timeline_;

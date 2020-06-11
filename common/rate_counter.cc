@@ -7,7 +7,7 @@
 namespace bt {
 
 void RateCounter::Increment(uint64_t count) {
-  CleanUp();
+  CleanUp(kMaxSeconds);
 
   {
     std::lock_guard<std::mutex> lk(mutex_);
@@ -17,7 +17,7 @@ void RateCounter::Increment(uint64_t count) {
 
 Status RateCounter::RateForLastNSeconds(int duration_seconds,
                                         uint64_t *rate_for_duration) {
-  CleanUp();
+  CleanUp(kMaxSeconds);
 
   if (duration_seconds <= 0 || duration_seconds > kMaxSeconds) {
     RETURN_ERROR(INVALID_ARGUMENT,
@@ -66,17 +66,18 @@ std::string RateCounter::ToString() {
   return ss.str();
 }
 
-void RateCounter::CleanUp() {
+void RateCounter::CleanUp(uint64_t older_than_sec) {
   const std::chrono::system_clock::time_point now =
       std::chrono::system_clock::now();
   const std::time_t remove_older_than = std::chrono::system_clock::to_time_t(
-      now - std::chrono::seconds(kMaxSeconds));
+      now - std::chrono::seconds(older_than_sec));
 
   std::lock_guard<std::mutex> lk(mutex_);
-  std::remove_if(timeline_.begin(), timeline_.end(),
-                 [remove_older_than](const Counter &entry) {
-                   return entry.first <= remove_older_than;
-                 });
+  timeline_.erase(std::remove_if(timeline_.begin(), timeline_.end(),
+                                 [remove_older_than](const Counter &entry) {
+                                   return entry.first <= remove_older_than;
+                                 }),
+                  timeline_.end());
 }
 
 } // namespace bt
