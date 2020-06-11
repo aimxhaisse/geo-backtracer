@@ -62,8 +62,11 @@ Status Gc::Cleanup() {
   long reverse_gc_count = 0;
 
   proto::DbKey start_key;
-  const std::time_t start_ts =
-      std::time(nullptr) - (retention_period_days_ * 24 * 60 * 60);
+
+  const std::chrono::system_clock::time_point now =
+      std::chrono::system_clock::now();
+  const std::time_t start_ts = std::chrono::system_clock::to_time_t(
+      now - std::chrono::hours(retention_period_days_ * 24));
 
   LOG(INFO) << "deleting all points smaller than timestamp=" << start_ts;
 

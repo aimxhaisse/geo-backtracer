@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <sstream>
 
 #include "common/rate_counter.h"
@@ -34,9 +35,12 @@ uint64_t RateCounter::InternalRateForLastNSeconds(int duration_seconds) {
   // Here we assume duration_seconds is valid, this is checked in the
   // public interface first.
 
+  const std::chrono::system_clock::time_point now =
+      std::chrono::system_clock::now();
+  const std::time_t start_at = std::chrono::system_clock::to_time_t(
+      now - std::chrono::seconds(duration_seconds));
+
   uint64_t rate = 0;
-  const std::time_t end_at = std::time(nullptr);
-  const std::time_t start_at = end_at - duration_seconds;
 
   {
     std::lock_guard<std::mutex> lk(mutex_);
@@ -49,22 +53,24 @@ uint64_t RateCounter::InternalRateForLastNSeconds(int duration_seconds) {
     }
   }
 
-  return rate / (end_at - start_at);
+  return rate / duration_seconds;
 }
 
 std::string RateCounter::ToString() {
   std::stringstream ss;
 
   ss << "qps_60s=" << InternalRateForLastNSeconds(60)
-     << ", qps_5m=" << InternalRateForLastNSeconds(5 * 60)
-     << ", qps_15m=" << InternalRateForLastNSeconds(15 * 60)
+     << ", qps_10m=" << InternalRateForLastNSeconds(10 * 60)
      << ", qps_1h=" << InternalRateForLastNSeconds(60 * 60);
 
   return ss.str();
 }
 
 void RateCounter::CleanUp() {
-  const std::time_t remove_older_than = std::time(nullptr) - kMaxSeconds;
+  const std::chrono::system_clock::time_point now =
+      std::chrono::system_clock::now();
+  const std::time_t remove_older_than = std::chrono::system_clock::to_time_t(
+      now - std::chrono::seconds(kMaxSeconds));
 
   std::lock_guard<std::mutex> lk(mutex_);
   std::remove_if(timeline_.begin(), timeline_.end(),
