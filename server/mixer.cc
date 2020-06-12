@@ -39,6 +39,10 @@ Status Mixer::InitHandlers(const MixerConfig &config) {
     all_handlers_.push_back(handler);
   }
 
+  if (!IsDefaultShard() && area_handlers_.empty()) {
+    RETURN_ERROR(INVALID_CONFIG, "no area for handler");
+  }
+
   return StatusCode::OK;
 }
 
