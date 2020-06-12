@@ -39,8 +39,8 @@ partitions:
       area: "default"
       {%- else -%}
       area: "{{ partition['area']['area'] }}"
-      bottom_left: {{ partition['top_left'] }}
-      top_right: {{ partition['bottom_right'] }}
+      bottom_left: {{ partition['bottom_left'] }}
+      top_right: {{ partition['top_right'] }}
       {%- endif %}
     {%- endfor %}
 {% endfor %}
@@ -88,8 +88,8 @@ def make_partition(area, shard, idx, shard_count):
     return Partition(
         area=area,
         shard=shard['name'],
-        bottom_left=top_left,
-        top_right=bottom_right
+        bottom_left=bottom_left,
+        top_right=top_right
     )
 
 
