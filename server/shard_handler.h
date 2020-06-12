@@ -45,10 +45,10 @@ public:
   grpc::Status DeleteUser(const proto::DeleteUser_Request *request,
                           proto::DeleteUser_Response *response);
 
-private:
   bool IsWithinShard(const PartitionConfig &partition, float gps_lat,
                      float gps_long, int64_t ts) const;
 
+private:
   std::mutex lock_;
   ShardConfig config_;
   bool is_default_ = false;
