@@ -1,6 +1,6 @@
+#include <glog/logging.h>
 #include <chrono>
 #include <ctime>
-#include <glog/logging.h>
 #include <mutex>
 
 #include "proto/backtrace.grpc.pb.h"
@@ -11,7 +11,7 @@ using namespace std::chrono_literals;
 
 namespace bt {
 
-Status Gc::Init(Db *db, const WorkerConfig &config) {
+Status Gc::Init(Db* db, const WorkerConfig& config) {
   retention_period_days_ = config.gc_retention_period_days_;
   if (!(retention_period_days_ > 0)) {
     RETURN_ERROR(INVALID_CONFIG, "gc.retention_period_days should be > 0");
@@ -85,7 +85,6 @@ Status Gc::Cleanup() {
       db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->TimelineHandle()));
   it->SeekForPrev(rocksdb::Slice(start_key_raw.data(), start_key_raw.size()));
   while (it->Valid()) {
-
     const rocksdb::Slice key_raw = it->key();
     proto::DbKey key;
     if (!key.ParseFromArray(key_raw.data(), key_raw.size())) {
@@ -141,4 +140,4 @@ Status Gc::Cleanup() {
   return StatusCode::OK;
 }
 
-} // namespace bt
+}  // namespace bt

@@ -1,5 +1,5 @@
-#include <boost/filesystem.hpp>
 #include <glog/logging.h>
+#include <boost/filesystem.hpp>
 #include <sstream>
 
 #include "common/utils.h"
@@ -22,16 +22,16 @@ StatusOr<std::string> MakeTemporaryDirectory() {
   return p.generic_string();
 }
 
-void DeleteDirectory(const std::string &path) {
+void DeleteDirectory(const std::string& path) {
   boost::filesystem::remove_all(path);
   LOG(INFO) << "deleted directory, path=" << path;
 }
 
-bool DirExists(const std::string &path) {
+bool DirExists(const std::string& path) {
   return boost::filesystem::exists(path);
 }
 
-std::vector<std::string> StringSplit(const std::string &str, char delim) {
+std::vector<std::string> StringSplit(const std::string& str, char delim) {
   std::stringstream ss(str);
   std::vector<std::string> tokens;
   std::string item;
@@ -45,5 +45,5 @@ std::vector<std::string> StringSplit(const std::string &str, char delim) {
   return tokens;
 }
 
-} // namespace utils
-} // namespace bt
+}  // namespace utils
+}  // namespace bt

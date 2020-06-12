@@ -12,13 +12,21 @@ LocIsNearZone TsIsNearZone(int64_t timestamp) {
   return NONE;
 }
 
-int64_t TsToZone(int64_t timestamp) { return timestamp / kTimePrecision; }
+int64_t TsToZone(int64_t timestamp) {
+  return timestamp / kTimePrecision;
+}
 
-int64_t TsNextZone(int64_t timestamp) { return TsToZone(timestamp) + 1; }
+int64_t TsNextZone(int64_t timestamp) {
+  return TsToZone(timestamp) + 1;
+}
 
-int64_t TsPreviousZone(int64_t timestamp) { return TsToZone(timestamp) - 1; }
+int64_t TsPreviousZone(int64_t timestamp) {
+  return TsToZone(timestamp) - 1;
+}
 
-float ZoneToGPSLocation(float gps_zone) { return gps_zone * kGPSZonePrecision; }
+float ZoneToGPSLocation(float gps_zone) {
+  return gps_zone * kGPSZonePrecision;
+}
 
 float GPSLocationToGPSZone(float gps_location) {
   return floor(gps_location * kGPSZonePrecision) / kGPSZonePrecision;
@@ -47,4 +55,4 @@ LocIsNearZone GPSIsNearZone(float gps_location) {
   return NONE;
 }
 
-} // namespace bt
+}  // namespace bt

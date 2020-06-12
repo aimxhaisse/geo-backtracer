@@ -1,7 +1,7 @@
 #include <glog/logging.h>
 #include <math.h>
-#include <memory>
 #include <rocksdb/db.h>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -11,13 +11,13 @@
 
 namespace bt {
 
-Status Seeker::Init(Db *db) {
+Status Seeker::Init(Db* db) {
   db_ = db;
   return StatusCode::OK;
 }
 
 Status Seeker::BuildTimelineKeysForUser(uint64_t user_id,
-                                        std::list<proto::DbKey> *keys) {
+                                        std::list<proto::DbKey>* keys) {
   // Build an iterator to start looking up in the reverse table, goal
   // here is to get all zones where the user was, so as to build the
   // corresponding keys.
@@ -68,12 +68,12 @@ Status Seeker::BuildTimelineKeysForUser(uint64_t user_id,
   return StatusCode::OK;
 }
 
-Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey> &keys,
-                                    proto::GetUserTimeline_Response *timeline) {
+Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey>& keys,
+                                    proto::GetUserTimeline_Response* timeline) {
   std::unique_ptr<rocksdb::Iterator> timeline_it(
       db_->Rocks()->NewIterator(rocksdb::ReadOptions(), db_->TimelineHandle()));
 
-  for (const auto &key_it : keys) {
+  for (const auto& key_it : keys) {
     std::string key_raw_it;
     if (!key_it.SerializeToString(&key_raw_it)) {
       RETURN_ERROR(INTERNAL_ERROR, "can't serialize internal db timeline key");
@@ -107,7 +107,7 @@ Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey> &keys,
                          << key.user_id());
       }
 
-      proto::UserTimelinePoint *point = timeline->add_point();
+      proto::UserTimelinePoint* point = timeline->add_point();
       point->set_timestamp(key.timestamp());
       point->set_duration(value.duration());
       point->set_gps_latitude(value.gps_latitude());
@@ -121,10 +121,10 @@ Status Seeker::BuildTimelineForUser(const std::list<proto::DbKey> &keys,
   return StatusCode::OK;
 }
 
-grpc::Status
-Seeker::InternalGetUserTimeline(grpc::ServerContext *context,
-                                const proto::GetUserTimeline_Request *request,
-                                proto::GetUserTimeline_Response *response) {
+grpc::Status Seeker::InternalGetUserTimeline(
+    grpc::ServerContext* context,
+    const proto::GetUserTimeline_Request* request,
+    proto::GetUserTimeline_Response* response) {
   std::list<proto::DbKey> keys;
   Status status = BuildTimelineKeysForUser(request->user_id(), &keys);
   if (status != StatusCode::OK) {
@@ -154,9 +154,9 @@ Seeker::InternalGetUserTimeline(grpc::ServerContext *context,
 }
 
 grpc::Status Seeker::InternalBuildBlockForUser(
-    grpc::ServerContext *context,
-    const proto::BuildBlockForUser_Request *request,
-    proto::BuildBlockForUser_Response *response) {
+    grpc::ServerContext* context,
+    const proto::BuildBlockForUser_Request* request,
+    proto::BuildBlockForUser_Response* response) {
   proto::DbKey start_key = request->timeline_key();
   start_key.set_user_id(0);
 
@@ -203,11 +203,11 @@ grpc::Status Seeker::InternalBuildBlockForUser(
     }
 
     if (key.user_id() == request->user_id()) {
-      proto::BlockEntry *entry = response->add_user_entries();
+      proto::BlockEntry* entry = response->add_user_entries();
       *(entry->mutable_key()) = key;
       *(entry->mutable_value()) = value;
     } else {
-      proto::BlockEntry *entry = response->add_folk_entries();
+      proto::BlockEntry* entry = response->add_folk_entries();
       *(entry->mutable_key()) = key;
       *(entry->mutable_value()) = value;
     }
@@ -222,4 +222,4 @@ grpc::Status Seeker::InternalBuildBlockForUser(
   return grpc::Status::OK;
 }
 
-} // namespace bt
+}  // namespace bt

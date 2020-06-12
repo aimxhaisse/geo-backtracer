@@ -10,15 +10,15 @@
 
 namespace bt {
 
-Status Mixer::Init(const MixerConfig &config) {
+Status Mixer::Init(const MixerConfig& config) {
   RETURN_IF_ERROR(InitHandlers(config));
   RETURN_IF_ERROR(InitService(config));
 
   return StatusCode::OK;
 }
 
-Status Mixer::InitHandlers(const MixerConfig &config) {
-  for (const auto &shard : config.ShardConfigs()) {
+Status Mixer::InitHandlers(const MixerConfig& config) {
+  for (const auto& shard : config.ShardConfigs()) {
     auto handler = std::make_shared<ShardHandler>(shard);
     Status status = handler->Init(config, config.PartitionConfigs());
     if (status != StatusCode::OK) {
@@ -46,24 +46,24 @@ Status Mixer::InitHandlers(const MixerConfig &config) {
   return StatusCode::OK;
 }
 
-Status Mixer::InitService(const MixerConfig &config) {
+Status Mixer::InitService(const MixerConfig& config) {
   grpc::ServerBuilder builder;
 
   builder.AddListeningPort(config.NetworkAddress(),
                            grpc::InsecureServerCredentials());
-  builder.RegisterService(static_cast<proto::MixerService::Service *>(this));
+  builder.RegisterService(static_cast<proto::MixerService::Service*>(this));
   grpc_ = builder.BuildAndStart();
   LOG(INFO) << "initialized grpc";
 
   return StatusCode::OK;
 }
 
-grpc::Status Mixer::DeleteUser(grpc::ServerContext *context,
-                               const proto::DeleteUser_Request *request,
-                               proto::DeleteUser_Response *response) {
+grpc::Status Mixer::DeleteUser(grpc::ServerContext* context,
+                               const proto::DeleteUser_Request* request,
+                               proto::DeleteUser_Response* response) {
   grpc::Status ret = grpc::Status::OK;
 
-  for (auto &handler : all_handlers_) {
+  for (auto& handler : all_handlers_) {
     grpc::Status status = handler->DeleteUser(request, response);
     if (!status.ok()) {
       LOG(WARNING) << "unable to delete user in a shard, status="
@@ -77,12 +77,12 @@ grpc::Status Mixer::DeleteUser(grpc::ServerContext *context,
   return ret;
 }
 
-grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
-                                const proto::PutLocation_Request *request,
-                                proto::PutLocation_Response *response) {
-  for (const auto &loc : request->locations()) {
+grpc::Status Mixer::PutLocation(grpc::ServerContext* context,
+                                const proto::PutLocation_Request* request,
+                                proto::PutLocation_Response* response) {
+  for (const auto& loc : request->locations()) {
     bool sent = false;
-    for (auto &handler : area_handlers_) {
+    for (auto& handler : area_handlers_) {
       if (handler->QueueLocation(loc)) {
         sent = true;
         break;
@@ -96,7 +96,7 @@ grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
   }
 
   grpc::Status status = grpc::Status::OK;
-  for (auto &handler : all_handlers_) {
+  for (auto& handler : all_handlers_) {
     grpc::Status handler_status = handler->FlushLocations();
     if (!handler_status.ok()) {
       status = handler_status;
@@ -113,9 +113,9 @@ grpc::Status Mixer::PutLocation(grpc::ServerContext *context,
   return status;
 }
 
-grpc::Status Mixer::GetMixerStats(grpc::ServerContext *context,
-                                  const proto::MixerStats_Request *request,
-                                  proto::MixerStats_Response *response) {
+grpc::Status Mixer::GetMixerStats(grpc::ServerContext* context,
+                                  const proto::MixerStats_Request* request,
+                                  proto::MixerStats_Response* response) {
   Status status;
   uint64_t rate_60s;
   uint64_t rate_10m;
@@ -137,9 +137,9 @@ grpc::Status Mixer::GetMixerStats(grpc::ServerContext *context,
 
   status = pushed_points_counter_.RateForLastNSeconds(60 * 60, &rate_1h);
   if (status != StatusCode::OK) {
-    return grpc::Status(grpc::StatusCode::INTERNAL,
-                        "unable to get stats for 10 hour duration, status=" +
-                            status.Message());
+    return grpc::Status(
+        grpc::StatusCode::INTERNAL,
+        "unable to get stats for 10 hour duration, status=" + status.Message());
   }
 
   response->set_insert_rate_60s(rate_60s);
@@ -149,13 +149,13 @@ grpc::Status Mixer::GetMixerStats(grpc::ServerContext *context,
   return grpc::Status::OK;
 }
 
-grpc::Status
-Mixer::GetUserTimeline(grpc::ServerContext *context,
-                       const proto::GetUserTimeline_Request *request,
-                       proto::GetUserTimeline_Response *response) {
+grpc::Status Mixer::GetUserTimeline(
+    grpc::ServerContext* context,
+    const proto::GetUserTimeline_Request* request,
+    proto::GetUserTimeline_Response* response) {
   std::set<proto::UserTimelinePoint, CompareTimelinePoints> timeline;
 
-  for (auto &handler : all_handlers_) {
+  for (auto& handler : all_handlers_) {
     proto::GetUserTimeline_Response shard_response;
     grpc::Status status = handler->GetUserTimeline(request, &shard_response);
     if (!status.ok()) {
@@ -164,12 +164,12 @@ Mixer::GetUserTimeline(grpc::ServerContext *context,
       return status;
     }
 
-    for (const auto &p : shard_response.point()) {
+    for (const auto& p : shard_response.point()) {
       timeline.insert(p);
     }
   }
 
-  for (const auto &p : timeline) {
+  for (const auto& p : timeline) {
     *response->add_point() = p;
   }
 
@@ -178,8 +178,10 @@ Mixer::GetUserTimeline(grpc::ServerContext *context,
 
 namespace {
 
-proto::DbKey MakeKey(int64_t timestamp, int64_t user_id,
-                     float gps_longitude_zone, float gps_latitude_zone) {
+proto::DbKey MakeKey(int64_t timestamp,
+                     int64_t user_id,
+                     float gps_longitude_zone,
+                     float gps_latitude_zone) {
   proto::DbKey key;
 
   key.set_timestamp(timestamp);
@@ -190,12 +192,12 @@ proto::DbKey MakeKey(int64_t timestamp, int64_t user_id,
   return key;
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
-grpc::Status
-Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
-                          const proto::GetUserNearbyFolks_Request *request,
-                          proto::GetUserNearbyFolks_Response *response) {
+grpc::Status Mixer::GetUserNearbyFolks(
+    grpc::ServerContext* context,
+    const proto::GetUserNearbyFolks_Request* request,
+    proto::GetUserNearbyFolks_Response* response) {
   proto::GetUserTimeline_Response tl_rsp;
   proto::GetUserTimeline_Request tl_request;
   tl_request.set_user_id(request->user_id());
@@ -217,7 +219,7 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
   handlers.push_back(default_handler_);
 
   for (int i = 0; i < tl_rsp.point_size(); ++i) {
-    const auto &point = tl_rsp.point(i);
+    const auto& point = tl_rsp.point(i);
     std::list<proto::DbKey> keys;
     Status status =
         BuildKeysToSearchAroundPoint(request->user_id(), point, &keys);
@@ -226,8 +228,8 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
       continue;
     }
 
-    for (const auto &key : keys) {
-      for (auto &handler : handlers) {
+    for (const auto& key : keys) {
+      for (auto& handler : handlers) {
         bool found = false;
         status = handler->InternalBuildBlockForUser(
             key, request->user_id(), &user_entries, &folk_entries, &found);
@@ -244,8 +246,8 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
   }
 
   // Naive implementation, this is to be optimized with bitmaps etc.
-  for (const auto &user_entry : user_entries) {
-    for (const auto &folk_entry : folk_entries) {
+  for (const auto& user_entry : user_entries) {
+    for (const auto& folk_entry : folk_entries) {
       if (IsNearbyFolk(user_entry.key(), user_entry.value(), folk_entry.key(),
                        folk_entry.value())) {
         scores[folk_entry.key().user_id()]++;
@@ -253,8 +255,8 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
     }
   }
 
-  for (const auto &score : scores) {
-    proto::NearbyUserFolk *folk = response->add_folk();
+  for (const auto& score : scores) {
+    proto::NearbyUserFolk* folk = response->add_folk();
     folk->set_user_id(score.first);
     folk->set_score(score.second);
   }
@@ -262,10 +264,10 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
   return grpc::Status::OK;
 }
 
-Status
-Mixer::BuildKeysToSearchAroundPoint(uint64_t user_id,
-                                    const proto::UserTimelinePoint &point,
-                                    std::list<proto::DbKey> *keys) {
+Status Mixer::BuildKeysToSearchAroundPoint(
+    uint64_t user_id,
+    const proto::UserTimelinePoint& point,
+    std::list<proto::DbKey>* keys) {
   // Order in which we create keys here is probably little relevant,
   // but might have an impact on the way we find blocks, maybe worth
   // do some performance testing here once we have a huge database to
@@ -301,9 +303,9 @@ Mixer::BuildKeysToSearchAroundPoint(uint64_t user_id,
     latitude_zones.push_back(GPSNextZone(point.gps_latitude()));
   }
 
-  for (const auto &ts_zone : timestamp_zones) {
-    for (const auto &long_zone : longitude_zones) {
-      for (const auto &lat_zone : latitude_zones) {
+  for (const auto& ts_zone : timestamp_zones) {
+    for (const auto& long_zone : longitude_zones) {
+      for (const auto& lat_zone : latitude_zones) {
         keys->push_back(
             MakeKey(ts_zone * kTimePrecision, user_id, long_zone, lat_zone));
       }
@@ -321,4 +323,4 @@ Status Mixer::Run() {
   return StatusCode::OK;
 }
 
-} // namespace bt
+}  // namespace bt

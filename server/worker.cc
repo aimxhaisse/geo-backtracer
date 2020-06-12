@@ -11,7 +11,7 @@ namespace bt {
 
 namespace {
 
-std::string MakeWorkerAddress(const WorkerConfig &config) {
+std::string MakeWorkerAddress(const WorkerConfig& config) {
   std::ostringstream os;
 
   os << config.network_host_ << ":" << config.network_port_;
@@ -19,9 +19,9 @@ std::string MakeWorkerAddress(const WorkerConfig &config) {
   return os.str();
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
-Status Worker::Init(const WorkerConfig &config) {
+Status Worker::Init(const WorkerConfig& config) {
   db_ = std::make_unique<Db>();
   RETURN_IF_ERROR(db_->Init(config));
   LOG(INFO) << "initialized db";
@@ -50,8 +50,8 @@ Status Worker::Init(const WorkerConfig &config) {
 }
 
 Status Worker::Run() {
-  std::thread grpc_thread([](grpc::Server *s) { s->Wait(); }, grpc_.get());
-  std::thread gc_thread(std::thread([](Gc *gc) { gc->Wait(); }, gc_.get()));
+  std::thread grpc_thread([](grpc::Server* s) { s->Wait(); }, grpc_.get());
+  std::thread gc_thread(std::thread([](Gc* gc) { gc->Wait(); }, gc_.get()));
 
   utils::WaitForExitSignal();
 
@@ -64,4 +64,4 @@ Status Worker::Run() {
   return StatusCode::OK;
 }
 
-} // namespace bt
+}  // namespace bt

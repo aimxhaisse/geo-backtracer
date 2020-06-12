@@ -9,13 +9,14 @@
 
 using namespace bt;
 
-DEFINE_string(config, "",
+DEFINE_string(config,
+              "",
               "path to the config file ('worker.yml', 'mixer.yml')");
 DEFINE_string(type, "", "type of the instance ('worker' or 'mixer')");
 
 namespace {
 
-Status WorkerLoop(const Config &config) {
+Status WorkerLoop(const Config& config) {
   Status status;
   WorkerConfig worker_config;
   status = WorkerConfig::MakeWorkerConfig(config, &worker_config);
@@ -39,7 +40,7 @@ Status WorkerLoop(const Config &config) {
   return StatusCode::OK;
 }
 
-Status MixerLoop(const Config &config) {
+Status MixerLoop(const Config& config) {
   Status status;
   MixerConfig mixer_config;
   status = MixerConfig::MakeMixerConfig(config, &mixer_config);
@@ -64,9 +65,9 @@ Status MixerLoop(const Config &config) {
   return StatusCode::OK;
 }
 
-} // namespace
+}  // namespace
 
-int main(int ac, char **av) {
+int main(int ac, char** av) {
   FLAGS_logtostderr = 1;
   ::google::InitGoogleLogging(av[0]);
   ::gflags::ParseCommandLineFlags(&ac, &av, true);

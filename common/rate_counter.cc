@@ -16,7 +16,7 @@ void RateCounter::Increment(uint64_t count) {
 }
 
 Status RateCounter::RateForLastNSeconds(int duration_seconds,
-                                        uint64_t *rate_for_duration) {
+                                        uint64_t* rate_for_duration) {
   CleanUp(kMaxSeconds);
 
   if (duration_seconds <= 0 || duration_seconds > kMaxSeconds) {
@@ -46,7 +46,7 @@ uint64_t RateCounter::InternalRateForLastNSeconds(int duration_seconds) {
     std::lock_guard<std::mutex> lk(mutex_);
     auto pos = std::find_if(
         timeline_.begin(), timeline_.end(),
-        [start_at](const Counter &entry) { return entry.first >= start_at; });
+        [start_at](const Counter& entry) { return entry.first >= start_at; });
     while (pos != timeline_.end()) {
       rate += pos->second;
       ++pos;
@@ -74,10 +74,10 @@ void RateCounter::CleanUp(uint64_t older_than_sec) {
 
   std::lock_guard<std::mutex> lk(mutex_);
   timeline_.erase(std::remove_if(timeline_.begin(), timeline_.end(),
-                                 [remove_older_than](const Counter &entry) {
+                                 [remove_older_than](const Counter& entry) {
                                    return entry.first <= remove_older_than;
                                  }),
                   timeline_.end());
 }
 
-} // namespace bt
+}  // namespace bt

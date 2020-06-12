@@ -5,15 +5,17 @@
 
 namespace bt {
 
-const std::vector<ShardConfig> &MixerConfig::ShardConfigs() const {
+const std::vector<ShardConfig>& MixerConfig::ShardConfigs() const {
   return shard_configs_;
 }
 
-const std::vector<PartitionConfig> &MixerConfig::PartitionConfigs() const {
+const std::vector<PartitionConfig>& MixerConfig::PartitionConfigs() const {
   return partition_configs_;
 }
 
-bool MixerConfig::BackoffFailFast() const { return backoff_fail_fast_; }
+bool MixerConfig::BackoffFailFast() const {
+  return backoff_fail_fast_;
+}
 
 std::string MixerConfig::NetworkAddress() const {
   std::stringstream ss;
@@ -23,14 +25,14 @@ std::string MixerConfig::NetworkAddress() const {
   return ss.str();
 }
 
-Status MixerConfig::MakePartitionConfigs(const Config &config) {
-  for (auto &entry : config.GetConfigs("partitions")) {
+Status MixerConfig::MakePartitionConfigs(const Config& config) {
+  for (auto& entry : config.GetConfigs("partitions")) {
     int64_t ts = entry->Get<int>("at");
     if (ts < 0) {
       RETURN_ERROR(INVALID_CONFIG, "partition must have a timestamp");
     }
 
-    for (auto &shard : entry->GetConfigs("shards")) {
+    for (auto& shard : entry->GetConfigs("shards")) {
       PartitionConfig partition;
 
       partition.ts_ = ts;
@@ -77,8 +79,8 @@ Status MixerConfig::MakePartitionConfigs(const Config &config) {
   return StatusCode::OK;
 }
 
-Status MixerConfig::MakeShardConfigs(const Config &config) {
-  for (auto &entry : config.GetConfigs("shards")) {
+Status MixerConfig::MakeShardConfigs(const Config& config) {
+  for (auto& entry : config.GetConfigs("shards")) {
     ShardConfig shard;
 
     shard.name_ = entry->Get<std::string>("name");
@@ -97,7 +99,7 @@ Status MixerConfig::MakeShardConfigs(const Config &config) {
   return StatusCode::OK;
 }
 
-Status MixerConfig::MakeNetworkConfig(const Config &config) {
+Status MixerConfig::MakeNetworkConfig(const Config& config) {
   port_ = config.Get<int>("network.port");
   host_ = config.Get<std::string>("network.host");
   backoff_fail_fast_ = config.Get<bool>("backoff_fail_fast", false);
@@ -112,8 +114,8 @@ Status MixerConfig::MakeNetworkConfig(const Config &config) {
   return StatusCode::OK;
 }
 
-Status MixerConfig::MakeMixerConfig(const Config &config,
-                                    MixerConfig *mixer_config) {
+Status MixerConfig::MakeMixerConfig(const Config& config,
+                                    MixerConfig* mixer_config) {
   RETURN_IF_ERROR(mixer_config->MakePartitionConfigs(config));
   RETURN_IF_ERROR(mixer_config->MakeShardConfigs(config));
   RETURN_IF_ERROR(mixer_config->MakeNetworkConfig(config));
@@ -121,4 +123,4 @@ Status MixerConfig::MakeMixerConfig(const Config &config,
   return StatusCode::OK;
 }
 
-} // namespace bt
+}  // namespace bt

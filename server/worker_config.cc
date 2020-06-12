@@ -2,8 +2,8 @@
 
 namespace bt {
 
-Status WorkerConfig::MakeWorkerConfig(const Config &config,
-                                      WorkerConfig *worker_config) {
+Status WorkerConfig::MakeWorkerConfig(const Config& config,
+                                      WorkerConfig* worker_config) {
   // Instance type
   const std::string instance_type = config.Get<std::string>("instance_type");
   if (instance_type != kWorkerConfigType) {
@@ -29,4 +29,4 @@ Status WorkerConfig::MakeWorkerConfig(const Config &config,
   return StatusCode::OK;
 }
 
-} // namespace bt
+}  // namespace bt

@@ -3,10 +3,10 @@
 
 namespace bt {
 
-bool IsNearbyFolk(const proto::DbKey &user_key,
-                  const proto::DbValue &user_value,
-                  const proto::DbKey &folk_key,
-                  const proto::DbValue &folk_value) {
+bool IsNearbyFolk(const proto::DbKey& user_key,
+                  const proto::DbValue& user_value,
+                  const proto::DbKey& folk_key,
+                  const proto::DbValue& folk_value) {
   const uint64_t user_begin_ts = user_key.timestamp();
   const uint64_t user_end_ts = user_begin_ts + user_value.duration();
 
@@ -36,4 +36,4 @@ bool IsNearbyFolk(const proto::DbKey &user_key,
   return is_nearby_ts && is_nearby_long && is_nearby_lat && is_nearby_alt;
 }
 
-} // namespace bt
+}  // namespace bt

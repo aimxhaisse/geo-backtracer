@@ -1,19 +1,21 @@
-#include <chrono>
-#include <cstdint>
-#include <ctime>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <grpc++/grpc++.h>
+#include <chrono>
+#include <cstdint>
+#include <ctime>
 #include <random>
 #include <thread>
 
 #include "client/client.h"
 
 DEFINE_string(
-    mode, "push",
+    mode,
+    "push",
     "client mode (one of  'timeline', 'nearby-folks', 'wanderings', 'stats').");
 DEFINE_int64(user_id, 0, "user id (if applicable)");
-DEFINE_string(config, "etc/client.yml",
+DEFINE_string(config,
+              "etc/client.yml",
               "path to the config file ('client.yml')");
 
 // Flags for the wandering simulation, it is meant to be used at scale
@@ -65,22 +67,22 @@ Status Client::Init() {
   return StatusCode::OK;
 }
 
-const std::string &Client::RandomMixerAddress() {
+const std::string& Client::RandomMixerAddress() {
   return mixer_addresses_[std::rand() % mixer_addresses_.size()];
 }
 
 Status Client::Run() {
   switch (mode_) {
-  case NONE:
-    break;
-  case WANDERINGS:
-    return Wanderings();
-  case TIMELINE:
-    return UserTimeline();
-  case NEARBY_FOLKS:
-    return NearbyFolks();
-  case STATS:
-    return Stats();
+    case NONE:
+      break;
+    case WANDERINGS:
+      return Wanderings();
+    case TIMELINE:
+      return UserTimeline();
+    case NEARBY_FOLKS:
+      return NearbyFolks();
+    case STATS:
+      return Stats();
   };
 
   return StatusCode::OK;
@@ -104,7 +106,7 @@ Status Client::UserTimeline() {
   }
 
   for (int i = 0; i < response.point().size(); ++i) {
-    const proto::UserTimelinePoint &point = response.point(i);
+    const proto::UserTimelinePoint& point = response.point(i);
     LOG(INFO) << "timestamp=" << point.timestamp()
               << ", duration=" << point.duration()
               << ", gps_latitude=" << point.gps_latitude()
@@ -135,7 +137,7 @@ Status Client::NearbyFolks() {
   }
 
   for (int i = 0; i < response.folk().size(); ++i) {
-    const proto::NearbyUserFolk &folk = response.folk(i);
+    const proto::NearbyUserFolk& folk = response.folk(i);
     LOG(INFO) << "user_id=" << folk.user_id() << ", score=" << folk.score();
   }
 
@@ -146,9 +148,10 @@ Status Client::NearbyFolks() {
 
 namespace {
 
-Status GetAggregatedMixerStats(const std::vector<std::string> &mixer_addresses,
-                               uint64_t *rate_60s, uint64_t *rate_10m,
-                               uint64_t *rate_1h) {
+Status GetAggregatedMixerStats(const std::vector<std::string>& mixer_addresses,
+                               uint64_t* rate_60s,
+                               uint64_t* rate_10m,
+                               uint64_t* rate_1h) {
   uint64_t rate_60s_aggr = 0;
   uint64_t rate_10m_aggr = 0;
   uint64_t rate_1h_aggr = 0;
@@ -159,7 +162,7 @@ Status GetAggregatedMixerStats(const std::vector<std::string> &mixer_addresses,
 
   proto::MixerStats_Request request;
 
-  for (auto &mixer_addr : mixer_addresses) {
+  for (auto& mixer_addr : mixer_addresses) {
     grpc::ClientContext context;
     proto::MixerStats_Response response;
     std::unique_ptr<proto::MixerService::Stub> mixer =
@@ -184,7 +187,7 @@ Status GetAggregatedMixerStats(const std::vector<std::string> &mixer_addresses,
   return StatusCode::OK;
 }
 
-} // namespace
+}  // namespace
 
 Status Client::Stats() {
   while (true) {
@@ -210,13 +213,19 @@ namespace {
 
 // Simulates someone walking randomly around.
 class Wanderer {
-public:
-  Wanderer(int64_t user_id, float latitude, float longitude, float area,
-           int64_t start_ts, int64_t end_ts)
-      : user_id_(user_id), gen_(rd_()),
+ public:
+  Wanderer(int64_t user_id,
+           float latitude,
+           float longitude,
+           float area,
+           int64_t start_ts,
+           int64_t end_ts)
+      : user_id_(user_id),
+        gen_(rd_()),
         moves_(0.0001,
                0.0010 /* move between 1 and 10 meters on each iteration */),
-        current_ts_(start_ts), end_ts_(end_ts) {
+        current_ts_(start_ts),
+        end_ts_(end_ts) {
     gps_latitude_ = latitude;
     gps_longitude_ = longitude;
     gps_area_ = area;
@@ -294,7 +303,7 @@ public:
   float longitude_dir_ = 1.0;
 };
 
-} // namespace
+}  // namespace
 
 Status Client::Wanderings() {
   LOG(INFO) << "starting to simulate a bunch of users walking around";
@@ -324,14 +333,14 @@ Status Client::Wanderings() {
 
     done = true;
 
-    for (auto &wanderer : wanderers) {
+    for (auto& wanderer : wanderers) {
       if (!wanderer->Move()) {
         continue;
       }
 
       done = false;
 
-      proto::Location *loc = request.add_locations();
+      proto::Location* loc = request.add_locations();
       loc->set_timestamp(wanderer->current_ts_);
       loc->set_duration(wanderer->current_duration_);
 
@@ -358,7 +367,7 @@ Status Client::Wanderings() {
   return StatusCode::OK;
 }
 
-int main(int ac, char **av) {
+int main(int ac, char** av) {
   FLAGS_logtostderr = 1;
   ::google::InitGoogleLogging(av[0]);
   ::gflags::ParseCommandLineFlags(&ac, &av, true);

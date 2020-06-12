@@ -1,7 +1,7 @@
+#include <glog/logging.h>
 #include <condition_variable>
 #include <csignal>
 #include <ctime>
-#include <glog/logging.h>
 #include <mutex>
 
 #include "common/signal.h"
@@ -29,7 +29,7 @@ void HandleSignal(int sig) {
   gDoExit.notify_one();
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
 Status WaitForExitSignal() {
   std::signal(SIGINT, HandleSignal);
@@ -62,5 +62,5 @@ Status WaitForExitSignal() {
   return StatusCode::OK;
 }
 
-} // namespace utils
-} // namespace bt
+}  // namespace utils
+}  // namespace bt
