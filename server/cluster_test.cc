@@ -114,10 +114,10 @@ StatusOr<MixerConfig> GenerateMixerConfig(int shard_count, int shard_id,
       constexpr float kBotLat = 44.0;
 
       sstream << "      area: 'fr'\n";
-      sstream << "      top_left: ["
+      sstream << "      bottom_left: ["
               << GetShardLatitudeTop(kTopLat, kBotLat, shard_count, i) << ", "
               << kTopLong << "]\n";
-      sstream << "      bottom_right: ["
+      sstream << "      top_right: ["
               << GetShardLatitudeBot(kTopLat, kBotLat, shard_count, i) << ", "
               << kBotLong << "]\n";
     }

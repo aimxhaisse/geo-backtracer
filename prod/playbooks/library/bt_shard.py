@@ -39,8 +39,8 @@ partitions:
       area: "default"
       {%- else -%}
       area: "{{ partition['area']['area'] }}"
-      top_left: {{ partition['top_left'] }}
-      bottom_right: {{ partition['bottom_right'] }}
+      bottom_left: {{ partition['top_left'] }}
+      top_right: {{ partition['bottom_right'] }}
       {%- endif %}
     {%- endfor %}
 {% endfor %}
@@ -48,7 +48,7 @@ partitions:
 
 
 Partition = namedtuple(
-    "Partition", ["area", "shard", "top_left", "bottom_right"])
+    "Partition", ["area", "shard", "bottom_left", "top_right"])
 
 
 def make_latitude_top(start, end, nb_shard, idx):
@@ -69,27 +69,27 @@ def make_partition(area, shard, idx, shard_count):
     """Creates a partition given a shard and its id."""
     if (area['area'] == "default"):
         return Partition(
-            area=area, shard=shard['name'], top_left=None, bottom_right=None)
+            area=area, shard=shard['name'], bottom_left=None, top_right=None)
 
     # Here we shard the area in horizontal stripes, this is a
     # arbitrary way of sharding. It doesn't need to be aligned on a
     # block, the mixer will round properly.
-    top_left = [
+    bottom_left = [
         make_latitude_top(
-            area['top_left'][0], area['bottom_right'][0], shard_count, idx),
-        area['top_left'][1]
+            area['bottom_left'][0], area['top_right'][0], shard_count, idx),
+        area['bottom_left'][1]
     ]
-    bottom_right = [
+    top_right = [
         make_latitude_bot(
-            area['top_left'][0], area['bottom_right'][0], shard_count, idx),
-        area['bottom_right'][1]
+            area['bottom_left'][0], area['top_right'][0], shard_count, idx),
+        area['top_right'][1]
     ]
 
     return Partition(
         area=area,
         shard=shard['name'],
-        top_left=top_left,
-        bottom_right=bottom_right
+        bottom_left=top_left,
+        top_right=bottom_right
     )
 
 

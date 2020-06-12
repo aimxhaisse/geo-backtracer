@@ -50,25 +50,25 @@ Status MixerConfig::MakePartitionConfigs(const Config &config) {
         continue;
       }
 
-      auto top_left = shard->Get<std::vector<float>>("top_left");
-      auto bottom_right = shard->Get<std::vector<float>>("bottom_right");
+      auto bottom_left = shard->Get<std::vector<float>>("top_left");
+      auto top_right = shard->Get<std::vector<float>>("bottom_right");
 
-      if (top_left.size() != 2) {
+      if (bottom_left.size() != 2) {
         RETURN_ERROR(INVALID_CONFIG,
                      "non-default partition must have a top left GPS point");
       }
 
-      if (bottom_right.size() != 2) {
+      if (top_right.size() != 2) {
         RETURN_ERROR(
             INVALID_CONFIG,
             "non-default partition must have a bottom right GPS point");
       }
 
-      partition.gps_latitude_begin_ = top_left[0];
-      partition.gps_longitude_begin_ = top_left[1];
+      partition.gps_latitude_begin_ = bottom_left[0];
+      partition.gps_longitude_begin_ = bottom_left[1];
 
-      partition.gps_latitude_end_ = bottom_right[0];
-      partition.gps_longitude_end_ = bottom_right[1];
+      partition.gps_latitude_end_ = top_right[0];
+      partition.gps_longitude_end_ = top_right[1];
 
       partition_configs_.push_back(partition);
     }

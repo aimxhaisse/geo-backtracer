@@ -115,8 +115,8 @@ class BtShardTest(unittest.TestCase):
                 },
                 {
                     'area': "fr",
-                    'top_left': [-5.00, 51.00],
-                    'bottom_right': [7.50, 44.00]
+                    'bottom_left': [-5.00, 51.00],
+                    'top_right': [7.50, 44.00]
                 }
             ],
             'dest': self._tmp_file,
@@ -157,8 +157,8 @@ class BtShardTest(unittest.TestCase):
                   area: "default"
                 - shard: "shard-b"
                   area: "fr"
-                  top_left: [-5.0, 51.0]
-                  bottom_right: [7.5, 44.0]
+                  bottom_left: [-5.0, 51.0]
+                  top_right: [7.5, 44.0]
             """)
 
             self.assertEqual(self.mixerConfig(), expected)
@@ -194,8 +194,8 @@ class BtShardTest(unittest.TestCase):
                 },
                 {
                     'area': "fr",
-                    'top_left': [-5.00, 51.00],
-                    'bottom_right': [7.50, 44.00]
+                    'bottom_left': [-5.00, 51.00],
+                    'top_right': [7.50, 44.00]
                 }
             ],
             'dest': self._tmp_file,
@@ -238,12 +238,12 @@ class BtShardTest(unittest.TestCase):
                   area: "default"
                 - shard: "shard-b"
                   area: "fr"
-                  top_left: [-5.0, 51.0]
-                  bottom_right: [1.25, 44.0]
+                  bottom_left: [-5.0, 51.0]
+                  top_right: [1.25, 44.0]
                 - shard: "shard-c"
                   area: "fr"
-                  top_left: [1.25, 51.0]
-                  bottom_right: [7.5, 44.0]
+                  bottom_left: [1.25, 51.0]
+                  top_right: [7.5, 44.0]
             """)
 
             self.assertEqual(self.mixerConfig(), expected)
@@ -286,8 +286,8 @@ class BtShardTest(unittest.TestCase):
                 },
                 {
                     'area': "fr",
-                    'top_left': [-5.00, 51.00],
-                    'bottom_right': [7.50, 44.00]
+                    'bottom_left': [-5.00, 51.00],
+                    'top_right': [7.50, 44.00]
                 }
             ],
             'dest': self._tmp_file,
@@ -332,16 +332,16 @@ class BtShardTest(unittest.TestCase):
                   area: "default"
                 - shard: "shard-b"
                   area: "fr"
-                  top_left: [-5.0, 51.0]
-                  bottom_right: [-0.83, 44.0]
+                  bottom_left: [-5.0, 51.0]
+                  top_right: [-0.83, 44.0]
                 - shard: "shard-c"
                   area: "fr"
-                  top_left: [-0.83, 51.0]
-                  bottom_right: [3.33, 44.0]
+                  bottom_left: [-0.83, 51.0]
+                  top_right: [3.33, 44.0]
                 - shard: "shard-d"
                   area: "fr"
-                  top_left: [3.33, 51.0]
-                  bottom_right: [7.5, 44.0]
+                  bottom_left: [3.33, 51.0]
+                  top_right: [7.5, 44.0]
             """)
 
             self.assertEqual(self.mixerConfig(), expected)
