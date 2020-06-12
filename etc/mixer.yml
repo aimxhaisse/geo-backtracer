@@ -29,9 +29,9 @@ partitions:
       area: "default"
     - shard: "eb3e451"
       area: "fr"
-      top_left: [-5.0, 51.0]
-      bottom_right: [7.5, 47.5]
+      bottom_left: [44.0, -5.0]
+      top_right: [47.5, 7.5]
     - shard: "735ec68"
       area: "fr"
-      top_left: [-5.0, 47.5]
-      bottom_right: [7.5, 44.0]
+      bottom_left: [47.5, -5.0]
+      top_right: [47.5, 7.5]
