@@ -107,11 +107,11 @@ StatusOr<MixerConfig> GenerateMixerConfig(int shard_count, int shard_id,
     if (i == 0) {
       sstream << "      area: 'default'\n";
     } else {
-      constexpr float kTopLong = -5.0;
-      constexpr float kTopLat = 51.0;
-
-      constexpr float kBotLong = 7.50;
       constexpr float kBotLat = 44.0;
+      constexpr float kBotLong = -5.0;
+
+      constexpr float kTopLat = 51.0;
+      constexpr float kTopLong = 7.50;
 
       sstream << "      area: 'fr'\n";
       sstream << "      bottom_left: ["
@@ -173,7 +173,11 @@ void ClusterTestBase::SetUp() {
             << ", round_robin=" << mixer_round_robin_
             << ", simulate_db_down=" << simulate_db_down_;
 
-  SetUpShardsInCluster();
+  Status status = SetUpShardsInCluster();
+  if (status != StatusCode::OK) {
+    LOG(FATAL) << "unable to setup cluster unit test: status="
+               << status.Message();
+  }
 }
 
 void ClusterTestBase::TearDown() {
