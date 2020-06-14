@@ -8,7 +8,6 @@
       - htop
       - git
       - ufw
-      - nmap
       - tree
       - emacs-nox
       - tmux

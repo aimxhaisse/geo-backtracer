@@ -3,4 +3,4 @@
 # Setup a dedicated user to run the Geo Backtracer.
 
 - name: create unix users
-  user: name="{{ geo_user }}" append=yes state=present createhome=yes shell=/bin/bash groups=docker
+  user: name="{{ geo_user }}" append=yes state=present createhome=yes shell=/bin/bash
