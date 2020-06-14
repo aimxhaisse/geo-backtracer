@@ -2,12 +2,10 @@
 
 ## Single Node
 
-This section describes results obtained with a two-nodes cluster,
-composed of N shards with redundancy R=2, goal is to assess the right
-kind of nodes needed for a realistic cluster setup
-
-Ideally, we want to find the thick line where workers start moving
-from being CPU-bound to being IO-bound.
+This section describes results obtained with a two-nodes cluster with
+R=2 redundancy, goal is to assess the right kind of nodes needed for a
+realistic cluster setup. QPS expressed here account for R=2 (i.e:
+actual GPS point insert rate is twice this number).
 
 ### Start-2-S-SATA
 
@@ -15,10 +13,12 @@ from being CPU-bound to being IO-bound.
 - 1 × 1 To SATA
 - 4 Go DDR3
 
-Insert rate after 1 hour: 3100 QPS, CPU bound.
+Insert rate over 1 hour: **3 100 QPS**.
 
 ### GP1-XS
 
 - 4 vCPUs
 - 16G ram
 - 150GB NVMe
+
+Insert rate over 1 hour: **28 300 QPS**.
