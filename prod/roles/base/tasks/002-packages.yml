@@ -6,6 +6,7 @@
   apt:
     name:
       - htop
+      - nmap
       - git
       - ufw
       - tree
@@ -14,3 +15,7 @@
       - apt-transport-https
       - python3-jinja2
     state: present
+    update_cache: yes
+    cache_valid_time: 86400
+
+
