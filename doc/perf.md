@@ -29,4 +29,4 @@ Insert rate over 1 hour: **28 300 QPS**.
 - 32G ram
 - 300GB NVMe
 
-Insert rate over 1 hour: **28 300 QPS**.
+Insert rate over 1 hour: **43 200 QPS**.
