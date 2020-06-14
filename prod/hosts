@@ -9,8 +9,12 @@
 # beorn ansible_host=51.159.0.156 ansible_user=mxs vpn_ip=10.0.0.4
 
 # GP1-XS
-maggot ansible_host=51.15.237.208 ansible_user=mxs vpn_ip=10.0.0.5
-proudfoot ansible_host=51.158.96.61 ansible_user=mxs vpn_ip=10.0.0.6
+# maggot ansible_host=51.15.237.208 ansible_user=mxs vpn_ip=10.0.0.5
+# proudfoot ansible_host=51.158.96.61 ansible_user=mxs vpn_ip=10.0.0.6
+
+# GP1-S
+aragorn ansible_host=51.15.130.30 ansible_user=mxs vpn_ip=10.0.0.7
+gandalf ansible_host=51.15.138.224 ansible_user=mxs vpn_ip=10.0.0.8
 
 [all:vars]
 
