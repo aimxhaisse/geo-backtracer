@@ -36,7 +36,7 @@ geo:
 
 # Shards
 
-shards:
+dev_shards:
   - name: "8a00862"
     area: "default"
     hosts: ["gamgee", "bombadil"]
@@ -65,3 +65,15 @@ prod_shards:
     worker_port: 7001
     mixer_port: 8001
 
+# GP1-XS
+shards:
+  - name: "8a00862"
+    area: "default"
+    hosts: ['maggot', 'proudfoot']
+    worker_port: 7000
+    mixer_port: 8000
+  - name: "eb3e451"
+    area: "fr"
+    hosts: ['maggot', 'proudfoot']
+    worker_port: 7001
+    mixer_port: 8001

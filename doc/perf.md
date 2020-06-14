@@ -2,7 +2,7 @@
 
 ## Single Node
 
-This section describes results obtained with a single node cluster,
+This section describes results obtained with a two-nodes cluster,
 composed of N shards with redundancy R=2, goal is to assess the right
 kind of nodes needed for a realistic cluster setup
 
@@ -16,3 +16,9 @@ from being CPU-bound to being IO-bound.
 - 4 Go DDR3
 
 Insert rate after 1 hour: 3100 QPS, CPU bound.
+
+### GP1-XS
+
+- 4 vCPUs
+- 16G ram
+- 150GB NVMe
