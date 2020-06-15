@@ -13,7 +13,7 @@ actual GPS point insert rate is twice this number).
 - 1 × 1 To SATA
 - 4 Go DDR3
 
-Insert rate over 1 hour: **3 100 QPS**.
+Insert rate over 1 hour: **3 100 QPS** per machine (186 000 moving users).
 
 ### GP1-XS
 
@@ -21,7 +21,7 @@ Insert rate over 1 hour: **3 100 QPS**.
 - 16G ram
 - 150GB NVMe
 
-Insert rate over 1 hour: **28 300 QPS**.
+Insert rate over 1 hour: **14 150 QPS** per machine (849 000 moving users).
 
 ### GP1-S
 
@@ -29,7 +29,7 @@ Insert rate over 1 hour: **28 300 QPS**.
 - 32G ram
 - 300GB NVMe
 
-Insert rate over 1 hour: **43 200 QPS**.
+Insert rate over 1 hour: **21 600 QPS** per machine (1 296 000 moving users).
 
 ### GP1-M
 
@@ -37,4 +37,4 @@ Insert rate over 1 hour: **43 200 QPS**.
 - 64G ram
 - 300GB NVMe
 
-Insert rate over 1 hour: **50 400 QPS**.
+Insert rate over 1 hour: **25 200 QPS** per machine (1 512 000 moving users).
