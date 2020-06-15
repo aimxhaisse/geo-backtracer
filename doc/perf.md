@@ -30,3 +30,11 @@ Insert rate over 1 hour: **28 300 QPS**.
 - 300GB NVMe
 
 Insert rate over 1 hour: **43 200 QPS**.
+
+### GP1-M
+
+- 16 vCPUs
+- 64G ram
+- 300GB NVMe
+
+Insert rate over 1 hour: **50 400 QPS**.
