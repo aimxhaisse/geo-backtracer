@@ -69,21 +69,41 @@ prod_shards:
 shards:
   - name: "8a00862"
     area: "default"
-    hosts: ['smeagol', 'arwen']
+    hosts: ['touque', 'elendil']
     worker_port: 7000
     mixer_port: 8000
   - name: "f3aebb4"
     area: "fr"
-    hosts: ['smeagol', 'arwen']
+    hosts: ['touque', 'elendil']
     worker_port: 7001
     mixer_port: 8001
   - name: "dd4e7ff"
     area: "fr"
-    hosts: ['smeagol', 'arwen']
+    hosts: ['touque', 'elendil']
     worker_port: 7002
     mixer_port: 8002
   - name: "eb3e451"
     area: "fr"
-    hosts: ['smeagol', 'arwen']
+    hosts: ['touque', 'elendil']
     worker_port: 7003
     mixer_port: 8003
+  - name: "f3aebb5"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7004
+    mixer_port: 8004
+  - name: "f3aebb6"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7005
+    mixer_port: 8005
+  - name: "f3aebb7"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7006
+    mixer_port: 8006
+  - name: "f3aebb8"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7007
+    mixer_port: 8007

@@ -17,8 +17,12 @@
 # gandalf ansible_host=51.15.138.224 ansible_user=mxs vpn_ip=10.0.0.8
 
 # GP1-M
-smeagol ansible_host=51.158.103.136 ansible_user=mxs vpn_ip=10.0.0.9
-arwen ansible_host=212.47.226.104 ansible_user=mxs vpn_ip=10.0.0.10
+# smeagol ansible_host=51.158.103.136 ansible_user=mxs vpn_ip=10.0.0.9
+# arwen ansible_host=212.47.226.104 ansible_user=mxs vpn_ip=10.0.0.10
+
+# GP1-L
+touque ansible_host=51.158.123.231 ansible_user=mxs vpn_ip=10.0.0.11
+elendil ansible_host=163.172.144.153 ansible_user=mxs vpn_ip=10.0.0.12
 
 [all:vars]
 
