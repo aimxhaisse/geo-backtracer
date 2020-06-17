@@ -107,3 +107,128 @@ shards:
     hosts: ['touque', 'elendil']
     worker_port: 7007
     mixer_port: 8007
+  - name: "f3aebb9"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7008
+    mixer_port: 8008
+  - name: "b3aebb4"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7011
+    mixer_port: 8011
+  - name: "bd4e7ff"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7012
+    mixer_port: 8012
+  - name: "bb3e451"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7013
+    mixer_port: 8013
+  - name: "b3aebb5"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7014
+    mixer_port: 8014
+  - name: "b3aebb6"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7015
+    mixer_port: 8015
+  - name: "b3aebb7"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7016
+    mixer_port: 8016
+  - name: "b3aebb8"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7017
+    mixer_port: 8017
+  - name: "b3aebb9"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7018
+    mixer_port: 8018
+  - name: "c3aebb4"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7021
+    mixer_port: 8021
+  - name: "cd4e7ff"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7022
+    mixer_port: 8022
+  - name: "cb3e451"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7023
+    mixer_port: 8023
+  - name: "c3aebb5"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7024
+    mixer_port: 8024
+  - name: "c3aebb6"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7025
+    mixer_port: 8025
+  - name: "c3aebb7"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7026
+    mixer_port: 8026
+  - name: "c3aebb8"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7027
+    mixer_port: 8027
+  - name: "c3aebb9"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7028
+    mixer_port: 8028
+  - name: "d3aebb4"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7031
+    mixer_port: 8031
+  - name: "dd4e7ff"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7032
+    mixer_port: 8032
+  - name: "db3e451"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7033
+    mixer_port: 8033
+  - name: "d3aebb5"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7034
+    mixer_port: 8034
+  - name: "d3aebb6"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7035
+    mixer_port: 8035
+  - name: "d3aebb7"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7036
+    mixer_port: 8036
+  - name: "d3aebb8"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7037
+    mixer_port: 8037
+  - name: "d3aebb9"
+    area: "fr"
+    hosts: ['touque', 'elendil']
+    worker_port: 7038
+    mixer_port: 8038
