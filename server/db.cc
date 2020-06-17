@@ -1,5 +1,6 @@
-#include <glog/logging.h>
 #include <ctime>
+#include <glog/logging.h>
+#include <rocksdb/table.h>
 
 #include "common/utils.h"
 #include "proto/backtrace.pb.h"
@@ -17,7 +18,7 @@ constexpr float kEpsilon = 0.0000001;
 constexpr char kColumnTimeline[] = "by-timeline";
 constexpr char kColumnReverse[] = "by-user";
 
-}  // anonymous namespace
+} // anonymous namespace
 
 // Timeline comparator.
 //
@@ -69,12 +70,9 @@ constexpr char kColumnReverse[] = "by-user";
 // become the bottleneck.
 namespace {
 
-void DecodeTimelineKey(const rocksdb::Slice& key,
-                       uint64_t* timestamp_lo,
-                       float* long_zone,
-                       float* lat_zone,
-                       uint64_t* user_id,
-                       uint64_t* timestamp_hi) {
+void DecodeTimelineKey(const rocksdb::Slice &key, uint64_t *timestamp_lo,
+                       float *long_zone, float *lat_zone, uint64_t *user_id,
+                       uint64_t *timestamp_hi) {
   proto::DbKey db_key;
   db_key.ParseFromArray(key.data(), key.size());
 
@@ -85,10 +83,10 @@ void DecodeTimelineKey(const rocksdb::Slice& key,
   *timestamp_hi = db_key.timestamp() % kTimePrecision;
 }
 
-}  // anonymous namespace
+} // anonymous namespace
 
-int TimelineComparator::Compare(const rocksdb::Slice& a,
-                                const rocksdb::Slice& b) const {
+int TimelineComparator::Compare(const rocksdb::Slice &a,
+                                const rocksdb::Slice &b) const {
   uint64_t left_timestamp_lo;
   float left_long_zone;
   float left_lat_zone;
@@ -147,7 +145,7 @@ int TimelineComparator::Compare(const rocksdb::Slice& a,
   return 0;
 };
 
-const char* TimelineComparator::Name() const {
+const char *TimelineComparator::Name() const {
   // Keep this versioned as long as the implementation isn't changed, so we
   // ensure we aren't corrupting a database. It's a good idea to have a unit
   // test here that ensure the order doesn't change.
@@ -156,11 +154,9 @@ const char* TimelineComparator::Name() const {
 
 namespace {
 
-void DecodeReverseKey(const rocksdb::Slice& key,
-                      uint64_t* user_id,
-                      uint64_t* timestamp_zone,
-                      float* gps_longitude_zone,
-                      float* gps_latitude_zone) {
+void DecodeReverseKey(const rocksdb::Slice &key, uint64_t *user_id,
+                      uint64_t *timestamp_zone, float *gps_longitude_zone,
+                      float *gps_latitude_zone) {
   proto::DbReverseKey db_key;
   db_key.ParseFromArray(key.data(), key.size());
   *user_id = db_key.user_id();
@@ -169,10 +165,10 @@ void DecodeReverseKey(const rocksdb::Slice& key,
   *gps_latitude_zone = db_key.gps_latitude_zone();
 }
 
-}  // anonymous namespace
+} // anonymous namespace
 
-int ReverseComparator::Compare(const rocksdb::Slice& a,
-                               const rocksdb::Slice& b) const {
+int ReverseComparator::Compare(const rocksdb::Slice &a,
+                               const rocksdb::Slice &b) const {
   uint64_t left_user_id;
   uint64_t left_timestamp_zone;
   float left_gps_longitude_zone;
@@ -222,24 +218,38 @@ int ReverseComparator::Compare(const rocksdb::Slice& a,
   return 0;
 }
 
-const char* ReverseComparator::Name() const {
+const char *ReverseComparator::Name() const {
   // Keep this versioned as long as the implementation isn't changed, so we
   // ensure we aren't corrupting a database. It's a good idea to have a unit
   // test here that ensure the order doesn't change.
   return "reverse-comparator-0.1";
 }
 
-Status Db::Init(const WorkerConfig& config) {
+Status Db::Init(const WorkerConfig &config) {
   RETURN_IF_ERROR(InitPath(config));
 
   rocksdb::Options rocksdb_options;
+
   rocksdb_options.create_if_missing = true;
-  rocksdb_options.write_buffer_size = 512 << 20;
+
   rocksdb_options.compression = rocksdb::kLZ4Compression;
-  rocksdb_options.max_background_compactions = 16;
-  rocksdb_options.max_background_flushes = 8;
-  rocksdb_options.bytes_per_sync = 16 * 1048576;
+
+  rocksdb_options.max_background_compactions = 8;
+  rocksdb_options.max_background_flushes = 1;
+
   rocksdb_options.compaction_pri = rocksdb::kMinOverlappingRatio;
+
+  rocksdb_options.write_buffer_size = 512 << 20;
+  rocksdb_options.max_write_buffer_number = 8;
+  rocksdb_options.min_write_buffer_number_to_merge = 2;
+
+  rocksdb_options.max_open_files = -1;
+
+  // Experiment with custom block cache
+  std::shared_ptr<rocksdb::Cache> cache = rocksdb::NewLRUCache(512 << 20);
+  rocksdb::BlockBasedTableOptions table_options;
+  table_options.block_cache = cache;
+  rocksdb_options.table_factory.reset(NewBlockBasedTableFactory(table_options));
 
   // Column families need to be created prior to opening the database.
   RETURN_IF_ERROR(InitColumnFamilies(rocksdb_options));
@@ -259,7 +269,7 @@ Status Db::Init(const WorkerConfig& config) {
   columns_.push_back(
       rocksdb::ColumnFamilyDescriptor(kColumnReverse, reverse_options));
 
-  rocksdb::DB* db = nullptr;
+  rocksdb::DB *db = nullptr;
   rocksdb::Status db_status =
       rocksdb::DB::Open(rocksdb_options, path_, columns_, &handles_, &db);
   if (!db_status.ok()) {
@@ -272,7 +282,7 @@ Status Db::Init(const WorkerConfig& config) {
   return StatusCode::OK;
 }
 
-Status Db::InitPath(const WorkerConfig& config) {
+Status Db::InitPath(const WorkerConfig &config) {
   if (!config.db_path_.empty()) {
     path_ = config.db_path_;
     is_temp_ = false;
@@ -284,12 +294,12 @@ Status Db::InitPath(const WorkerConfig& config) {
   return StatusCode::OK;
 }
 
-Status Db::InitColumnFamilies(const rocksdb::Options& rocksdb_options) {
+Status Db::InitColumnFamilies(const rocksdb::Options &rocksdb_options) {
   if (CheckColumnFamilies(rocksdb_options)) {
     return StatusCode::OK;
   }
 
-  rocksdb::DB* db;
+  rocksdb::DB *db;
   rocksdb::Status status = rocksdb::DB::Open(rocksdb_options, path_, &db);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR,
@@ -299,7 +309,7 @@ Status Db::InitColumnFamilies(const rocksdb::Options& rocksdb_options) {
   // We don't use CreateColumnFamilies() here because it can return a
   // partial results, let's be explicitly boring instead.
 
-  rocksdb::ColumnFamilyHandle* time_handle;
+  rocksdb::ColumnFamilyHandle *time_handle;
   rocksdb::ColumnFamilyOptions timeline_options;
   timeline_options.comparator = &timeline_cmp_;
   status =
@@ -310,7 +320,7 @@ Status Db::InitColumnFamilies(const rocksdb::Options& rocksdb_options) {
   }
   LOG(INFO) << "created column " << kColumnTimeline;
 
-  rocksdb::ColumnFamilyHandle* rev_handle;
+  rocksdb::ColumnFamilyHandle *rev_handle;
   rocksdb::ColumnFamilyOptions rev_options;
   rev_options.comparator = &reverse_cmp_;
   status = db->CreateColumnFamily(rev_options, kColumnReverse, &rev_handle);
@@ -331,7 +341,7 @@ Status Db::InitColumnFamilies(const rocksdb::Options& rocksdb_options) {
   return StatusCode::OK;
 }
 
-bool Db::CheckColumnFamilies(const rocksdb::Options& rocksdb_options) {
+bool Db::CheckColumnFamilies(const rocksdb::Options &rocksdb_options) {
   std::vector<std::string> columns;
   rocksdb::Status status =
       rocksdb::DB::ListColumnFamilies(rocksdb_options, path_, &columns);
@@ -342,7 +352,7 @@ bool Db::CheckColumnFamilies(const rocksdb::Options& rocksdb_options) {
   bool has_timeline = false;
   bool has_reverse = false;
 
-  for (const auto& column : columns) {
+  for (const auto &column : columns) {
     if (column == kColumnTimeline) {
       has_timeline = true;
     }
@@ -354,9 +364,8 @@ bool Db::CheckColumnFamilies(const rocksdb::Options& rocksdb_options) {
   return has_timeline && has_reverse;
 }
 
-Status Db::CloseColumnHandle(rocksdb::DB* db,
-                             const std::string column,
-                             rocksdb::ColumnFamilyHandle* handle) {
+Status Db::CloseColumnHandle(rocksdb::DB *db, const std::string column,
+                             rocksdb::ColumnFamilyHandle *handle) {
   rocksdb::Status status = db->DestroyColumnFamilyHandle(handle);
   if (!status.ok()) {
     RETURN_ERROR(INTERNAL_ERROR, "can't close column handle, column="
@@ -367,21 +376,13 @@ Status Db::CloseColumnHandle(rocksdb::DB* db,
   return StatusCode::OK;
 }
 
-rocksdb::DB* Db::Rocks() {
-  return db_.get();
-}
+rocksdb::DB *Db::Rocks() { return db_.get(); }
 
-rocksdb::ColumnFamilyHandle* Db::DefaultHandle() {
-  return handles_[0];
-}
+rocksdb::ColumnFamilyHandle *Db::DefaultHandle() { return handles_[0]; }
 
-rocksdb::ColumnFamilyHandle* Db::TimelineHandle() {
-  return handles_[1];
-}
+rocksdb::ColumnFamilyHandle *Db::TimelineHandle() { return handles_[1]; }
 
-rocksdb::ColumnFamilyHandle* Db::ReverseHandle() {
-  return handles_[2];
-}
+rocksdb::ColumnFamilyHandle *Db::ReverseHandle() { return handles_[2]; }
 
 Db::~Db() {
   CloseColumnHandle(db_.get(), rocksdb::kDefaultColumnFamilyName,
@@ -395,4 +396,4 @@ Db::~Db() {
   }
 }
 
-}  // namespace bt
+} // namespace bt
