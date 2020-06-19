@@ -21,8 +21,12 @@
 # arwen ansible_host=212.47.226.104 ansible_user=mxs vpn_ip=10.0.0.10
 
 # GP1-L
-touque ansible_host=51.158.123.231 ansible_user=mxs vpn_ip=10.0.0.11
-elendil ansible_host=163.172.144.153 ansible_user=mxs vpn_ip=10.0.0.12
+# touque ansible_host=51.158.123.231 ansible_user=mxs vpn_ip=10.0.0.11
+# elendil ansible_host=163.172.144.153 ansible_user=mxs vpn_ip=10.0.0.12
+
+# GP1-XL
+sackville ansible_host=51.15.217.55 ansible_user=mxs vpn_ip=10.0.0.13
+elrond ansible_host=51.158.99.127 ansible_user=mxs vpn_ip=10.0.0.14
 
 [all:vars]
 
