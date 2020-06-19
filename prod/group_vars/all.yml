@@ -69,86 +69,86 @@ prod_shards:
 shards:
   - name: "8a00862"
     area: "default"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7000
     mixer_port: 8000
   - name: "f3aebb4"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7001
     mixer_port: 8001
   - name: "dd4e7ff"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7002
     mixer_port: 8002
   - name: "eb3e451"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7003
     mixer_port: 8003
   - name: "f3aebb5"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7004
     mixer_port: 8004
   - name: "f3aebb6"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7005
     mixer_port: 8005
   - name: "f3aebb7"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7006
     mixer_port: 8006
   - name: "f3aebb8"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7007
     mixer_port: 8007
   - name: "f3aebb9"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7008
     mixer_port: 8008
   - name: "b3aebb4"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7011
     mixer_port: 8011
   - name: "bd4e7ff"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7012
     mixer_port: 8012
   - name: "bb3e451"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7013
     mixer_port: 8013
   - name: "b3aebb5"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7014
     mixer_port: 8014
   - name: "b3aebb6"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7015
     mixer_port: 8015
   - name: "b3aebb7"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7016
     mixer_port: 8016
   - name: "b3aebb8"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7017
     mixer_port: 8017
   - name: "b3aebb9"
     area: "fr"
-    hosts: ['touque', 'elendil']
+    hosts: ['sackville', 'elrond']
     worker_port: 7018
     mixer_port: 8018

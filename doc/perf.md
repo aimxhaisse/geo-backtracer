@@ -46,3 +46,11 @@ Insert rate over 1 hour: **25 200 QPS** per machine (1 512 000 moving users).
 - 600GB NVMe
 
 Insert rate over 1 hour: **69 000 QPS** per machine (4 140 000 moving users).
+
+### GP1-XL
+
+- 48 vCPUs
+- 256G ram
+- 600GB NVMe
+
+Insert rate over 1 hour: **65 000 QPS** per machine (3 900 000 moving users).
