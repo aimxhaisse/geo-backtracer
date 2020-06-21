@@ -24,6 +24,8 @@ DEFINE_int64(wanderings_push_days, 14, "number of days to push");
 DEFINE_double(wanderings_latitude, 47.5, "gps latitude to wander around");
 DEFINE_double(wanderings_longitude, 1.50, "gps longitude to wander around");
 DEFINE_double(wanderings_area, 6.5, "estimation of the area to wander around");
+DEFINE_bool(wanderings_live, false,
+            "whether to use a live simulation or a replay");
 
 using namespace bt;
 
@@ -294,6 +296,14 @@ public:
   float longitude_dir_ = 1.0;
 };
 
+void SleepUntil(int64_t ts) {
+  const std::time_t now = std::time(nullptr);
+  const int64_t sleep_for_ms = (ts - now) * 1000;
+  if (sleep_for_ms > 0) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_for_ms));
+  }
+}
+
 } // namespace
 
 Status Client::Wanderings() {
@@ -304,7 +314,14 @@ Status Client::Wanderings() {
           RandomMixerAddress(), grpc::InsecureChannelCredentials()));
 
   const std::time_t now = std::time(nullptr);
-  const std::time_t start_at = now - (FLAGS_wanderings_push_days * 24 * 3600);
+  std::time_t start_at = now - (FLAGS_wanderings_push_days * 24 * 3600);
+  std::time_t end_at = now;
+
+  // In live mode, we push from 'now'.
+  if (FLAGS_wanderings_live) {
+    start_at = now;
+    end_at = now + (FLAGS_wanderings_push_days * 24 * 3600);
+  }
 
   std::vector<std::unique_ptr<Wanderer>> wanderers;
   const int64_t base_user_id = std::rand();
@@ -315,7 +332,7 @@ Status Client::Wanderings() {
   for (int user = 0; user < FLAGS_wanderings_user_count; ++user) {
     wanderers.push_back(std::make_unique<Wanderer>(
         base_user_id + user, FLAGS_wanderings_latitude,
-        FLAGS_wanderings_longitude, FLAGS_wanderings_area, start_at, now));
+        FLAGS_wanderings_longitude, FLAGS_wanderings_area, start_at, end_at));
   }
 
   bool done = false;
@@ -323,6 +340,8 @@ Status Client::Wanderings() {
     proto::PutLocation_Request request;
 
     done = true;
+
+    int64_t last_ts = 0;
 
     for (auto &wanderer : wanderers) {
       if (!wanderer->Move()) {
@@ -339,6 +358,8 @@ Status Client::Wanderings() {
       loc->set_gps_latitude(wanderer->current_latitude_);
       loc->set_gps_longitude(wanderer->current_longitude_);
       loc->set_gps_altitude(wanderer->current_altitude_);
+
+      last_ts = wanderer->current_ts_;
     }
 
     grpc::ClientContext context;
@@ -350,6 +371,10 @@ Status Client::Wanderings() {
                        << status.error_message());
     } else {
       LOG(INFO) << "wrote " << request.locations_size() << " GPS locations";
+    }
+
+    if (FLAGS_wanderings_live) {
+      SleepUntil(last_ts);
     }
   }
 
