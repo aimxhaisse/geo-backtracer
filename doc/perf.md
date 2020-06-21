@@ -62,3 +62,11 @@ Insert rate over 1 hour: **65 000 QPS** per machine (3 900 000 moving users).
 - 2x250GB SSD
 
 Insert rate over 1 hour: **58 000 QPS** per machine (3 480 000 moving users).
+
+### HC-BM1-S
+
+- 20C 40T - 2.2 GHz
+- 96G ram
+- 2x1TB SSD NVMe
+
+Insert rate over 1 hour: **105 000 QPS** per machine (6 300 000 moving users).

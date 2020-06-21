@@ -36,9 +36,9 @@
 # beurre ansible_host=51.159.31.109 ansible_user=mxs vpn_ip=10.0.0.17
 # saruman ansible_host=51.159.31.108 ansible_user=mxs vpn_ip=10.0.0.18
 
-# GP-BM1-M
-beurre ansible_host=195.154.81.99 ansible_user=mxs vpn_ip=10.0.0.19
-saruman ansible_host=195.154.81.116 ansible_user=mxs vpn_ip=10.0.0.20
+# HC-BM1-S
+beurre ansible_host=51.159.0.221 ansible_user=mxs vpn_ip=10.0.0.19
+saruman ansible_host=51.159.0.224 ansible_user=mxs vpn_ip=10.0.0.20
 
 [all:vars]
 
