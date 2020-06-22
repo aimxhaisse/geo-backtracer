@@ -20,12 +20,13 @@ DEFINE_string(config, "etc/client.yml",
 // with multiple clients pushing points to the cluster.
 DEFINE_int64(wanderings_user_count, 10000, "number of users to simulate");
 DEFINE_int64(wanderings_push_days, 14, "number of days to push");
+DEFINE_bool(wanderings_live, false,
+            "whether to use a live simulation or a replay");
+DEFINE_int64(wanderings_chunk_size, 1000, "size of batches to send to mixers");
 
 DEFINE_double(wanderings_latitude, 47.5, "gps latitude to wander around");
 DEFINE_double(wanderings_longitude, 1.50, "gps longitude to wander around");
 DEFINE_double(wanderings_area, 6.5, "estimation of the area to wander around");
-DEFINE_bool(wanderings_live, false,
-            "whether to use a live simulation or a replay");
 
 using namespace bt;
 
@@ -306,6 +307,27 @@ void SleepUntil(int64_t ts) {
 
 } // namespace
 
+namespace {
+
+Status SendBatch(proto::MixerService::Stub &stub,
+                 proto::PutLocation_Request &request, int64_t *sent) {
+  grpc::ClientContext context;
+  proto::PutLocation_Response response;
+  grpc::Status status = stub.PutLocation(&context, request, &response);
+  if (!status.ok()) {
+    RETURN_ERROR(INTERNAL_ERROR,
+                 "unable to send location to backtracer, status="
+                     << status.error_message());
+  } else {
+    *sent += request.locations_size();
+    request.clear_locations();
+  }
+
+  return StatusCode::OK;
+}
+
+} // namespace
+
 Status Client::Wanderings() {
   LOG(INFO) << "starting to simulate a bunch of users walking around";
 
@@ -342,6 +364,7 @@ Status Client::Wanderings() {
     done = true;
 
     int64_t last_ts = 0;
+    int64_t sent = 0;
 
     for (auto &wanderer : wanderers) {
       if (!wanderer->Move()) {
@@ -360,18 +383,16 @@ Status Client::Wanderings() {
       loc->set_gps_altitude(wanderer->current_altitude_);
 
       last_ts = wanderer->current_ts_;
+
+      if (request.locations_size() >= FLAGS_wanderings_chunk_size) {
+        SendBatch(*stub, request, &sent);
+      }
     }
 
-    grpc::ClientContext context;
-    proto::PutLocation_Response response;
-    grpc::Status status = stub->PutLocation(&context, request, &response);
-    if (!status.ok()) {
-      RETURN_ERROR(INTERNAL_ERROR,
-                   "unable to send location to backtracer, status="
-                       << status.error_message());
-    } else {
-      LOG(INFO) << "wrote " << request.locations_size() << " GPS locations";
-    }
+    SendBatch(*stub, request, &sent);
+
+    LOG(INFO) << "Sent " << sent << " GPS points for "
+              << FLAGS_wanderings_user_count << " users";
 
     if (FLAGS_wanderings_live) {
       SleepUntil(last_ts);
