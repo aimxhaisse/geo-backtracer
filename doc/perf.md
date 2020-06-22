@@ -71,7 +71,6 @@ Insert rate over 1 hour: **58 000 QPS** per machine (3 480 000 moving users).
 
 Insert rate over 1 hour: **105 000 QPS** per machine (6 300 000 moving users).
 
-
 ## Cluster
 
 ### Medium-sized cluster with GP1-M machines
@@ -82,7 +81,7 @@ Configuration:
 - 8 shards per machine,
 - default shard not used,
 - redundancy R=2,
-- 120 clients handling 1M users each.
+- initially 120 clients handling 1M users each, effectively, had to scale it down to 40 clients as we were hitting cluster limits.
 
 #### Expectations
 
@@ -91,8 +90,8 @@ with 10 machines to get around 250 000 QPS.
 
 #### Results
 
-After a simulation of 2 hours, we get an average QPS of **240 000
-QPS**, which aligns with expectations. This confirms that we linearly
-scale with a cluster of 10 machines.
+After a simulation of 3 hours, we get an average QPS of **240 000
+QPS** in the last hour, which aligns with expectations. This confirms
+that we linearly scale with a cluster of 10 machines.
 
-Size: on average, 90 bytes per query (21MB/second for 240 000 QPS).
+Size: on average, 90 bytes per query (21MB/second per machine for 240 000 QPS).
