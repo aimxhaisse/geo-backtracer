@@ -26,7 +26,7 @@ DEFINE_int64(wanderings_chunk_size, 1000, "size of batches to send to mixers");
 
 DEFINE_double(wanderings_latitude, 47.5, "gps latitude to wander around");
 DEFINE_double(wanderings_longitude, 1.50, "gps longitude to wander around");
-DEFINE_double(wanderings_area, 6.5, "estimation of the area to wander around");
+DEFINE_double(wanderings_area, 3.5, "estimation of the area to wander around");
 
 using namespace bt;
 
