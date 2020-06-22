@@ -10,6 +10,7 @@
     + [HC-BM1-S](#hc-bm1-s)
   * [Cluster](#cluster)
     + [Medium-sized cluster with GP1-M machines](#medium-sized-cluster-with-gp1-m-machines)
+      - [Configuration](#configuration)
       - [Expectations](#expectations)
       - [Results](#results)
 
@@ -90,7 +91,7 @@ Insert rate over 1 hour: **105 000 QPS** per machine (6 300 000 moving users).
 
 ### Medium-sized cluster with GP1-M machines
 
-Configuration:
+#### Configuration:
 
 - cluster with 10 machines,
 - 8 shards per machine,
@@ -101,7 +102,7 @@ Configuration:
 #### Expectations
 
 In single-node setup, GPS1-M outputs **25 200** QPS, we expect
-with 10 machines to get around 250 000 QPS.
+with 10 machines to get around **250 000** QPS.
 
 #### Results
 
@@ -109,4 +110,4 @@ After a simulation of 3 hours, we get an average QPS of **240 000
 QPS** in the last hour, which aligns with expectations. This confirms
 that we linearly scale with a cluster of 10 machines.
 
-Size: on average, 90 bytes per query (21MB/second per machine for 240 000 QPS).
+Size: on average, 90 bytes per query (**21MB/second** per machine for **240 000 QPS**).
