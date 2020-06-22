@@ -70,3 +70,26 @@ Insert rate over 1 hour: **58 000 QPS** per machine (3 480 000 moving users).
 - 2x1TB SSD NVMe
 
 Insert rate over 1 hour: **105 000 QPS** per machine (6 300 000 moving users).
+
+
+## Cluster
+
+### Medium-sized cluster with GP1-M machines
+
+Configuration:
+
+- cluster with 10 machines,
+- 8 shards per machine,
+- default shard not used,
+- 120 clients handling 1M users each.
+
+#### Expectations
+
+In single-node setup, GPS1-M outputs **25 200** QPS, we expect
+with 10 machines to get around 250 000 QPS.
+
+#### Results
+
+After a simulation of 2 hours, we get an average QPS of **240 000
+QPS**, which aligns with expectations. This confirms that we linearly
+scale with a cluster of 10 machines.
