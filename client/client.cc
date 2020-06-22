@@ -370,7 +370,9 @@ Status Client::Wanderings() {
 
     proto::PutLocation_Request request;
 
-    done = true;
+    if (!FLAGS_wanderings_live) {
+      done = true;
+    }
 
     int64_t last_ts = 0;
     int64_t sent = 0;
