@@ -334,7 +334,7 @@ Status Client::Wanderings() {
       proto::MixerService::NewStub(grpc::CreateChannel(
           RandomMixerAddress(), grpc::InsecureChannelCredentials()));
 
-  const std::time_t now = std::time(nullptr);
+  std::time_t now = std::time(nullptr);
   std::time_t start_at = now - (FLAGS_wanderings_push_days * 24 * 3600);
   std::time_t end_at = now;
 
@@ -398,6 +398,12 @@ Status Client::Wanderings() {
               << FLAGS_wanderings_user_count << " users";
 
     if (FLAGS_wanderings_live) {
+      now = std::time(nullptr);
+      if (last_ts < (now - 900)) {
+        LOG(INFO) << "running late, pushing points older than 15 minutes";
+      } else {
+        LOG(INFO) << "lag is about " << (now - last_ts) << " seconds";
+      }
       SleepUntil(last_ts);
     }
   }
