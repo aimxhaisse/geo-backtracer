@@ -251,7 +251,11 @@ public:
         fmod(float(std::rand()) / 1000.0, gps_area_) * longitude_dir_;
   }
 
-  bool Move() {
+  bool Move(std::time_t current_ts) {
+    if (FLAGS_wanderings_live && current_ts_ > current_ts) {
+      return false;
+    }
+
     current_ts_ += current_duration_;
 
     if (current_ts_ > end_ts_) {
@@ -302,6 +306,9 @@ void SleepUntil(int64_t ts) {
   const int64_t sleep_for_ms = (ts - now) * 1000;
   if (sleep_for_ms > 0) {
     std::this_thread::sleep_for(std::chrono::milliseconds(sleep_for_ms));
+    LOG(INFO) << "slept for " << sleep_for_ms << "ms";
+  } else {
+    LOG(INFO) << "did not sleep for this iteration, are we running behind?";
   }
 }
 
@@ -359,6 +366,8 @@ Status Client::Wanderings() {
 
   bool done = false;
   while (!done) {
+    const std::time_t current_ts = std::time(nullptr);
+
     proto::PutLocation_Request request;
 
     done = true;
@@ -367,7 +376,7 @@ Status Client::Wanderings() {
     int64_t sent = 0;
 
     for (auto &wanderer : wanderers) {
-      if (!wanderer->Move()) {
+      if (!wanderer->Move(current_ts)) {
         continue;
       }
 
