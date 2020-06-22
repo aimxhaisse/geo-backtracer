@@ -215,7 +215,7 @@ namespace {
 // for memory usage here as there may be 10 000 000 simulated users,
 // better have randomizers in some global wrapper.
 float NewMove() {
-  static std::random_device kRd;
+  static std::random_device kRd("/dev/urandom");
   static std::mt19937 kGen(kRd());
   static std::uniform_real_distribution<float> kMoves(
       0.0001, 0.0010); /* move between 1 and 10 meters on each iteration */
