@@ -211,21 +211,30 @@ Status Client::Stats() {
 
 namespace {
 
+// Not ideal but this is fine as it is contained: we need to optimize
+// for memory usage here as there may be 10 000 000 simulated users,
+// better have randomizers in some global wrapper.
+float NewMove() {
+  static std::random_device kRd;
+  static std::mt19937 kGen(kRd());
+  static std::uniform_real_distribution<float> kMoves(
+      0.0001, 0.0010); /* move between 1 and 10 meters on each iteration */
+
+  return kMoves(kGen);
+}
+
 // Simulates someone walking randomly around.
 class Wanderer {
 public:
   Wanderer(int64_t user_id, float latitude, float longitude, float area,
            int64_t start_ts, int64_t end_ts)
-      : user_id_(user_id), gen_(rd_()),
-        moves_(0.0001,
-               0.0010 /* move between 1 and 10 meters on each iteration */),
-        current_ts_(start_ts), end_ts_(end_ts) {
-    gps_latitude_ = latitude;
-    gps_longitude_ = longitude;
-    gps_area_ = area;
+      : user_id_(user_id), current_ts_(start_ts), end_ts_(end_ts) {
 
     InitDirections();
-    InitPositions();
+    current_latitude_ =
+        latitude + fmod(float(std::rand()) / 1000.0, area) * latitude_dir_;
+    current_longitude_ =
+        longitude + fmod(float(std::rand()) / 1000.0, area) * longitude_dir_;
   }
 
   void InitDirections() {
@@ -240,15 +249,6 @@ public:
     } else {
       longitude_dir_ = -1.0;
     }
-  }
-
-  void InitPositions() {
-    current_latitude_ =
-        gps_latitude_ +
-        fmod(float(std::rand()) / 1000.0, gps_area_) * latitude_dir_;
-    current_longitude_ =
-        gps_longitude_ +
-        fmod(float(std::rand()) / 1000.0, gps_area_) * longitude_dir_;
   }
 
   bool Move(std::time_t current_ts) {
@@ -269,28 +269,20 @@ public:
       longitude_dir_ *= -1.0;
     }
 
-    current_latitude_ += moves_(gen_) * latitude_dir_;
-    current_longitude_ += moves_(gen_) * longitude_dir_;
+    current_latitude_ += NewMove() * latitude_dir_;
+    current_longitude_ += NewMove() * longitude_dir_;
 
     current_duration_ = 60 * (std::rand() % 10 + 1);
 
     return true;
   }
 
+  // Random user id.
   int64_t user_id_ = 0;
-  std::random_device rd_;
-  std::mt19937 gen_;
-  std::uniform_real_distribution<float> moves_;
-
-  // Area to wander around.
-  float gps_latitude_ = 0.0;
-  float gps_longitude_ = 0.0;
-  float gps_area_ = 0.0;
 
   // Current position.
   float current_latitude_ = 0.0;
   float current_longitude_ = 0.0;
-  float current_altitude_ = 0.0;
 
   int64_t current_ts_ = 0;
   int64_t end_ts_ = 0;
@@ -391,7 +383,7 @@ Status Client::Wanderings() {
       loc->set_user_id(wanderer->user_id_);
       loc->set_gps_latitude(wanderer->current_latitude_);
       loc->set_gps_longitude(wanderer->current_longitude_);
-      loc->set_gps_altitude(wanderer->current_altitude_);
+      loc->set_gps_altitude(42.0);
 
       last_ts = wanderer->current_ts_;
 
