@@ -69,201 +69,201 @@ prod_shards:
 shards:
   - name: "shard-01"
     area: "default"
-    hosts: ['machine-1', 'machine-2']
+    hosts: ['machine_1', 'machine_2']
     worker_port: 7001
     mixer_port: 8001
   - name: "shard-02"
     area: "fr"
-    hosts: ['machine-1', 'machine-2']
+    hosts: ['machine_1', 'machine_2']
     worker_port: 7002
     mixer_port: 8002
   - name: "shard-03"
     area: "fr"
-    hosts: ['machine-1', 'machine-2']
+    hosts: ['machine_1', 'machine_2']
     worker_port: 7003
     mixer_port: 8003
   - name: "shard-04"
     area: "fr"
-    hosts: ['machine-1', 'machine-2']
+    hosts: ['machine_1', 'machine_2']
     worker_port: 7004
     mixer_port: 8004
   - name: "shard-05"
     area: "fr"
-    hosts: ['machine-1', 'machine-2']
+    hosts: ['machine_1', 'machine_2']
     worker_port: 7005
     mixer_port: 8005
   - name: "shard-06"
     area: "fr"
-    hosts: ['machine-1', 'machine-2']
+    hosts: ['machine_1', 'machine_2']
     worker_port: 7006
     mixer_port: 8006
   - name: "shard-07"
     area: "fr"
-    hosts: ['machine-1', 'machine-2']
+    hosts: ['machine_1', 'machine_2']
     worker_port: 7007
     mixer_port: 8007
   - name: "shard-08"
     area: "fr"
-    hosts: ['machine-1', 'machine-2']
+    hosts: ['machine_1', 'machine_2']
     worker_port: 7008
     mixer_port: 8008
   - name: "shard-09"
     area: "fr"
-    hosts: ['machine-3', 'machine-4']
+    hosts: ['machine_3', 'machine_4']
     worker_port: 7009
     mixer_port: 8009
   - name: "shard-10"
     area: "fr"
-    hosts: ['machine-3', 'machine-4']
+    hosts: ['machine_3', 'machine_4']
     worker_port: 7010
     mixer_port: 8010
   - name: "shard-11"
     area: "fr"
-    hosts: ['machine-3', 'machine-4']
+    hosts: ['machine_3', 'machine_4']
     worker_port: 7011
     mixer_port: 8011
   - name: "shard-12"
     area: "fr"
-    hosts: ['machine-3', 'machine-4']
+    hosts: ['machine_3', 'machine_4']
     worker_port: 7012
     mixer_port: 8012
   - name: "shard-13"
     area: "fr"
-    hosts: ['machine-3', 'machine-4']
+    hosts: ['machine_3', 'machine_4']
     worker_port: 7013
     mixer_port: 8013
   - name: "shard-14"
     area: "fr"
-    hosts: ['machine-3', 'machine-4']
+    hosts: ['machine_3', 'machine_4']
     worker_port: 7014
     mixer_port: 8014
   - name: "shard-15"
     area: "fr"
-    hosts: ['machine-3', 'machine-4']
+    hosts: ['machine_3', 'machine_4']
     worker_port: 7015
     mixer_port: 8015
   - name: "shard-16"
     area: "fr"
-    hosts: ['machine-3', 'machine-4']
+    hosts: ['machine_3', 'machine_4']
     worker_port: 7016
     mixer_port: 8016
   - name: "shard-17"
     area: "fr"
-    hosts: ['machine-5', 'machine-6']
+    hosts: ['machine_5', 'machine_6']
     worker_port: 7017
     mixer_port: 8017
   - name: "shard-18"
     area: "fr"
-    hosts: ['machine-5', 'machine-6']
+    hosts: ['machine_5', 'machine_6']
     worker_port: 7018
     mixer_port: 8018
   - name: "shard-19"
     area: "fr"
-    hosts: ['machine-5', 'machine-6']
+    hosts: ['machine_5', 'machine_6']
     worker_port: 7019
     mixer_port: 8019
   - name: "shard-20"
     area: "fr"
-    hosts: ['machine-5', 'machine-6']
+    hosts: ['machine_5', 'machine_6']
     worker_port: 7020
     mixer_port: 8020
   - name: "shard-21"
     area: "fr"
-    hosts: ['machine-5', 'machine-6']
+    hosts: ['machine_5', 'machine_6']
     worker_port: 7021
     mixer_port: 8021
   - name: "shard-22"
     area: "fr"
-    hosts: ['machine-5', 'machine-6']
+    hosts: ['machine_5', 'machine_6']
     worker_port: 7022
     mixer_port: 8022
   - name: "shard-23"
     area: "fr"
-    hosts: ['machine-5', 'machine-6']
+    hosts: ['machine_5', 'machine_6']
     worker_port: 7023
     mixer_port: 8023
   - name: "shard-24"
     area: "fr"
-    hosts: ['machine-5', 'machine-6']
+    hosts: ['machine_5', 'machine_6']
     worker_port: 7024
     mixer_port: 8024
   - name: "shard-25"
     area: "fr"
-    hosts: ['machine-7', 'machine-8']
+    hosts: ['machine_7', 'machine_8']
     worker_port: 7025
     mixer_port: 8025
   - name: "shard-26"
     area: "fr"
-    hosts: ['machine-7', 'machine-8']
+    hosts: ['machine_7', 'machine_8']
     worker_port: 7026
     mixer_port: 8026
   - name: "shard-27"
     area: "fr"
-    hosts: ['machine-7', 'machine-8']
+    hosts: ['machine_7', 'machine_8']
     worker_port: 7027
     mixer_port: 8027
   - name: "shard-28"
     area: "fr"
-    hosts: ['machine-7', 'machine-8']
+    hosts: ['machine_7', 'machine_8']
     worker_port: 7028
     mixer_port: 8028
   - name: "shard-29"
     area: "fr"
-    hosts: ['machine-7', 'machine-8']
+    hosts: ['machine_7', 'machine_8']
     worker_port: 7029
     mixer_port: 8029
   - name: "shard-30"
     area: "fr"
-    hosts: ['machine-7', 'machine-8']
+    hosts: ['machine_7', 'machine_8']
     worker_port: 7030
     mixer_port: 8030
   - name: "shard-31"
     area: "fr"
-    hosts: ['machine-7', 'machine-8']
+    hosts: ['machine_7', 'machine_8']
     worker_port: 7031
     mixer_port: 8031
   - name: "shard-32"
     area: "fr"
-    hosts: ['machine-7', 'machine-8']
+    hosts: ['machine_7', 'machine_8']
     worker_port: 7032
     mixer_port: 8032
   - name: "shard-33"
     area: "fr"
-    hosts: ['machine-9', 'machine-10']
+    hosts: ['machine_9', 'machine_10']
     worker_port: 7033
     mixer_port: 8033
   - name: "shard-34"
     area: "fr"
-    hosts: ['machine-9', 'machine-10']
+    hosts: ['machine_9', 'machine_10']
     worker_port: 7034
     mixer_port: 8034
   - name: "shard-35"
     area: "fr"
-    hosts: ['machine-9', 'machine-10']
+    hosts: ['machine_9', 'machine_10']
     worker_port: 7035
     mixer_port: 8035
   - name: "shard-36"
     area: "fr"
-    hosts: ['machine-9', 'machine-10']
+    hosts: ['machine_9', 'machine_10']
     worker_port: 7036
     mixer_port: 8036
   - name: "shard-37"
     area: "fr"
-    hosts: ['machine-9', 'machine-10']
+    hosts: ['machine_9', 'machine_10']
     worker_port: 7037
     mixer_port: 8037
   - name: "shard-38"
     area: "fr"
-    hosts: ['machine-9', 'machine-10']
+    hosts: ['machine_9', 'machine_10']
     worker_port: 7038
     mixer_port: 8038
   - name: "shard-39"
     area: "fr"
-    hosts: ['machine-9', 'machine-10']
+    hosts: ['machine_9', 'machine_10']
     worker_port: 7039
     mixer_port: 8039
   - name: "shard-40"
     area: "fr"
-    hosts: ['machine-9', 'machine-10']
+    hosts: ['machine_9', 'machine_10']
     worker_port: 7040
     mixer_port: 8040
