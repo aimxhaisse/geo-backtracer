@@ -111,3 +111,19 @@ QPS** in the last hour, which aligns with expectations. This confirms
 that we linearly scale with a cluster of 10 machines.
 
 Size: on average, 90 bytes per query (**21MB/second** per machine for **240 000 QPS**).
+
+### Cluster with GP1-L
+
+#### Configuration
+
+- cluster with 3 machines,
+- 8 shards per machine,
+- redundancy R=2,
+- garbage collector set to 24h.
+
+#### Expectations
+
+Main goal is to see the behavior of the cluster while the GC is
+actively doing passes on filled databases. We should be able to target
+around 200/250K QPS on average for a 48 hours run or so.
+
