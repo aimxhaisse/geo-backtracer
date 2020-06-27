@@ -2,8 +2,6 @@
 
 ## Architecture
 
-## API
-
 ## Worker
 
 ## Mixer

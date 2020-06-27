@@ -52,7 +52,7 @@ This call will fail if a shard is 100% not available.
 
 ## Fetch statistics for the mixer
 
-  rpc GetMixerStats(MixerStats.Request) returns (MixerStats.Response) {}
+    rpc GetMixerStats(MixerStats.Request) returns (MixerStats.Response) {}
 
 Get statistics for a mixer.
 
