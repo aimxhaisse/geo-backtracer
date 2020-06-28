@@ -124,6 +124,13 @@ Size: on average, 90 bytes per query (**21MB/second** per machine for **240 000 
 #### Expectations
 
 Main goal is to see the behavior of the cluster while the GC is
-actively doing passes on filled databases. We should be able to target
-around 200/250K QPS on average for a 48 hours run or so.
+actively doing passes on filled databases. A few observations after 48
+hours of inserts:
 
+- QPS is stable in overall (about 60K QPS for 48 hours),
+- GC pass takes about 2 minutes and does not affect QPS,
+- database size is controlled with GC,
+- load on each machine is about 20 (for a 32 cores VM),
+- this experiment shows different performances due to the number of
+  shards (we used 16), higher QPS can be achieved by increasing it and
+  approaching a load of 30, however, having slack is better.
