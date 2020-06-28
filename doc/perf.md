@@ -134,6 +134,7 @@ hours of inserts:
 
 - QPS is stable in overall (about 60K QPS for 48 hours),
 - GC pass takes about 2 minutes and does not affect QPS,
+- 750G of data (375G of points, replication=2),
 - database size is controlled with GC,
 - load on each machine is about 20 (for a 32 cores VM),
 - this experiment shows different performances due to the number of
