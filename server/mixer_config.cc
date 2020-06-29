@@ -111,11 +111,30 @@ Status MixerConfig::MakeNetworkConfig(const Config &config) {
   return StatusCode::OK;
 }
 
+Status MixerConfig::MakeCorrelatorConfig(const Config &config) {
+  correlator_config_.nearby_time_sec_ =
+      config.Get<int>("correlator.nearby_seconds", kTimeNearbyApproximation);
+  correlator_config_.nearby_gps_distance_ = config.Get<float>(
+      "correlator.nearby_gps_distance", kGPSZoneNearbyApproximation);
+
+  if (correlator_config_.nearby_time_sec_ <= 0) {
+    RETURN_ERROR(INVALID_CONFIG,
+                 "correlator config must have a positive nearby duration");
+  }
+  if (correlator_config_.nearby_gps_distance_ <= 0.0) {
+    RETURN_ERROR(INVALID_CONFIG,
+                 "correlator config must have a positive nearby distance");
+  }
+
+  return StatusCode::OK;
+}
+
 Status MixerConfig::MakeMixerConfig(const Config &config,
                                     MixerConfig *mixer_config) {
   RETURN_IF_ERROR(mixer_config->MakePartitionConfigs(config));
   RETURN_IF_ERROR(mixer_config->MakeShardConfigs(config));
   RETURN_IF_ERROR(mixer_config->MakeNetworkConfig(config));
+  RETURN_IF_ERROR(mixer_config->MakeCorrelatorConfig(config));
 
   return StatusCode::OK;
 }
