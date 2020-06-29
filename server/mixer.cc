@@ -14,6 +14,8 @@ Status Mixer::Init(const MixerConfig &config) {
   RETURN_IF_ERROR(InitHandlers(config));
   RETURN_IF_ERROR(InitService(config));
 
+  correlator_config_ = config.ConfigForCorrelator();
+
   return StatusCode::OK;
 }
 
@@ -246,8 +248,8 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
   // Naive implementation, this is to be optimized with bitmaps etc.
   for (const auto &user_entry : user_entries) {
     for (const auto &folk_entry : folk_entries) {
-      if (IsNearbyFolk(user_entry.key(), user_entry.value(), folk_entry.key(),
-                       folk_entry.value())) {
+      if (IsNearbyFolk(correlator_config_, user_entry.key(), user_entry.value(),
+                       folk_entry.key(), folk_entry.value())) {
         scores[folk_entry.key().user_id()]++;
       }
     }

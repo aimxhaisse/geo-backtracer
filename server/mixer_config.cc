@@ -13,6 +13,10 @@ const std::vector<PartitionConfig> &MixerConfig::PartitionConfigs() const {
   return partition_configs_;
 }
 
+const CorrelatorConfig &MixerConfig::ConfigForCorrelator() const {
+  return correlator_config_;
+}
+
 bool MixerConfig::BackoffFailFast() const { return backoff_fail_fast_; }
 
 std::string MixerConfig::NetworkAddress() const {

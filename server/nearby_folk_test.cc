@@ -33,6 +33,7 @@ public:
   proto::DbKey folk_key_;
   proto::DbValue user_value_;
   proto::DbValue folk_value_;
+  CorrelatorConfig config_;
 };
 
 // Whether or not two entries in the database are matching in time, we
@@ -56,69 +57,81 @@ public:
 // 6: flk_start > flk_end > usr_start > usr_end --> KO
 
 TEST_F(NearbyFolkTest, NearbyTsCase1) {
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 
   user_key_.set_timestamp(kBaseTimestamp);
   user_value_.set_duration(1000);
   folk_key_.set_timestamp(kBaseTimestamp + 2000);
   folk_value_.set_duration(1000);
 
-  EXPECT_FALSE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_FALSE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 }
 
 TEST_F(NearbyFolkTest, NearbyTsCase2) {
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 
   user_key_.set_timestamp(kBaseTimestamp);
   user_value_.set_duration(1000);
   folk_key_.set_timestamp(kBaseTimestamp + 500);
   folk_value_.set_duration(1000);
 
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 }
 
 TEST_F(NearbyFolkTest, NearbyTsCase3) {
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 
   user_key_.set_timestamp(kBaseTimestamp);
   user_value_.set_duration(6000);
   folk_key_.set_timestamp(kBaseTimestamp + 500);
   folk_value_.set_duration(1000);
 
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 }
 
 TEST_F(NearbyFolkTest, NearbyTsCase4) {
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 
   user_key_.set_timestamp(kBaseTimestamp + 600);
   user_value_.set_duration(1000);
   folk_key_.set_timestamp(kBaseTimestamp);
   folk_value_.set_duration(4000);
 
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 }
 
 TEST_F(NearbyFolkTest, NearbyTsCase5) {
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 
   user_key_.set_timestamp(kBaseTimestamp + 600);
   user_value_.set_duration(3000);
   folk_key_.set_timestamp(kBaseTimestamp);
   folk_value_.set_duration(1000);
 
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 }
 
 TEST_F(NearbyFolkTest, NearbyTsCase6) {
-  EXPECT_TRUE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_TRUE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 
   user_key_.set_timestamp(kBaseTimestamp + 1600);
   user_value_.set_duration(3000);
   folk_key_.set_timestamp(kBaseTimestamp);
   folk_value_.set_duration(1000);
 
-  EXPECT_FALSE(IsNearbyFolk(user_key_, user_value_, folk_key_, folk_value_));
+  EXPECT_FALSE(
+      IsNearbyFolk(config_, user_key_, user_value_, folk_key_, folk_value_));
 }
 
 } // namespace

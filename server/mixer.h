@@ -57,6 +57,8 @@ private:
   RateCounter pushed_points_counter_;
 
   std::unique_ptr<grpc::Server> grpc_;
+
+  CorrelatorConfig correlator_config_;
 };
 
 } // namespace bt

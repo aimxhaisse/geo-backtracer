@@ -47,6 +47,8 @@ public:
   std::string NetworkAddress() const;
   bool BackoffFailFast() const;
 
+  const CorrelatorConfig &ConfigForCorrelator() const;
+
 private:
   Status MakePartitionConfigs(const Config &config);
   Status MakeShardConfigs(const Config &config);
