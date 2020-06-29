@@ -23,6 +23,17 @@ network:
   host: "{{ mixer_ip }}"
   port: {{ mixer_port }}
 
+correlator:
+  # Two points close enough in time will be considers at the same
+  # moment, this shouldn't be relied on a lot, the client should
+  # synchronize clocks (using GPS time) so that they fetch points at
+  # around the same moment, doing so on the client increases the
+  # accuracy as moving users can be correlated.
+  nearby_seconds: 30
+
+  # About 4.4 meters (this is the precision of GPS coordinates).
+  nearby_gps_distance: 0.000004
+
 shards:
 {%- for shard in shards %}
   - name: "{{ shard['name'] }}"
