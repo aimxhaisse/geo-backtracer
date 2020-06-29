@@ -257,8 +257,10 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
 
   for (const auto &score : scores) {
     proto::NearbyUserFolk *folk = response->add_folk();
-    folk->set_user_id(score.first);
-    folk->set_score(score.second);
+    if (score.second >= correlator_config_.minutes_to_match_) {
+      folk->set_user_id(score.first);
+      folk->set_score(score.second);
+    }
   }
 
   return grpc::Status::OK;

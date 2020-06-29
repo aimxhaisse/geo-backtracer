@@ -81,6 +81,8 @@ StatusOr<MixerConfig> GenerateMixerConfig(int shard_count, int shard_id,
 
   sstream << "instance_type: 'mixer'\n";
   sstream << "backoff_fail_fast: true\n";
+  sstream << "correlator:\n";
+  sstream << "  minutes_to_match: 1\n";
   sstream << "network:\n";
   sstream << "  host: '127.0.0.1'\n";
   sstream << "  port: " << MakeMixerPort(shard_id) << "\n";
