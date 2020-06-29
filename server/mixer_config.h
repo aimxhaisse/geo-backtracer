@@ -32,6 +32,7 @@ struct PartitionConfig {
 
 // Config for the correlator.
 struct CorrelatorConfig {
+  int minutes_to_match_ = kMinutesToMatch;
   int nearby_time_sec_ = kTimeNearbyApproximation;
   float nearby_gps_distance_ = kGPSZoneNearbyApproximation;
 };

@@ -33,6 +33,12 @@ constexpr int kTimePrecision = 1000;
 // moving.
 constexpr int kTimeNearbyApproximation = 30;
 
+// Number of minutes for two nearby users to match. This is compared
+// against the total minutes the two users were nearby over a period
+// of 14 days (i.e: 1 minute a day for 2 weeks triggers a match, it doesn't have
+// to be consecutive).
+constexpr int kMinutesToMatch = 30;
+
 // Tools to manipulate zones.
 
 enum LocIsNearZone {

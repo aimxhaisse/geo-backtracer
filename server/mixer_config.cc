@@ -120,6 +120,8 @@ Status MixerConfig::MakeCorrelatorConfig(const Config &config) {
       config.Get<int>("correlator.nearby_seconds", kTimeNearbyApproximation);
   correlator_config_.nearby_gps_distance_ = config.Get<float>(
       "correlator.nearby_gps_distance", kGPSZoneNearbyApproximation);
+  correlator_config_.minutes_to_match_ =
+      config.Get<int>("correlator.minutes_to_match", kMinutesToMatch);
 
   if (correlator_config_.nearby_time_sec_ <= 0) {
     RETURN_ERROR(INVALID_CONFIG,
@@ -128,6 +130,11 @@ Status MixerConfig::MakeCorrelatorConfig(const Config &config) {
   if (correlator_config_.nearby_gps_distance_ <= 0.0) {
     RETURN_ERROR(INVALID_CONFIG,
                  "correlator config must have a positive nearby distance");
+  }
+  if (correlator_config_.minutes_to_match_ <= 0) {
+    RETURN_ERROR(
+        INVALID_CONFIG,
+        "correlator config must have a positive number of minutesto match");
   }
 
   return StatusCode::OK;
