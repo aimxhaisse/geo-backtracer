@@ -208,9 +208,6 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
 
   std::map<uint64_t, int> scores;
 
-  std::set<proto::BlockEntry, CompareBlockEntry> user_entries;
-  std::set<proto::BlockEntry, CompareBlockEntry> folk_entries;
-
   // We don't use all_handlers_ here because *order* is important, we
   // want the default handler to be the fallback if no other found
   // it. The default handler will always consider it can accept any
@@ -219,6 +216,10 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
   handlers.push_back(default_handler_);
 
   for (int i = 0; i < tl_rsp.point_size(); ++i) {
+
+    std::set<proto::BlockEntry, CompareBlockEntry> user_entries;
+    std::set<proto::BlockEntry, CompareBlockEntry> folk_entries;
+
     const auto &point = tl_rsp.point(i);
     std::list<proto::DbKey> keys;
     Status status =
@@ -243,14 +244,15 @@ Mixer::GetUserNearbyFolks(grpc::ServerContext *context,
         }
       }
     }
-  }
 
-  // Naive implementation, this is to be optimized with bitmaps etc.
-  for (const auto &user_entry : user_entries) {
-    for (const auto &folk_entry : folk_entries) {
-      if (IsNearbyFolk(correlator_config_, user_entry.key(), user_entry.value(),
-                       folk_entry.key(), folk_entry.value())) {
-        scores[folk_entry.key().user_id()]++;
+    // Naive implementation, this is to be optimized with bitmaps etc.
+    for (const auto &user_entry : user_entries) {
+      for (const auto &folk_entry : folk_entries) {
+        if (IsNearbyFolk(correlator_config_, user_entry.key(),
+                         user_entry.value(), folk_entry.key(),
+                         folk_entry.value())) {
+          scores[folk_entry.key().user_id()]++;
+        }
       }
     }
   }
