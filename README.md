@@ -8,9 +8,9 @@ phones; it is meant to be scalable and solve this single problem.
 
 ## Status
 
-This is a work in progress, at the moment, this service can handle
-about 1 million active users sending 1 GPS point every minute.
-Horizontal scaling will increase this limit by orders of magnitude.
+The geo-backtracer can handle O(50 million) active users with ~10
+machines. It scales linearly with the number of machines (i.e:
+doubling the number of machines doubles the load it can handle).
 
 ## Features
 
@@ -33,7 +33,7 @@ of the [COVID-19 Open Innovation Grants](https://research.protocol.ai/posts/2020
 
 The Geo Backtracer stores GPS points from user identifiers and, given
 an identifier, is able to compute identifiers that were in a close
-distance for more than 15 minutes in the last 14 days. To do so at a
+distance for more than 30 minutes in the last 14 days. To do so at a
 large scale, it uses an internal database layout that optimizes
 heavily to solve this single problem:
 
