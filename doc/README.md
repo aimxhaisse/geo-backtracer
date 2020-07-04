@@ -2,6 +2,6 @@
 
 * [Overview](../README.md)
 * [Production Setup](../prod/README.md)
-* [Architecture](architecture.md)
+* [Desing](design.md)
 * [Performances](perf.md)
 * [API](api.md)
