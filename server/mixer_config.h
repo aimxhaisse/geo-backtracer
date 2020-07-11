@@ -23,7 +23,8 @@ struct ShardConfig {
 struct PartitionConfig {
   std::string shard_;
   std::string area_;
-  uint64_t ts_ = 0;
+  uint64_t ts_start_ = 0;
+  uint64_t ts_end_ = 0;
   float gps_longitude_begin_ = 0.0;
   float gps_latitude_begin_ = 0.0;
   float gps_longitude_end_ = 0.0;

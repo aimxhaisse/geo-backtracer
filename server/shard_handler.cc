@@ -9,11 +9,11 @@
 
 namespace bt {
 
-ShardHandler::ShardHandler(const ShardConfig& config) : config_(config) {}
+ShardHandler::ShardHandler(const ShardConfig &config) : config_(config) {}
 
-Status ShardHandler::Init(const MixerConfig& config,
-                          const std::vector<PartitionConfig>& partitions) {
-  for (const auto& partition : partitions) {
+Status ShardHandler::Init(const MixerConfig &config,
+                          const std::vector<PartitionConfig> &partitions) {
+  for (const auto &partition : partitions) {
     if (partition.shard_ == config_.name_) {
       partitions_.push_back(partition);
       if (partition.area_ == kDefaultArea) {
@@ -37,7 +37,7 @@ Status ShardHandler::Init(const MixerConfig& config,
     args.SetInt(GRPC_ARG_MAX_RECONNECT_BACKOFF_MS, 200);
   }
 
-  for (const auto& addr : config_.workers_) {
+  for (const auto &addr : config_.workers_) {
     pushers_.push_back(proto::Pusher::NewStub(grpc::CreateCustomChannel(
         addr, grpc::InsecureChannelCredentials(), args)));
     seekers_.push_back(proto::Seeker::NewStub(grpc::CreateCustomChannel(
@@ -50,7 +50,7 @@ Status ShardHandler::Init(const MixerConfig& config,
   if (is_default_) {
     LOG(INFO) << "this shard is the default shard (i.e: fallback)";
   } else {
-    for (const auto& p : partitions_) {
+    for (const auto &p : partitions_) {
       LOG(INFO) << "this shard handles points inside [" << p.gps_latitude_begin_
                 << ", " << p.gps_longitude_begin_ << "] -- ["
                 << p.gps_latitude_end_ << ", " << p.gps_longitude_end_ << "]";
@@ -60,19 +60,15 @@ Status ShardHandler::Init(const MixerConfig& config,
   return StatusCode::OK;
 }
 
-const std::string& ShardHandler::Name() const {
-  return config_.name_;
-}
+const std::string &ShardHandler::Name() const { return config_.name_; }
 
-bool ShardHandler::IsDefaultShard() const {
-  return is_default_;
-}
+bool ShardHandler::IsDefaultShard() const { return is_default_; }
 
-grpc::Status ShardHandler::DeleteUser(const proto::DeleteUser_Request* request,
-                                      proto::DeleteUser_Response* response) {
+grpc::Status ShardHandler::DeleteUser(const proto::DeleteUser_Request *request,
+                                      proto::DeleteUser_Response *response) {
   grpc::Status status = grpc::Status::OK;
 
-  for (auto& stub : pushers_) {
+  for (auto &stub : pushers_) {
     grpc::ClientContext context;
     grpc::Status stub_status =
         stub->InternalDeleteUser(&context, *request, response);
@@ -85,12 +81,10 @@ grpc::Status ShardHandler::DeleteUser(const proto::DeleteUser_Request* request,
 }
 
 Status ShardHandler::InternalBuildBlockForUser(
-    const proto::DbKey& key,
-    int64_t user_id,
-    std::set<proto::BlockEntry, CompareBlockEntry>* user_entries,
-    std::set<proto::BlockEntry, CompareBlockEntry>* folk_entries,
-    bool* found) {
-  for (const auto& partition : partitions_) {
+    const proto::DbKey &key, int64_t user_id,
+    std::set<proto::BlockEntry, CompareBlockEntry> *user_entries,
+    std::set<proto::BlockEntry, CompareBlockEntry> *folk_entries, bool *found) {
+  for (const auto &partition : partitions_) {
     if (!IsWithinShard(partition, ZoneToGPSLocation(key.gps_latitude_zone()),
                        ZoneToGPSLocation(key.gps_longitude_zone()),
                        key.timestamp())) {
@@ -105,7 +99,7 @@ Status ShardHandler::InternalBuildBlockForUser(
 
     bool ok = false;
 
-    for (auto& stub : seekers_) {
+    for (auto &stub : seekers_) {
       proto::BuildBlockForUser_Response response;
       grpc::ClientContext context;
       grpc::Status grpc_status =
@@ -114,10 +108,10 @@ Status ShardHandler::InternalBuildBlockForUser(
         ok = true;
       }
 
-      for (const auto& block : response.user_entries()) {
+      for (const auto &block : response.user_entries()) {
         user_entries->insert(block);
       }
-      for (const auto& block : response.folk_entries()) {
+      for (const auto &block : response.folk_entries()) {
         folk_entries->insert(block);
       }
     }
@@ -132,20 +126,20 @@ Status ShardHandler::InternalBuildBlockForUser(
   return StatusCode::OK;
 }
 
-bool ShardHandler::IsWithinShard(const PartitionConfig& partition,
-                                 float gps_lat,
-                                 float gps_long,
+bool ShardHandler::IsWithinShard(const PartitionConfig &partition,
+                                 float gps_lat, float gps_long,
                                  int64_t ts) const {
-  // TODO: handle timestamp.
-
-  return IsDefaultShard() || ((gps_lat >= partition.gps_latitude_begin_ &&
-                               gps_lat < partition.gps_latitude_end_) &&
-                              (gps_long >= partition.gps_longitude_begin_ &&
-                               gps_long < partition.gps_longitude_end_));
+  return IsDefaultShard() ||
+         ((gps_lat >= partition.gps_latitude_begin_ &&
+           gps_lat < partition.gps_latitude_end_) &&
+          (gps_long >= partition.gps_longitude_begin_ &&
+           gps_long < partition.gps_longitude_end_) &&
+          (ts >= partition.ts_start_ &&
+           (partition.ts_end_ == 0 || ts < partition.ts_end_)));
 }
 
-bool ShardHandler::QueueLocation(const proto::Location& location) {
-  for (const auto& partition : partitions_) {
+bool ShardHandler::QueueLocation(const proto::Location &location) {
+  for (const auto &partition : partitions_) {
     if (!IsWithinShard(partition, location.gps_latitude(),
                        location.gps_longitude(), location.timestamp())) {
       continue;
@@ -179,7 +173,7 @@ grpc::Status ShardHandler::FlushLocations() {
 
   bool sent = false;
   grpc::Status last_status = grpc::Status::OK;
-  for (auto& stub : pushers_) {
+  for (auto &stub : pushers_) {
     grpc::ClientContext context;
     proto::PutLocation_Response response;
     grpc::Status stub_status =
@@ -206,9 +200,9 @@ grpc::Status ShardHandler::FlushLocations() {
   return grpc::Status::OK;
 }
 
-grpc::Status ShardHandler::GetUserTimeline(
-    const proto::GetUserTimeline_Request* request,
-    proto::GetUserTimeline_Response* response) {
+grpc::Status
+ShardHandler::GetUserTimeline(const proto::GetUserTimeline_Request *request,
+                              proto::GetUserTimeline_Response *response) {
   grpc::Status retval = grpc::Status::OK;
   std::set<proto::UserTimelinePoint, CompareTimelinePoints> timeline;
   bool success = false;
@@ -216,13 +210,13 @@ grpc::Status ShardHandler::GetUserTimeline(
   // Assume the two machines may have different data, for instance if
   // one was down for too long, return a merged version of the
   // timeline.
-  for (auto& stub : seekers_) {
+  for (auto &stub : seekers_) {
     grpc::ClientContext context;
     proto::GetUserTimeline_Response response;
     grpc::Status status =
         stub->InternalGetUserTimeline(&context, *request, &response);
 
-    for (const auto& point : response.point()) {
+    for (const auto &point : response.point()) {
       timeline.insert(point);
     }
 
@@ -233,7 +227,7 @@ grpc::Status ShardHandler::GetUserTimeline(
     }
   }
 
-  for (const auto& p : timeline) {
+  for (const auto &p : timeline) {
     *response->add_point() = p;
   }
 
@@ -244,4 +238,4 @@ grpc::Status ShardHandler::GetUserTimeline(
   return retval;
 }
 
-}  // namespace bt
+} // namespace bt

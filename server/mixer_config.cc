@@ -29,7 +29,7 @@ std::string MixerConfig::NetworkAddress() const {
 
 Status MixerConfig::MakePartitionConfigs(const Config &config) {
   for (auto &entry : config.GetConfigs("partitions")) {
-    int64_t ts = entry->Get<int>("at");
+    const int64_t ts = entry->Get<int>("at");
     if (ts < 0) {
       RETURN_ERROR(INVALID_CONFIG, "partition must have a timestamp");
     }
@@ -37,7 +37,7 @@ Status MixerConfig::MakePartitionConfigs(const Config &config) {
     for (auto &shard : entry->GetConfigs("shards")) {
       PartitionConfig partition;
 
-      partition.ts_ = ts;
+      partition.ts_start_ = ts;
       partition.shard_ = shard->Get<std::string>("shard");
       partition.area_ = shard->Get<std::string>("area");
 
@@ -75,6 +75,17 @@ Status MixerConfig::MakePartitionConfigs(const Config &config) {
 
       partition_configs_.push_back(partition);
     }
+  }
+
+  std::sort(partition_configs_.begin(), partition_configs_.end(),
+            [](const PartitionConfig &lhs, const PartitionConfig &rhs) {
+              return lhs.ts_start_ < rhs.ts_start_;
+            });
+
+  uint64_t ts_end = 0;
+  for (int i = partition_configs_.size() - 1; i >= 0; --i) {
+    partition_configs_[i].ts_end_ = ts_end;
+    ts_end = partition_configs_[i].ts_start_;
   }
 
   return StatusCode::OK;
