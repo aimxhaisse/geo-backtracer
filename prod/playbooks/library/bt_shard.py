@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
 from ansible.module_utils.basic import AnsibleModule
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, OrderedDict
 from jinja2 import Template
+
+import calendar
+import time
+import yaml
 
 
 TEMPLATE = """
@@ -41,7 +45,7 @@ shards:
 {%- endfor %}
 
 partitions:
-{%- for at, partitions in partitions.items() %}
+{%- for at, partitions in dated_partitions %}
   - at: {{ at }}
     shards:
     {%- for partition in partitions %}
@@ -56,10 +60,6 @@ partitions:
     {%- endfor %}
 {% endfor %}
 """
-
-
-Partition = namedtuple(
-    "Partition", ["area", "shard", "bottom_left", "top_right"])
 
 
 def make_latitude_top(start, end, nb_shard, idx):
@@ -79,8 +79,12 @@ def make_latitude_bot(start, end, nb_shard, idx):
 def make_partition(area, shard, idx, shard_count):
     """Creates a partition given a shard and its id."""
     if (area['area'] == "default"):
-        return Partition(
-            area=area, shard=shard['name'], bottom_left=None, top_right=None)
+        return {
+            'area': area,
+            'shard': shard['name'],
+            'bottom_left': None,
+            'top_right': None
+        }
 
     # Here we shard the area in horizontal stripes, this is a
     # arbitrary way of sharding. It doesn't need to be aligned on a
@@ -96,12 +100,12 @@ def make_partition(area, shard, idx, shard_count):
         area['top_right'][1]
     ]
 
-    return Partition(
-        area=area,
-        shard=shard['name'],
-        bottom_left=bottom_left,
-        top_right=top_right
-    )
+    return {
+        'area': area,
+        'shard': shard['name'],
+        'bottom_left': bottom_left,
+        'top_right': top_right
+    }
 
 
 def make_partitions(areas, shards):
@@ -129,6 +133,18 @@ def make_partitions(areas, shards):
     return partitions
 
 
+def get_existing_config(dest):
+    """Returns the existing configuration or an empty dict.
+    """
+    try:
+        with open(dest, 'r') as stream:
+            return yaml.safe_load(stream)
+    except (yaml.YAMLError, FileNotFoundError):
+        pass
+
+    return dict()
+
+
 def run_module():
     fields = {
         "shards": {"required": True, "type": "list"},
@@ -143,22 +159,45 @@ def run_module():
     areas = module.params['geo']
     partitions = make_partitions(areas, shards)
 
-    # This is to be properly handled when we want to support cluster
-    # growth properly; to be done:
+    existing_config = get_existing_config(module.params['dest'])
+    existing_shards = existing_config.get('shards', list())
+    existing_shard_names = [s.get('name') for s in existing_shards]
+
+    shard_names = [s.get('name') for s in shards]
+
+    # We don't support changing the layout of existing shards, this is
+    # a limitation of mixers: once a shard is defined, it has to stay
+    # the same forever (unless it is turned down).
+    if shard_names == existing_shard_names:
+        if shards != existing_shards:
+            raise AnsibleError('changing existing shard layout is not supported')
+
+    current_ts = calendar.timegm(time.gmtime())
+
+    # Remove entries older than 15 days from the config, we don't
+    # retain data older than this so it is fine. This config is *not*
+    # synchronized with the worker config so it has to tuned
+    # carefully.
     #
-    # Parse existing config, compare last partitions with the ones
-    # just computed, if they differ, it means a new shard was added to
-    # the cluster and so, we need to append a new partition scheme at
-    # the end, using the current timestamp + 1h or so, to let time for
-    # mixers to catch the new config.
+    # TODO: move this to the module parameters.
+    threshold_ts = current_ts - 3600 * 24 * 15
 
     ts = 0
+    if len(existing_shards) > 0 and shards != existing_shards:
+        # The new sharding layout will be effective in 3600 seconds,
+        # this is to let some time for all the mixers to catch the new
+        # configuration file.
+        ts = current_ts + 3600
+
     dated_partitions = dict()
+    for k, v in existing_config.get('partitions', dict()).items():
+        if k > threshold_ts:
+            dated_partitions[k] = v
     dated_partitions[ts] = partitions
 
     content = Template(TEMPLATE).render(
         shards=shards,
-        partitions=dated_partitions,
+        dated_partitions=[(k, dated_partitions[k]) for k in sorted(dated_partitions)],
         mixer_port=module.params['mixer_port'],
         mixer_ip=module.params['mixer_ip'])
 

@@ -78,6 +78,17 @@ class BtShardTest(unittest.TestCase):
               host: "10.0.0.1"
               port: 8000
 
+            correlator:
+              # Two points close enough in time will be considers at the same
+              # moment, this shouldn't be relied on a lot, the client should
+              # synchronize clocks (using GPS time) so that they fetch points at
+              # around the same moment, doing so on the client increases the
+              # accuracy as moving users can be correlated.
+              nearby_seconds: 30
+            
+              # About 4.4 meters (this is the precision of GPS coordinates).
+              nearby_gps_distance: 0.000004
+
             shards:
               - name: "shard-a"
                 workers: ["gamgee:7000", "bombadil:7000"]
@@ -143,6 +154,17 @@ class BtShardTest(unittest.TestCase):
             network:
               host: "10.0.0.1"
               port: 8000
+
+            correlator:
+              # Two points close enough in time will be considers at the same
+              # moment, this shouldn't be relied on a lot, the client should
+              # synchronize clocks (using GPS time) so that they fetch points at
+              # around the same moment, doing so on the client increases the
+              # accuracy as moving users can be correlated.
+              nearby_seconds: 30
+            
+              # About 4.4 meters (this is the precision of GPS coordinates).
+              nearby_gps_distance: 0.000004
 
             shards:
               - name: "shard-a"
@@ -222,6 +244,17 @@ class BtShardTest(unittest.TestCase):
             network:
               host: "10.0.0.1"
               port: 8000
+
+            correlator:
+              # Two points close enough in time will be considers at the same
+              # moment, this shouldn't be relied on a lot, the client should
+              # synchronize clocks (using GPS time) so that they fetch points at
+              # around the same moment, doing so on the client increases the
+              # accuracy as moving users can be correlated.
+              nearby_seconds: 30
+            
+              # About 4.4 meters (this is the precision of GPS coordinates).
+              nearby_gps_distance: 0.000004
 
             shards:
               - name: "shard-a"
@@ -314,6 +347,17 @@ class BtShardTest(unittest.TestCase):
             network:
               host: "10.0.0.1"
               port: 8000
+
+            correlator:
+              # Two points close enough in time will be considers at the same
+              # moment, this shouldn't be relied on a lot, the client should
+              # synchronize clocks (using GPS time) so that they fetch points at
+              # around the same moment, doing so on the client increases the
+              # accuracy as moving users can be correlated.
+              nearby_seconds: 30
+           
+              # About 4.4 meters (this is the precision of GPS coordinates).
+              nearby_gps_distance: 0.000004
 
             shards:
               - name: "shard-a"
