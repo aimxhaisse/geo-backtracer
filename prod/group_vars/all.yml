@@ -36,7 +36,7 @@ geo:
 
 # Shards
 
-dev_shards:
+shards:
   - name: "8a00862"
     area: "default"
     hosts: ["gamgee", "bombadil"]
@@ -52,78 +52,3 @@ dev_shards:
     hosts: ["treebeard", "bombadil"]
     mixer_port: 8002
     worker_port: 7002
-
-prod_shards:
-  - name: "8a00862"
-    area: "default"
-    hosts: ['beorn']
-    worker_port: 7000
-    mixer_port: 8000
-  - name: "eb3e451"
-    area: "fr"
-    hosts: ['beorn']
-    worker_port: 7001
-    mixer_port: 8001
-
-# GP-BM1-S
-shards:
-  - name: "shard-01"
-    area: "default"
-    hosts: ['machine_1', 'machine_2']
-    worker_port: 7001
-    mixer_port: 8001
-  - name: "shard-02"
-    area: "fr"
-    hosts: ['machine_1', 'machine_2']
-    worker_port: 7002
-    mixer_port: 8002
-  - name: "shard-03"
-    area: "fr"
-    hosts: ['machine_1', 'machine_2']
-    worker_port: 7003
-    mixer_port: 8003
-  - name: "shard-04"
-    area: "fr"
-    hosts: ['machine_1', 'machine_2']
-    worker_port: 7004
-    mixer_port: 8004
-  - name: "shard-05"
-    area: "fr"
-    hosts: ['machine_2', 'machine_3']
-    worker_port: 7005
-    mixer_port: 8005
-  - name: "shard-06"
-    area: "fr"
-    hosts: ['machine_2', 'machine_3']
-    worker_port: 7006
-    mixer_port: 8006
-  - name: "shard-07"
-    area: "fr"
-    hosts: ['machine_2', 'machine_3']
-    worker_port: 7007
-    mixer_port: 8007
-  - name: "shard-08"
-    area: "fr"
-    hosts: ['machine_2', 'machine_3']
-    worker_port: 7008
-    mixer_port: 8008
-  - name: "shard-09"
-    area: "fr"
-    hosts: ['machine_3', 'machine_1']
-    worker_port: 7009
-    mixer_port: 8009
-  - name: "shard-10"
-    area: "fr"
-    hosts: ['machine_3', 'machine_1']
-    worker_port: 7010
-    mixer_port: 8010
-  - name: "shard-11"
-    area: "fr"
-    hosts: ['machine_3', 'machine_1']
-    worker_port: 7011
-    mixer_port: 8011
-  - name: "shard-12"
-    area: "fr"
-    hosts: ['machine_3', 'machine_1']
-    worker_port: 7012
-    mixer_port: 80012

@@ -1,67 +1,8 @@
 [workers]
 
-# Dev machines.
-# gamgee ansible_host=gamgee.sbrk.org ansible_user=mxs vpn_ip=10.0.0.1
-# bombadil ansible_host=bombadil.sbrk.org ansible_user=mxs vpn_ip=10.0.0.2
-# treebeard ansible_host=treebeard.sbrk.org ansible_user=mxs vpn_ip=10.0.0.3
-
-# High CPU + nvme/ssd machines.
-# beorn ansible_host=51.159.0.156 ansible_user=mxs vpn_ip=10.0.0.4
-
-# GP1-XS
-# maggot ansible_host=51.15.237.208 ansible_user=mxs vpn_ip=10.0.0.5
-# proudfoot ansible_host=51.158.96.61 ansible_user=mxs vpn_ip=10.0.0.6
-
-# GP1-S
-# aragorn ansible_host=51.15.130.30 ansible_user=mxs vpn_ip=10.0.0.7
-# gandalf ansible_host=51.15.138.224 ansible_user=mxs vpn_ip=10.0.0.8
-
-# GP1-M
-# smeagol ansible_host=51.158.103.136 ansible_user=mxs vpn_ip=10.0.0.9
-# arwen ansible_host=212.47.226.104 ansible_user=mxs vpn_ip=10.0.0.10
-
-# GP1-L
-# touque ansible_host=51.158.123.231 ansible_user=mxs vpn_ip=10.0.0.11
-# elendil ansible_host=163.172.144.153 ansible_user=mxs vpn_ip=10.0.0.12
-
-# GP1-XL
-# sackville ansible_host=51.15.217.55 ansible_user=mxs vpn_ip=10.0.0.13
-# elrond ansible_host=51.158.99.127 ansible_user=mxs vpn_ip=10.0.0.14
-
-# GP-BM1-S
-# sackville ansible_host=51.15.217.55 ansible_user=mxs vpn_ip=10.0.0.15
-# elrond ansible_host=51.158.99.127 ansible_user=mxs vpn_ip=10.0.0.16
-
-# GP-BM1-S
-# beurre ansible_host=51.159.31.109 ansible_user=mxs vpn_ip=10.0.0.17
-# saruman ansible_host=51.159.31.108 ansible_user=mxs vpn_ip=10.0.0.18
-
-# HC-BM1-S
-# beurre ansible_host=51.159.0.221 ansible_user=mxs vpn_ip=10.0.0.19
-# saruman ansible_host=51.159.0.224 ansible_user=mxs vpn_ip=10.0.0.20
-
-# GP1-M cluster
-
-# machine_1 ansible_host=51.15.251.211 ansible_user=mxs vpn_ip=10.0.0.1
-# machine_2 ansible_host=212.47.251.219 ansible_user=mxs vpn_ip=10.0.0.2
-# machine_3 ansible_host=51.158.125.56 ansible_user=mxs vpn_ip=10.0.0.3
-# machine_4 ansible_host=212.47.249.96 ansible_user=mxs vpn_ip=10.0.0.4
-# machine_5 ansible_host=212.47.247.123 ansible_user=mxs vpn_ip=10.0.0.5
-# machine_6 ansible_host=51.158.125.115 ansible_user=mxs vpn_ip=10.0.0.6
-# machine_7 ansible_host=163.172.189.99 ansible_user=mxs vpn_ip=10.0.0.7
-# machine_8 ansible_host=51.15.136.32 ansible_user=mxs vpn_ip=10.0.0.8
-# machine_9 ansible_host=51.158.126.238 ansible_user=mxs vpn_ip=10.0.0.9
-# machine_10 ansible_host=51.158.109.177 ansible_user=mxs vpn_ip=10.0.0.10
-
-# machine_pusher ansible_host=51.158.70.163 ansible_user=mxs vpn_ip=10.0.0.11
-
-# GP1-L cluster
-
-machine_1 ansible_host=163.172.180.208 ansible_user=mxs vpn_ip=10.0.0.1
-machine_2 ansible_host=51.15.252.19 ansible_user=mxs vpn_ip=10.0.0.2
-machine_3 ansible_host=51.15.241.247 ansible_user=mxs vpn_ip=10.0.0.3
-
-machine_pusher ansible_host=51.158.116.149 ansible_user=mxs vpn_ip=10.0.0.4
+gamgee ansible_host=gamgee.sbrk.org ansible_user=mxs vpn_ip=10.0.0.1
+bombadil ansible_host=bombadil.sbrk.org ansible_user=mxs vpn_ip=10.0.0.2
+treebeard ansible_host=treebeard.sbrk.org ansible_user=mxs vpn_ip=10.0.0.3
 
 [all:vars]
 
