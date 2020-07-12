@@ -33,6 +33,10 @@ class BtShardTest(unittest.TestCase):
         if os.path.exists(self._tmp_file):
             os.remove(self._tmp_file)
 
+    def initialMixerConfig(self, contents):
+        with open(self._tmp_file, mode='r') as fh:
+            return fh.write(contents)        
+
     def mixerConfig(self):
         with open(self._tmp_file, mode='r') as fh:
             return fh.read()
@@ -99,6 +103,12 @@ class BtShardTest(unittest.TestCase):
                 - shard: "shard-a"
                   area: "default"
             """)
+
+            self.assertEqual(self.mixerConfig(), expected)
+
+            # Ensure a second pass is a no-op if the sharding topology
+            # wasn't updated.
+            bt_shard.run_module()
 
             self.assertEqual(self.mixerConfig(), expected)
 
@@ -182,6 +192,12 @@ class BtShardTest(unittest.TestCase):
                   bottom_left: [-5.0, 51.0]
                   top_right: [7.5, 44.0]
             """)
+
+            self.assertEqual(self.mixerConfig(), expected)
+
+            # Ensure a second pass is a no-op if the sharding topology
+            # wasn't updated.
+            bt_shard.run_module()
 
             self.assertEqual(self.mixerConfig(), expected)
 
@@ -278,6 +294,12 @@ class BtShardTest(unittest.TestCase):
                   bottom_left: [1.25, 51.0]
                   top_right: [7.5, 44.0]
             """)
+
+            self.assertEqual(self.mixerConfig(), expected)
+
+            # Ensure a second pass is a no-op if the sharding topology
+            # wasn't updated.
+            bt_shard.run_module()
 
             self.assertEqual(self.mixerConfig(), expected)
 
@@ -387,6 +409,12 @@ class BtShardTest(unittest.TestCase):
                   bottom_left: [3.33, 51.0]
                   top_right: [7.5, 44.0]
             """)
+
+            self.assertEqual(self.mixerConfig(), expected)
+
+            # Ensure a second pass is a no-op if the sharding topology
+            # wasn't updated.
+            bt_shard.run_module()
 
             self.assertEqual(self.mixerConfig(), expected)
 

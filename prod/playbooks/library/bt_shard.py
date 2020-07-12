@@ -169,8 +169,15 @@ def run_module():
     # a limitation of mixers: once a shard is defined, it has to stay
     # the same forever (unless it is turned down).
     if shard_names == existing_shard_names:
-        if shards != existing_shards:
-            raise AnsibleError('changing existing shard layout is not supported')
+        for shard in shards:
+            for existing_shard in existing_shards:
+                if shard['name'] == existing_shard['name']:
+                    workers = set(
+                        ['{0}:{1}'.format(h, shard['worker_port'])
+                         for h in shard['hosts']]
+                    )
+                    if workers != set(existing_shard['workers']):
+                        raise RuntimeError('changing existing shard layout is not supported')
 
     current_ts = calendar.timegm(time.gmtime())
 
@@ -190,9 +197,11 @@ def run_module():
         ts = current_ts + 3600
 
     dated_partitions = dict()
-    for k, v in existing_config.get('partitions', dict()).items():
-        if k > threshold_ts:
-            dated_partitions[k] = v
+    print(existing_config.get('partitions', dict()))
+    for partition in existing_config.get('partitions', dict()):
+        ts = partition['at']
+        if ts > threshold_ts:
+            dated_partitions[ts] = partition
     dated_partitions[ts] = partitions
 
     content = Template(TEMPLATE).render(
