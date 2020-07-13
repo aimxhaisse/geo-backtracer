@@ -33,10 +33,6 @@ class BtShardTest(unittest.TestCase):
         if os.path.exists(self._tmp_file):
             os.remove(self._tmp_file)
 
-    def initialMixerConfig(self, contents):
-        with open(self._tmp_file, mode='r') as fh:
-            return fh.write(contents)        
-
     def mixerConfig(self):
         with open(self._tmp_file, mode='r') as fh:
             return fh.read()
@@ -57,6 +53,9 @@ class BtShardTest(unittest.TestCase):
                     'area': 'default'
                 }
             ],
+            'history': {
+                0: ['shard-a'],
+            },
             'dest': self._tmp_file,
             'mixer_ip': '10.0.0.1',
             'mixer_port': 8000
@@ -130,6 +129,9 @@ class BtShardTest(unittest.TestCase):
                     'mixer_port': 8001
                 },
             ],
+            'history': {
+                0: ['shard-a', 'shard-b'],
+            },
             'geo': [
                 {
                     'area': 'default'
@@ -226,6 +228,9 @@ class BtShardTest(unittest.TestCase):
                     'mixer_port': 8002
                 },
             ],
+            'history': {
+                0: ['shard-a', 'shard-b', 'shard-c'],
+            },
             'geo': [
                 {
                     'area': 'default'
@@ -335,6 +340,9 @@ class BtShardTest(unittest.TestCase):
                     'mixer_port': 8003
                 },
             ],
+            'history': {
+                0: ['shard-a', 'shard-b', 'shard-c', 'shard-d'],
+            },
             'geo': [
                 {
                     'area': 'default'

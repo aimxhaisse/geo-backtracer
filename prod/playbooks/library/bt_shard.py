@@ -108,10 +108,17 @@ def make_partition(area, shard, idx, shard_count):
     }
 
 
-def make_partitions(areas, shards):
+def make_partitions(areas, shard_history, all_shards):
     """Creates a list of partitions given shards and areas.
     """
     partitions = []
+
+    shards = []
+    for history in shard_history:
+        for all_shard in all_shards:
+            if all_shard['name'] == history:
+                shards.append(all_shard)
+                continue
 
     shards_per_area = defaultdict(list)
     for shard in shards:
@@ -148,6 +155,7 @@ def get_existing_config(dest):
 def run_module():
     fields = {
         "shards": {"required": True, "type": "list"},
+        "history": {"required": True, "type": "dict"},
         "geo": {"required": True, "type": "list"},
         "dest": {"required": True, "type": "str"},
         "mixer_ip": {"required": True, "type": "str"},
@@ -157,52 +165,10 @@ def run_module():
     module = AnsibleModule(argument_spec=fields)
     shards = module.params['shards']
     areas = module.params['geo']
-    partitions = make_partitions(areas, shards)
-
-    existing_config = get_existing_config(module.params['dest'])
-    existing_shards = existing_config.get('shards', list())
-    existing_shard_names = [s.get('name') for s in existing_shards]
-
-    shard_names = [s.get('name') for s in shards]
-
-    # We don't support changing the layout of existing shards, this is
-    # a limitation of mixers: once a shard is defined, it has to stay
-    # the same forever (unless it is turned down).
-    if shard_names == existing_shard_names:
-        for shard in shards:
-            for existing_shard in existing_shards:
-                if shard['name'] == existing_shard['name']:
-                    workers = set(
-                        ['{0}:{1}'.format(h, shard['worker_port'])
-                         for h in shard['hosts']]
-                    )
-                    if workers != set(existing_shard['workers']):
-                        raise RuntimeError('changing existing shard layout is not supported')
-
-    current_ts = calendar.timegm(time.gmtime())
-
-    # Remove entries older than 15 days from the config, we don't
-    # retain data older than this so it is fine. This config is *not*
-    # synchronized with the worker config so it has to tuned
-    # carefully.
-    #
-    # TODO: move this to the module parameters.
-    threshold_ts = current_ts - 3600 * 24 * 15
-
-    ts = 0
-    if len(existing_shards) > 0 and shards != existing_shards:
-        # The new sharding layout will be effective in 3600 seconds,
-        # this is to let some time for all the mixers to catch the new
-        # configuration file.
-        ts = current_ts + 3600
 
     dated_partitions = dict()
-    print(existing_config.get('partitions', dict()))
-    for partition in existing_config.get('partitions', dict()):
-        ts = partition['at']
-        if ts > threshold_ts:
-            dated_partitions[ts] = partition
-    dated_partitions[ts] = partitions
+    for ts, shard_history in module.params['history'].items():
+        dated_partitions[ts] = make_partitions(areas, shard_history, shards)
 
     content = Template(TEMPLATE).render(
         shards=shards,
