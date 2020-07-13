@@ -59,6 +59,7 @@
   bt_shard:
     geo: "{{ geo }}"
     shards: "{{ shards }}"
+    history: "{{ history }}"
     dest: "/home/{{ geo_user }}/bt/{{ item.name }}/etc/mixer.yml"
     mixer_ip: "{{ vpn_ip }}"
     mixer_port: "{{ item.mixer_port }}"
