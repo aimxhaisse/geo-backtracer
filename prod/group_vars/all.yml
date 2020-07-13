@@ -34,7 +34,11 @@ geo:
   # area is set as a default.
   - area: "default"
 
-# Shards
+# Shards. Once a shard is defined, it should not evolve: i.e: new
+# hosts can't be added to an existing shard. The way to grow the
+# cluster up is to add a new shard with a new list of machines into
+# it, populate a new entry in the history below, and refresh
+# configurations.
 
 shards:
   - name: "8a00862"
@@ -52,3 +56,23 @@ shards:
     hosts: ["treebeard", "bombadil"]
     mixer_port: 8002
     worker_port: 7002
+
+# History of the cluster, each key here is a timestamp associated with
+# a list of shards. This is used to cut the topology by date to handle
+# a cluster that grows in shards (or decreases).
+#
+# For instance:
+#
+# history:
+#   0: ["shard-a"]
+#   42: ["shard-a", "shard-b"]
+#
+# Means that all points between timestamp 0 and 42 are handled by one
+# shard, at timestamp 42 we added a new shard so everything after 42
+# is handled by two shards. When turning up a new shard, a new
+# timestamp in the near future (say in 1h) can be added to the history
+# so that it gives enough time to reload the cluster with the new
+# setup.
+
+history:
+  0: ["8a00862", "eb3e451", "735ec68"]
