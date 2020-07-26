@@ -7,17 +7,19 @@ can be coupled with backends aggregating points from mobile phones for
 a COVID-like tracing app; it is meant to be scalable and solve this
 single problem.
 
+## Scalability
+
 The Geo Backtracer is built to scale linearly with the number of
 users: doubling the number of machines in the cluster handles twice
 the load. Simulations with 100 000 to 50 million users were performed
 with different cluster configurations to assess the scale at which it
 can operate in a production-like environment.
 
-The project is composed of multiple parts:
+## Components
 
-- A [C++ distributed service](https://github.com/aimxhaisse/geo-backtracer/tree/master/server) that stores and correlates GPS points
+- [C++ distributed service](https://github.com/aimxhaisse/geo-backtracer/tree/master/server) that stores and correlates GPS points
   (gRPC, RocksDB),
-- A [C++ client](https://github.com/aimxhaisse/geo-backtracer/tree/master/client) to simulate users and interact with the cluster,
+- [C++ client](https://github.com/aimxhaisse/geo-backtracer/tree/master/client) to run simulations of live users and interact with the cluster,
 - [Ansible automation](https://github.com/aimxhaisse/geo-backtracer/tree/master/prod) to spin up a new cluster from scratch with
   encrypted traffic between nodes, automatic generation of sharding configurations based on the number of machines, and a few facilities for monitoring.
 
