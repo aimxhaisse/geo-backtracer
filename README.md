@@ -2,15 +2,9 @@
 
 A service to store GPS-like locations of O(million) users in
 real-time, and provide a way to backtrace over a period of 15 days,
-users that were close for more than 15 minutes. This is just one brick
-that can be coupled with backends aggregating points from mobile
-phones; it is meant to be scalable and solve this single problem.
-
-## Status
-
-The geo-backtracer can handle O(50 million) active users with ~10
-machines. It scales linearly with the number of machines (i.e:
-doubling the number of machines doubles the load it can handle).
+users that were close for more than 15 minutes. This is one brick that
+can be coupled with backends aggregating points from mobile phones; it
+is meant to be scalable and solve this single problem.
 
 ## Features
 
@@ -28,22 +22,6 @@ The current features are implemented:
 
 This project is backed by [Protocol Labs](https://protocol.ai) as part
 of the [COVID-19 Open Innovation Grants](https://research.protocol.ai/posts/202003-covid-grants/).
-
-## How it works
-
-The Geo Backtracer stores GPS points from user identifiers and, given
-an identifier, is able to compute identifiers that were in a close
-distance for more than 30 minutes in the last 14 days. To do so at a
-large scale, it uses an internal database layout that optimizes
-heavily to solve this single problem:
-
-- high throughput is achieved with little database compaction as data
-is written in a sorted fashion (so that writes are sequential),
-
-- reads for the solver are localised by reading blocks containing all
-information needed to compute correlations within a zone of 100x100
-meters over 1000 seconds; the algorithm computes the distance between
-all users in the area and outputs strong correlations.
 
 ## Development
 
