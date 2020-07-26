@@ -1,20 +1,31 @@
 # Geo Backtracer
 
-A service to store GPS-like locations of O(million) users in
-real-time, and provide a way to backtrace over a period of 15 days,
+A distributed backend to store GPS-like locations of users in
+real-time and to provide a way to backtrace over a period of 15 days,
 users that were close for more than 15 minutes. This is one brick that
-can be coupled with backends aggregating points from mobile phones; it
-is meant to be scalable and solve this single problem.
+can be coupled with backends aggregating points from mobile phones for
+a COVID-like tracing app; it is meant to be scalable and solve this
+single problem.
 
-## Features
+The Geo Backtracer is built to scale linearly with the number of
+users: doubling the number of machines in the cluster handles twice
+the load. Simulations with 100 000 to 50 million users were performed
+with different cluster configurations to assess the scale at which it
+can operate in a production-like environment.
 
-The current features are implemented:
+The project is composed of multiple parts:
 
-- API to push GPS points from users,
-- API to fetch the timeline of a user,
-- API to delete all data of a user (GDPR),
-- API to seek correlations at scale,
-- Garbage collection of points older than 14 days (can be configured).
+- A [C++ distributed service](https://github.com/aimxhaisse/geo-backtracer/tree/master/server) that stores and correlates GPS points
+  (gRPC, RocksDB),
+- A [C++ client](https://github.com/aimxhaisse/geo-backtracer/tree/master/client) to simulate users and interact with the cluster,
+- [Ansible automation](https://github.com/aimxhaisse/geo-backtracer/tree/master/prod) to spin up a new cluster from scratch with
+  encrypted traffic between nodes, automatic generation of sharding configurations based on the number of machines, and a few facilities for monitoring.
+
+## Documentation
+
+* [Documentation](https://github.com/aimxhaisse/geo-backtracer/tree/master/doc)
+* [Talk at Paris P2P](https://www.youtube.com/watch?v=B-AAEBBkcak) (in French)
+* [Slides from Paris P2P talk](https://docs.google.com/presentation/d/1LlakTzJiWInKrA37yrXhYvOEvYq8y4p55oXkuUxHy7w/)
 
 ## Contributors
 
@@ -22,118 +33,3 @@ The current features are implemented:
 
 This project is backed by [Protocol Labs](https://protocol.ai) as part
 of the [COVID-19 Open Innovation Grants](https://research.protocol.ai/posts/202003-covid-grants/).
-
-## Development
-
-Development environment for now is on Mac OS, but the project compiles
-and runs on Linux as well (see Dockerfile):
-
-Install the following dependencies:
-
-    brew install boost
-    brew install clang-format
-    brew install gflags
-    brew install glog
-    brew install grpc
-    brew install protobuf
-    brew install rocksdb
-    brew install yaml-cpp
-    brew install --HEAD https://gist.githubusercontent.com/Kronuz/96ac10fbd8472eb1e7566d740c4034f8/raw/gtest.rb
-
-Once done, run the Makefile to get more help about available commands:
-
-    $ make
-    Help for Covid Backtracer:
-
-    This is not production ready, some commands here are destructive.
-
-    make            # this message
-    make all        # build everything
-    make test       # run unit tests
-    make clean      # clean all build artifacts
-    make re         # rebuild covid backtracer
-    make server     # run a local instance of covid backtracer
-    make client     # inject fixtures into local instance
-
-As unit tests simulate clusters with multiple databases and gRPC
-stubs, they can fail due to hitting limits on file descriptors
-(default 256 on common setups), to increase the limit:
-
-    ulimit -n 1024
-
-## Integration with mobile data
-
-One requirement for this approach to be effective is to have aligned
-points as input: i.e: have mobile applications emit GPS points during
-a narrow window of time (for instance, at second 30 of every minute).
-This makes it possible to handle complex situations (i.e: a car
-following a bus for instance) without having to take into account
-directions and speed of users.
-
-Typically, in pseudo-code, here is how a mobile app could implement
-such an approach:
-
-    kSendRateSeconds = 60
-
-    while (true) {
-	  # Get position at second 0 of the minute, all phones are
-	  # calibrated on time with GPS data, so they have a somewhat
-	  # consistent view of time. This means they can all get a point at
-	  # second 0, in a synchronized way, with little effort.
-	  #
-	  # This makes correlation easy: we can assume that two points
-	  # that are close were close at the same time and then movement
-	  # doesn't matter: we don't need to compute speed or direction.
-	  current_time_ms = now()
-	  padded_time_ms = (current_time_ms / (1000 * kSendRateSeconds)) * (1000 * kSendRateSeconds)
-	  sleep_ms(current_time_ms - padded_time_ms)
-
-	  # Send GPS position.
-	  current_position = get_position()
-	  send_position(current_position)
-
-	  # Move a bit the clock, so that we pick the next cycle.
-	  sleep_ms((kSendRateSeconds / 2) * 1000)
-    }
-
-A phone that is not moving should not be sending points, but could be
-sending instead: here was my position for the last 10 hours ; this can
-be done by setting a duration in the API. This significantly reduces
-the size of the database.
-
-## Ramblings
-
-### Assumptions
-
-   - 15 days of history,
-   - 1 point per user per minute.
-
-### Status
-
-Current numbers, inserting 200 000 000 points in an empty database:
-
-   - 80 000 inserts / second,
-   - 12.5 byte per GPS point.
-
-### Target Insert rate
-
-| active users | inserts/second |
-|--------------|----------------|
-| 1K users     | 16             |
-| 10K users    | 160            |
-| 100K users   | 1.6K           |
-| 1M users     | 16K            |
-| 10M users    | 160K           |
-| 100M users   | 1.6M           |
-
-### Target Size
-
-| point size | 1 million users | 10 million users | 100 million users |
-|------------|-----------------|------------------|-------------------|
-| 1 byte     | 22G             | 220G             | 2.2T              |
-| 2 bytes    | 43G             | 430G             | 4.3T              |
-| 3 bytes    | 65G             | 0.7T             | 7T                |
-| 4 bytes    | 86G             | 0.9T             | 9T                |
-| 5 bytes    | 108G            | 1.1T             | 11T               |
-| 10 bytes   | 220G            | 2.2T             | 22T               |
-| 20 bytes   | 430G            | 4.3T             | 43T               |
